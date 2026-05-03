@@ -10,13 +10,14 @@ import {
   ChevronLeft,
   ChevronRight,
   Clock,
+  Flower2,
   Footprints,
-  Heart,
   Mail,
   MapPin,
   Music,
   Palette,
   Shirt,
+  Utensils,
 } from "lucide-react";
 
 type SectionHeadingProps = {
@@ -470,27 +471,6 @@ function VenueCarousel() {
 export default function WeddingWebsiteStarter() {
   return (
     <main className="min-h-screen bg-[#fbf7f3] text-stone-800">
-      <Image
-        src="/images/floral-fixed-bottom-left.png"
-        alt=""
-        width={1308}
-        height={1203}
-        aria-hidden="true"
-        priority
-        sizes="(min-width: 1024px) 34rem, (min-width: 768px) 30rem, (min-width: 640px) 24rem, 72vw"
-        className="pointer-events-none fixed bottom-0 left-0 z-30 w-72 max-w-[72vw] select-none opacity-55 sm:w-96 md:w-[30rem] lg:w-[34rem]"
-      />
-      <Image
-        src="/images/floral-fixed-top-right.png"
-        alt=""
-        width={1536}
-        height={1024}
-        aria-hidden="true"
-        priority
-        sizes="(min-width: 1024px) 42rem, (min-width: 768px) 38rem, (min-width: 640px) 32rem, 82vw"
-        className="pointer-events-none fixed -right-6 -top-8 z-30 w-[82vw] max-w-[42rem] select-none opacity-45 sm:w-[32rem] md:w-[38rem] lg:w-[42rem]"
-      />
-
       <section className="relative isolate overflow-hidden">
         <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(232,196,184,0.55),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(210,184,153,0.42),_transparent_30%)]" />
         <div className="absolute left-1/2 top-8 -z-10 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-white/35 blur-3xl" />
@@ -579,51 +559,71 @@ export default function WeddingWebsiteStarter() {
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.9, delay: 0.15 }}
-            className="relative mx-auto w-full max-w-md"
+            className="relative mx-auto w-full max-w-[430px] md:max-w-md"
           >
             <div className="absolute -left-8 top-10 h-32 w-32 rounded-full bg-[#ead3cd] blur-2xl" />
             <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-[#dac0a3] blur-2xl" />
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/75 bg-white/50 p-3 shadow-2xl shadow-stone-300/40 backdrop-blur">
-              <div className="aspect-[4/5] rounded-[1.5rem] bg-gradient-to-br from-[#e7c9c0] via-[#f7efe9] to-[#c8aa82] p-8">
-                <div className="flex h-full flex-col justify-between rounded-[1.25rem] border border-white/55 bg-white/25 p-6 text-center backdrop-blur-sm">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.35em] text-stone-600">Wedding</p>
-                    <p className="mt-4 font-serif text-5xl leading-none text-stone-900">01.11.26</p>
-                  </div>
-                  <div>
-                    <Heart className="mx-auto mb-4 h-8 w-8 text-[#b98d83]" />
-                    <p className="font-serif text-3xl text-stone-900">Garden romance</p>
-                    <p className="mt-3 text-sm leading-6 text-stone-700">
-                      Replace this card with your favourite couple photo or a soft venue image.
-                    </p>
-                  </div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-stone-600">Perth, Western Australia</p>
-                </div>
-              </div>
+            <div className="relative rounded-[34px] border border-white/75 bg-[#fffaf7]/80 p-3 shadow-[0_24px_70px_rgba(90,65,50,0.14)] backdrop-blur">
+              <Image
+                src="/images/venue-card.png"
+                alt="Caversham House wedding venue card for Sumaya and Aditya"
+                width={1024}
+                height={1536}
+                priority
+                className="h-auto w-full rounded-[28px] object-contain"
+              />
             </div>
           </motion.div>
         </div>
       </section>
 
-      <section id="details" className="px-6 py-20 md:py-28">
-        <SectionHeading
-          eyebrow="The celebration"
-          title="A soft garden ceremony followed by an elegant reception"
-          subtitle="Our day is being planned around romance, ease, family, good food, music, and a beautiful Swan Valley setting."
-        />
+      <section className="bg-[#fbf7f3] px-6 py-16 md:py-20">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.35em] text-stone-500">A note from us</p>
+          <p className="font-serif text-2xl leading-10 text-[#4f4641] md:text-3xl md:leading-[1.55]">
+            We are so excited to celebrate this day with the people who have been part of our story. More details will
+            be shared closer to the day, but for now, we would love for you to save the date and join us for a romantic
+            garden celebration at Caversham House.
+          </p>
+        </div>
+      </section>
+
+      <section id="details" className="bg-[#fbf7f2] px-6 py-20 md:py-28">
+        <div className="mx-auto mb-10 max-w-3xl text-center">
+          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-stone-500">The celebration</p>
+          <h2 className="font-serif text-4xl text-[#b58b84] md:text-5xl">
+            A garden ceremony, an intimate dinner, and an evening to remember
+          </h2>
+          <p className="mt-4 text-base leading-7 text-[#4f4641] md:text-lg">
+            Our day has been designed to feel romantic, relaxed, and full of warmth — with garden moments, beautiful
+            food, music, and time to celebrate with the people we love most.
+          </p>
+        </div>
         <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
           {[
-            { icon: Calendar, title: "Date", text: "Sunday, 1 November 2026" },
-            { icon: MapPin, title: "Location", text: "Caversham House, Swan Valley" },
-            { icon: Music, title: "Mood", text: "Garden ceremony, dinner, drinks, and dancing" },
+            {
+              icon: Flower2,
+              title: "Garden Ceremony",
+              text: "A soft ceremony at Garden House, set among the greenery and romance of Caversham House.",
+            },
+            {
+              icon: Utensils,
+              title: "Dinner at Main House",
+              text: "An elegant sit-down reception with good food, warm speeches, and time shared around the table.",
+            },
+            {
+              icon: Music,
+              title: "Celebration",
+              text: "Music, drinks, and dancing as the evening unfolds.",
+            },
           ].map((card) => (
             <div
               key={card.title}
-              className="rounded-[1.35rem] border border-[#e8ddd4]/70 bg-[#fffaf4]/70 px-8 py-9 shadow-[0_12px_34px_rgba(101,75,62,0.05)] backdrop-blur-sm"
+              className="rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7] px-8 py-10 shadow-[0_18px_45px_rgba(101,75,62,0.07)] backdrop-blur-sm"
             >
-              <card.icon className="mb-7 h-5 w-5 text-[#b98d83]" />
-              <h3 className="font-serif text-2xl text-stone-900">{card.title}</h3>
-              <p className="mt-4 leading-7 text-stone-600">{card.text}</p>
+              <card.icon className="mb-7 h-6 w-6 text-[#b98278]" />
+              <h3 className="font-serif text-2xl text-[#4f4641]">{card.title}</h3>
+              <p className="mt-4 leading-7 text-[#4f4641]/80">{card.text}</p>
             </div>
           ))}
         </div>
@@ -729,31 +729,103 @@ export default function WeddingWebsiteStarter() {
         </div>
       </section>
 
-      <section id="rsvp" className="bg-stone-900 px-6 py-20 text-white md:py-28">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-stone-300">RSVP</p>
-          <h2 className="rose-gold-foil font-serif text-4xl md:text-5xl">We hope you can celebrate with us</h2>
-          <p className="mt-5 text-lg leading-8 text-stone-300">
-            RSVP will open once formal invitations are sent. Each guest or household will receive a private RSVP link.
-          </p>
-          <div className="mt-10 rounded-[2rem] border border-white/15 bg-white/10 p-6 text-left shadow-2xl shadow-black/20 backdrop-blur">
-            <label className="text-xs font-semibold uppercase tracking-[0.25em] text-stone-300">
-              Preview RSVP lookup
-            </label>
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row">
-              <input
-                type="text"
-                placeholder="Enter your name or invite code"
-                className="min-h-12 flex-1 rounded-full border border-white/15 bg-white/95 px-5 text-stone-900 outline-none placeholder:text-stone-400"
-              />
-              <button className="rounded-full bg-[#e9cfc8] px-7 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-stone-900 transition hover:bg-white">
-                Find Invite
-              </button>
-            </div>
-            <p className="mt-4 text-sm leading-6 text-stone-300">
-              This is the section we will connect to the SQL database in the next phase.
+      <section id="rsvp" className="bg-[#2A1D19] px-6 py-20 text-white md:py-28">
+        <div className="mx-auto max-w-4xl">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-[#d8c7bf]">RSVP</p>
+            <h2 className="rose-gold-foil font-serif text-4xl md:text-5xl">We hope you can celebrate with us</h2>
+            <p className="mt-5 text-lg leading-8 text-[#e6d9d2]">
+              We would be so grateful if you could let us know whether you’ll be joining us. The ceremony is child
+              friendly, while the reception is adults only.
             </p>
           </div>
+
+          <form
+            onSubmit={(event) => event.preventDefault()}
+            className="mt-10 rounded-[2rem] border border-[#eaded6]/25 bg-[#fffaf7] p-6 text-[#4f4641] shadow-2xl shadow-black/20 md:p-8"
+          >
+            <div className="grid gap-6">
+              <label className="grid gap-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">Guest name</span>
+                <input
+                  type="text"
+                  name="guestName"
+                  placeholder="Your full name"
+                  className="min-h-12 rounded-2xl border border-[#eaded6] bg-white px-4 text-[#4f4641] outline-none transition placeholder:text-[#a99790] focus:border-[#b98278]"
+                />
+              </label>
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <fieldset className="rounded-2xl border border-[#eaded6] bg-white/70 p-5">
+                  <legend className="px-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">
+                    Attending ceremony?
+                  </legend>
+                  <div className="mt-4 grid gap-3 text-sm text-[#4f4641]">
+                    {["Yes", "No"].map((option) => (
+                      <label key={option} className="flex items-center gap-3">
+                        <input type="radio" name="attendingCeremony" value={option.toLowerCase()} />
+                        {option}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+
+                <fieldset className="rounded-2xl border border-[#eaded6] bg-white/70 p-5">
+                  <legend className="px-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">
+                    Attending reception?
+                  </legend>
+                  <div className="mt-4 grid gap-3 text-sm text-[#4f4641]">
+                    {["Yes", "No"].map((option) => (
+                      <label key={option} className="flex items-center gap-3">
+                        <input type="radio" name="attendingReception" value={option.toLowerCase()} />
+                        {option}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              </div>
+
+              <label className="grid gap-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">
+                  Dietary requirements
+                </span>
+                <textarea
+                  name="dietaryRequirements"
+                  rows={3}
+                  placeholder="Please let us know about any dietary requirements or allergies"
+                  className="rounded-2xl border border-[#eaded6] bg-white px-4 py-3 text-[#4f4641] outline-none transition placeholder:text-[#a99790] focus:border-[#b98278]"
+                />
+              </label>
+
+              <label className="grid gap-2">
+                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">Song request</span>
+                <input
+                  type="text"
+                  name="songRequest"
+                  placeholder="A song you’d love to hear on the dance floor"
+                  className="min-h-12 rounded-2xl border border-[#eaded6] bg-white px-4 text-[#4f4641] outline-none transition placeholder:text-[#a99790] focus:border-[#b98278]"
+                />
+              </label>
+
+              <div className="rounded-2xl border border-[#eaded6] bg-[#fbf7f2] px-5 py-4 text-sm leading-6 text-[#6e5b54]">
+                Children are very welcome at the ceremony at Garden House. The reception at Main House will be adults
+                only.
+              </div>
+
+              <div className="flex flex-col gap-3 border-t border-[#eaded6] pt-6 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm leading-6 text-[#7b6760]">
+                  Formal RSVPs will open once invitations are sent.
+                </p>
+                <button
+                  type="submit"
+                  disabled
+                  className="rounded-full bg-[#e9cfc8] px-7 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#4f302b] opacity-70"
+                >
+                  RSVP opens soon
+                </button>
+              </div>
+            </div>
+          </form>
         </div>
       </section>
 
