@@ -56,15 +56,6 @@ type GuestListResponse = {
   summary?: GuestSummary;
 };
 
-type SmsResponse = {
-  ok?: boolean;
-  error?: string;
-  sent?: Array<{ id: string; fullName: string; status: string }>;
-  skipped?: Array<{ id: string; fullName: string; reason: string }>;
-  failed?: Array<{ id: string; fullName: string; error: string }>;
-  missing?: string[];
-};
-
 type RsvpStatus = "Responded" | "Not responded";
 type AttendanceValue = "Not answered" | "Yes" | "No";
 
@@ -153,6 +144,20 @@ function formatValue(value: string | null) {
 
 function normalizePhone(value: string | null) {
   return value?.replace(/[^\d+]/g, "") ?? "";
+}
+
+function buildInviteLink(siteUrl: string, inviteToken: string) {
+  const baseUrl = siteUrl || "";
+  return `${baseUrl}/?guest=${encodeURIComponent(inviteToken)}#rsvp`;
+}
+
+function buildInviteMessage(fullName: string, inviteLink: string) {
+  return `Hi ${fullName}, please RSVP for Sumaya and Aditya's wedding here: ${inviteLink}`;
+}
+
+function buildSmsHref(phoneNumber: string | null, message: string) {
+  const phone = normalizePhone(phoneNumber);
+  return `sms:${phone}?&body=${encodeURIComponent(message)}`;
 }
 
 function csvCell(value: string | number | boolean | null) {
@@ -433,6 +438,7 @@ function GuestEditor({
 export default function GuestListDashboard() {
   const [passcode, setPasscode] = useState("");
   const [activePasscode, setActivePasscode] = useState("");
+  const [copiedGuestId, setCopiedGuestId] = useState("");
   const [guests, setGuests] = useState<CoupleGuest[]>([]);
   const [summary, setSummary] = useState<GuestSummary>(emptySummary);
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
@@ -524,56 +530,20 @@ export default function GuestListDashboard() {
     return result;
   }
 
-  async function sendSmsToGuests(guestIds: string[]) {
-    try {
-      setStatus("loading");
-      setMessage("");
-
-      const response = await fetch("/api/guest-list/sms", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-guest-list-passcode": activePasscode,
-        },
-        body: JSON.stringify({ guestIds }),
-      });
-      const result = (await response.json()) as SmsResponse;
-
-      if (!response.ok && response.status !== 207) {
-        throw new Error(result.error ?? "Could not send SMS.");
-      }
-
-      const sentCount = result.sent?.length ?? 0;
-      const skippedCount = result.skipped?.length ?? 0;
-      const failedCount = result.failed?.length ?? 0;
-      const parts = [`Sent ${sentCount} SMS${sentCount === 1 ? "" : "es"}.`];
-
-      if (skippedCount > 0) {
-        parts.push(`${skippedCount} skipped due to missing or invalid phone numbers.`);
-      }
-
-      if (failedCount > 0) {
-        parts.push(`${failedCount} failed.`);
-      }
-
-      setStatus(failedCount > 0 ? "error" : "success");
-      setMessage(parts.join(" "));
-    } catch (error) {
-      setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Could not send SMS.");
-    }
-  }
-
   async function handleUnlock(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
     try {
+      if (!passcode.trim()) {
+        throw new Error("Enter the couple passcode to open the guest list.");
+      }
+
       await loadGuests(passcode);
       setActivePasscode(passcode);
       setPasscode("");
     } catch (error) {
       setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Could not unlock the guest list.");
+      setMessage(error instanceof Error ? error.message : "Could not open the guest list.");
     }
   }
 
@@ -677,6 +647,47 @@ export default function GuestListDashboard() {
     });
   }
 
+  function getGuestInviteMessage(guest: CoupleGuest) {
+    const currentSiteUrl = typeof window === "undefined" ? "" : window.location.origin;
+    return buildInviteMessage(guest.fullName, buildInviteLink(currentSiteUrl, guest.inviteToken));
+  }
+
+  function openGuestSms(guest: CoupleGuest) {
+    if (!normalizePhone(guest.phoneNumber)) {
+      return;
+    }
+
+    window.location.href = buildSmsHref(guest.phoneNumber, getGuestInviteMessage(guest));
+  }
+
+  async function copyGuestSmsText(guest: CoupleGuest) {
+    try {
+      await navigator.clipboard.writeText(getGuestInviteMessage(guest));
+      setCopiedGuestId(guest.id);
+      setStatus("success");
+      setMessage(`Copied SMS text for ${guest.fullName}.`);
+      window.setTimeout(() => setCopiedGuestId(""), 1800);
+    } catch {
+      setStatus("error");
+      setMessage("Could not copy SMS text. You can still use the SMS button.");
+    }
+  }
+
+  async function copySelectedSmsTexts() {
+    try {
+      const text = selectedSmsGuests
+        .map((guest) => `${guest.fullName} (${guest.phoneNumber ?? "No phone"}):\n${getGuestInviteMessage(guest)}`)
+        .join("\n\n");
+
+      await navigator.clipboard.writeText(text);
+      setStatus("success");
+      setMessage(`Copied ${selectedSmsGuests.length} prepared SMS text${selectedSmsGuests.length === 1 ? "" : "s"}.`);
+    } catch {
+      setStatus("error");
+      setMessage("Could not copy selected SMS texts. Try copying one guest at a time.");
+    }
+  }
+
   function downloadCsv() {
     const csv = buildCsv(filteredGuests);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
@@ -700,7 +711,7 @@ export default function GuestListDashboard() {
           </p>
           <h1 className="rose-gold-foil font-serif text-5xl leading-tight md:text-6xl">Guest List</h1>
           <p className="mt-6 text-base leading-8 text-[#6a5d55]">
-            Private RSVP dashboard with guest contact details.
+            Private guest list and SMS composer for sending RSVP links from your phone.
           </p>
 
           <form
@@ -726,7 +737,7 @@ export default function GuestListDashboard() {
               className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#241815] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-[0_12px_30px_rgba(36,24,21,0.18)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#382722] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <LockKeyhole aria-hidden="true" className="h-4 w-4" />
-              {busy ? "Opening..." : "Enter"}
+              {busy ? "Opening..." : "Enter guest list"}
             </button>
           </form>
         </section>
@@ -741,6 +752,9 @@ export default function GuestListDashboard() {
           <div>
             <p className="text-[11px] font-medium uppercase tracking-[0.36em] text-[#6e5b54]">Sumaya & Aditya</p>
             <h1 className="mt-3 font-serif text-4xl leading-tight text-[#3f302b] md:text-5xl">Guest List</h1>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-[#6a5d55]">
+              Open each SMS from your phone to send the prepared RSVP message using your normal mobile plan.
+            </p>
           </div>
 
           <div className="flex flex-wrap gap-3">
@@ -825,12 +839,12 @@ export default function GuestListDashboard() {
             </button>
             <button
               type="button"
-              onClick={() => void sendSmsToGuests(selectedSmsGuests.map((guest) => guest.id))}
+              onClick={() => void copySelectedSmsTexts()}
               disabled={busy || selectedSmsGuests.length === 0}
               className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#6f7d5b] px-5 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#5d6c4c] disabled:cursor-not-allowed disabled:opacity-45"
             >
               <MessageCircle aria-hidden="true" className="h-4 w-4" />
-              {busy ? "Sending..." : `SMS selected (${selectedSmsGuests.length})`}
+              Copy SMS text ({selectedSmsGuests.length})
             </button>
           </div>
         </div>
@@ -895,14 +909,28 @@ export default function GuestListDashboard() {
                   </div>
 
                   <div className="flex shrink-0 flex-wrap gap-2">
+                    {phone ? (
+                      <button
+                        type="button"
+                        onClick={() => openGuestSms(guest)}
+                        className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#6f7d5b] px-4 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#5d6c4c]"
+                      >
+                        <MessageCircle aria-hidden="true" className="h-4 w-4" />
+                        SMS
+                      </button>
+                    ) : (
+                      <span className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#e9ddd6] px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#8c7a72]">
+                        <MessageCircle aria-hidden="true" className="h-4 w-4" />
+                        No phone
+                      </span>
+                    )}
                     <button
                       type="button"
-                      onClick={() => void sendSmsToGuests([guest.id])}
-                      disabled={busy || !phone}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#6f7d5b] px-4 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#5d6c4c] disabled:cursor-not-allowed disabled:opacity-45"
+                      onClick={() => void copyGuestSmsText(guest)}
+                      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96]"
                     >
                       <MessageCircle aria-hidden="true" className="h-4 w-4" />
-                      {busy ? "Sending..." : "SMS"}
+                      {copiedGuestId === guest.id ? "Copied" : "Copy text"}
                     </button>
                     {guest.phoneNumber && (
                       <a

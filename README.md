@@ -16,23 +16,11 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Private Guest SMS
+## Guest SMS
 
-The `/guest-list` page can send real RSVP SMS messages through Twilio. Real sending is disabled until server-side provider credentials are configured.
+The `/guest-list` page prepares RSVP SMS messages without a paid SMS provider. Each guest has an `SMS` button that opens the device's normal Messages app with a predefined invitation message and private RSVP link.
 
-Required environment variables:
-
-```bash
-PUBLIC_SITE_URL="https://your-public-wedding-site.example"
-TWILIO_ACCOUNT_SID=""
-TWILIO_API_KEY_SID=""
-TWILIO_API_KEY_SECRET=""
-TWILIO_FROM_NUMBER=""
-```
-
-You can use `TWILIO_MESSAGING_SERVICE_SID` instead of `TWILIO_FROM_NUMBER`. For local testing only, `TWILIO_AUTH_TOKEN` can be used instead of the API key pair.
-
-The SMS endpoint is protected by the guest-list passcode, rate-limited, capped at 25 recipients per request, and only sends the built-in RSVP invitation text with each guest's private invite link.
+The guest-list page and API require the couple guest-list passcode before guest details or SMS compose buttons are shown.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 

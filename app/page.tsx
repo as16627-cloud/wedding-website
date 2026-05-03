@@ -2,7 +2,7 @@
 
 import React, { type FormEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, type MotionProps, useReducedMotion, type Variants } from "framer-motion";
 import {
   CalendarPlus,
   ChevronDown,
@@ -10,12 +10,13 @@ import {
   ChevronRight,
   Clock,
   Flower2,
-  Footprints,
   Mail,
+  Menu,
   Music,
-  Palette,
-  Shirt,
   Utensils,
+  Volume2,
+  VolumeX,
+  X,
 } from "lucide-react";
 
 type SectionHeadingProps = {
@@ -53,6 +54,17 @@ const venueImages = [
 const venueAutoPlayDelay = 5000;
 const venueManualPauseDelay = 6000;
 const venueSwipeThreshold = 40;
+const gateOpenEase = [0.16, 1, 0.3, 1] as const;
+const ambientAudioSrc = "/audio/romantic-garden-instrumental.mp3";
+const ambientAudioTargetVolume = 0.22;
+const ambientAudioFadeDuration = 1800;
+
+const clampProgress = (value: number) => Math.max(0, Math.min(1, value));
+
+const smoothProgress = (value: number) => {
+  const progress = clampProgress(value);
+  return progress * progress * (3 - 2 * progress);
+};
 
 const itinerary = [
   {
@@ -94,31 +106,35 @@ const itinerary = [
 
 const dressCode = {
   eyebrow: "DRESS CODE",
-  title: "Romantic Garden Formal",
-  intro:
-    "For the day, we invite you to dress in soft, elegant tones inspired by the gardens of Caversham House. Pastels, blush, champagne, sage, dusty blue, lavender, soft pinks, and refined neutrals will sit beautifully with the setting.",
-  details:
-    "We encourage polished garden formal attire - cocktail dresses, midi or full-length silhouettes, sarees, lehengas, tailored suits, dress shirts, and elevated formalwear are all welcome.",
-  note: "We kindly ask guests to avoid white, ivory, cream, or anything bridal in tone.",
-  shoeNote:
-    "The ceremony will take place within the venue gardens, so we recommend shoes that are comfortable on lawns and garden paths.",
-  cards: [
-    {
-      title: "Palette",
-      text: "Soft pastels, blush, champagne, sage, dusty blue, lavender, soft pinks, and warm neutrals.",
-    },
-    {
-      title: "Style",
-      text: "Garden formal, cocktail, cultural formalwear, tailored suits, and elegant occasionwear.",
-    },
-    {
-      title: "Shoes",
-      text: "Block heels, wedges, flats, or comfortable dress shoes are recommended for the gardens.",
-    },
+  title: "Garden Pastels & Classic Formal",
+  description:
+    "We invite our guests to dress in soft, garden-inspired tones paired with classic formal styling. Gentle, muted shades are preferred to create a refined and cohesive palette.",
+  pastelFormalCopy: [
+    "Soft pastel gowns, sarees, lehengas, cocktail dresses, and elegant formalwear in garden-inspired tones are warmly welcome.",
+    "Flowing fabrics, soft silhouettes, and romantic textures are encouraged.",
+  ],
+  classicFormalCopy: [
+    "Classic tailoring in navy, charcoal, beige, or black pairs beautifully with crisp white shirts and refined blush or champagne accents.",
+    "Tailored suits, blazers, and well-fitted formal shirts are all welcome — the emphasis is on clean lines, thoughtful details, and a polished finish.",
   ],
 };
 
-const dressCodeIcons = [Palette, Shirt, Footprints];
+const dressCodePastelPalette = [
+  { name: "Blush Pink", color: "#e7c1bc", glow: "rgba(231,193,188,0.46)" },
+  { name: "Soft Sage", color: "#b7c2b0", glow: "rgba(183,194,176,0.44)" },
+  { name: "Dusty Lavender", color: "#c6bfd6", glow: "rgba(198,191,214,0.44)" },
+  { name: "Powder Blue", color: "#b9c7dc", glow: "rgba(185,199,220,0.44)" },
+  { name: "Nude", color: "#d8c8bd", glow: "rgba(216,200,189,0.44)" },
+  { name: "Champagne", color: "#e6d3b3", glow: "rgba(230,211,179,0.48)" },
+];
+
+const dressCodeClassicPalette = [
+  { name: "Navy", color: "#2f3e55", glow: "rgba(47,62,85,0.28)" },
+  { name: "Charcoal", color: "#4a4a4a", glow: "rgba(74,74,74,0.24)" },
+  { name: "Beige", color: "#d9cbbf", glow: "rgba(217,203,191,0.38)" },
+  { name: "Black", color: "#1f1f1f", glow: "rgba(31,31,31,0.22)" },
+  { name: "Champagne", color: "#e6d3b3", glow: "rgba(230,211,179,0.42)" },
+];
 
 const faqs = [
   {
@@ -402,12 +418,14 @@ function ItineraryIcon({ title }: { title: string }) {
 }
 
 function FadeInSection({ children, className = "" }: FadeInSectionProps) {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 28 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 28 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.75, ease: [0.22, 1, 0.36, 1] }}
       className={className}
     >
       {children}
@@ -640,6 +658,10 @@ function VenueCarousel() {
 }
 
 export default function WeddingWebsiteStarter() {
+  const shouldReduceMotion = useReducedMotion();
+  const heroRef = useRef<HTMLElement | null>(null);
+  const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
+  const ambientAudioFadeRef = useRef<number | null>(null);
   const [guestInviteToken, setGuestInviteToken] = useState("");
   const [guestName, setGuestName] = useState("");
   const [guestLookupMessage, setGuestLookupMessage] = useState("");
@@ -649,6 +671,10 @@ export default function WeddingWebsiteStarter() {
   const [plusOneName, setPlusOneName] = useState("");
   const [rsvpSubmitStatus, setRsvpSubmitStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
   const [rsvpSubmitMessage, setRsvpSubmitMessage] = useState("");
+  const [heroScrollProgress, setHeroScrollProgress] = useState(0);
+  const [isHeroMobile, setIsHeroMobile] = useState(false);
+  const [isAmbientAudioOn, setIsAmbientAudioOn] = useState(false);
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
 
   const lookupGuestFromInvite = useCallback(async (inviteToken: string) => {
     setGuestInviteToken(inviteToken);
@@ -706,6 +732,135 @@ export default function WeddingWebsiteStarter() {
       return () => window.clearTimeout(lookupTimer);
     }
   }, [lookupGuestFromInvite]);
+
+  const fadeAmbientAudio = useCallback((targetVolume: number, pauseWhenDone = false) => {
+    const audio = ambientAudioRef.current;
+
+    if (!audio) {
+      return;
+    }
+
+    if (ambientAudioFadeRef.current) {
+      window.cancelAnimationFrame(ambientAudioFadeRef.current);
+      ambientAudioFadeRef.current = null;
+    }
+
+    const startVolume = audio.volume;
+    const startTime = performance.now();
+
+    const step = (timestamp: number) => {
+      const progress = clampProgress((timestamp - startTime) / ambientAudioFadeDuration);
+      audio.volume = startVolume + (targetVolume - startVolume) * progress;
+
+      if (progress < 1) {
+        ambientAudioFadeRef.current = window.requestAnimationFrame(step);
+        return;
+      }
+
+      audio.volume = targetVolume;
+      ambientAudioFadeRef.current = null;
+
+      if (pauseWhenDone) {
+        audio.pause();
+      }
+    };
+
+    ambientAudioFadeRef.current = window.requestAnimationFrame(step);
+  }, []);
+
+  const handleAmbientAudioToggle = useCallback(async () => {
+    const audio = ambientAudioRef.current;
+
+    if (!audio) {
+      return;
+    }
+
+    if (isAmbientAudioOn) {
+      setIsAmbientAudioOn(false);
+      fadeAmbientAudio(0, true);
+      return;
+    }
+
+    try {
+      audio.loop = true;
+      audio.volume = 0;
+      await audio.play();
+      setIsAmbientAudioOn(true);
+      fadeAmbientAudio(ambientAudioTargetVolume);
+    } catch {
+      setIsAmbientAudioOn(false);
+      audio.pause();
+      audio.volume = 0;
+    }
+  }, [fadeAmbientAudio, isAmbientAudioOn]);
+
+  useEffect(() => {
+    const ambientAudio = ambientAudioRef.current;
+
+    return () => {
+      if (ambientAudioFadeRef.current) {
+        window.cancelAnimationFrame(ambientAudioFadeRef.current);
+      }
+
+      if (ambientAudio) {
+        ambientAudio.pause();
+        ambientAudio.volume = 0;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    let animationFrame = 0;
+
+    const updateHeroProgress = () => {
+      animationFrame = 0;
+      const hero = heroRef.current;
+
+      if (!hero) {
+        return;
+      }
+
+      const heroHeight = hero.offsetHeight || window.innerHeight;
+      const rawProgress = (window.scrollY - hero.offsetTop) / heroHeight;
+      const nextProgress = clampProgress(rawProgress);
+
+      setHeroScrollProgress((currentProgress) =>
+        Math.abs(currentProgress - nextProgress) < 0.003 ? currentProgress : nextProgress,
+      );
+    };
+
+    const requestProgressUpdate = () => {
+      if (animationFrame) {
+        return;
+      }
+
+      animationFrame = window.requestAnimationFrame(updateHeroProgress);
+    };
+
+    const updateViewportMode = () => {
+      const isMobileViewport = window.innerWidth < 768;
+      setIsHeroMobile(isMobileViewport);
+
+      if (!isMobileViewport) {
+        setIsMobileNavOpen(false);
+      }
+
+      requestProgressUpdate();
+    };
+
+    updateViewportMode();
+    window.addEventListener("scroll", requestProgressUpdate, { passive: true });
+    window.addEventListener("resize", updateViewportMode);
+
+    return () => {
+      if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+
+      window.removeEventListener("scroll", requestProgressUpdate);
+      window.removeEventListener("resize", updateViewportMode);
+    };
+  }, []);
 
   const handleCeremonyAttendanceChange = (value: string) => {
     setAttendingCeremony(value);
@@ -789,98 +944,278 @@ export default function WeddingWebsiteStarter() {
     }
   };
 
+  const visualScrollProgress = shouldReduceMotion ? 0 : smoothProgress(heroScrollProgress);
+  const heavyScrollProgress = shouldReduceMotion || isHeroMobile ? 0 : visualScrollProgress;
+  const mobileScrollProgress = shouldReduceMotion || !isHeroMobile ? 0 : visualScrollProgress;
+  const noteRevealProgress = shouldReduceMotion ? 1 : smoothProgress((heroScrollProgress - 0.48) / 0.22);
+  const gateOpacity = 0.84 * (1 - heavyScrollProgress);
+  const leftGateOffset = -40 * 0.8 * heavyScrollProgress;
+  const rightGateOffset = 40 * 0.8 * heavyScrollProgress;
+  const houseFadeProgress = isHeroMobile ? mobileScrollProgress * 0.14 : heavyScrollProgress;
+  const houseTranslateY = isHeroMobile ? 0 : -20 * 0.6 * heavyScrollProgress;
+  const copyFadeProgress = isHeroMobile ? mobileScrollProgress * 0.08 : visualScrollProgress * 0.15;
+  const copyTranslateY = isHeroMobile ? -4 * mobileScrollProgress : -10 * visualScrollProgress;
+  const backgroundWashOpacity = isHeroMobile ? mobileScrollProgress * 0.35 : visualScrollProgress;
+  const dressRevealMotion = (delay = 0, y = 16) => ({
+    initial: shouldReduceMotion ? false : { opacity: 0, y },
+    whileInView: { opacity: 1, y: 0 },
+    viewport: { once: true, amount: 0.18 },
+    transition: { duration: shouldReduceMotion ? 0 : 0.72, delay: shouldReduceMotion ? 0 : delay, ease: gateOpenEase },
+  });
+  const swatchRevealContainer: MotionProps = shouldReduceMotion
+    ? {}
+    : {
+        initial: "hidden",
+        whileInView: "show",
+        viewport: { once: true, amount: 0.46 },
+        transition: { staggerChildren: 0.08 },
+      };
+  const swatchRevealItem: Variants = {
+    hidden: { opacity: 0, y: 12 },
+    show: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.62, ease: "easeOut" },
+    },
+  };
+
   return (
     <main className="min-h-screen bg-[#fbf7f2] text-stone-800">
-      <section className="relative isolate overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_14%,_rgba(203,185,163,0.36),_transparent_31%),radial-gradient(circle_at_82%_24%,_rgba(143,154,125,0.14),_transparent_30%),radial-gradient(circle_at_58%_78%,_rgba(185,130,120,0.12),_transparent_34%)]" />
-        <div className="absolute left-1/2 top-8 -z-10 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-white/35 blur-3xl" />
-
-        <nav className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-          <Image
-            src="/images/sa-monogram.png"
-            alt="Sumaya and Aditya monogram"
-            width={599}
-            height={792}
-            priority
-            className="h-12 w-auto object-contain sm:h-14"
-          />
-          <div className="hidden items-center gap-8 text-sm text-[#3f302b] md:flex">
-            <a href="#details" className="transition-colors duration-300 ease-out hover:text-[#b98278]">
-              Details
-            </a>
-            <a href="#dress-code" className="transition-colors duration-300 ease-out hover:text-[#b98278]">
-              Dress Code
-            </a>
-            <a href="#itinerary" className="transition-colors duration-300 ease-out hover:text-[#b98278]">
-              Itinerary
-            </a>
-            <a href="#venue" className="transition-colors duration-300 ease-out hover:text-[#b98278]">
-              Venue
-            </a>
-            <a
-              href="#rsvp"
-              className="rounded-full bg-[#241815] px-5 py-2 text-white shadow-[0_10px_24px_rgba(36,24,21,0.16)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#382722] hover:shadow-[0_12px_30px_rgba(36,24,21,0.20)]"
-            >
-              RSVP
-            </a>
+      <section ref={heroRef} className="relative isolate h-[160vh] overflow-visible bg-[#fbf7f2] text-[#34231e] md:h-[170vh]">
+        <div className="hero-inner sticky top-0 h-screen overflow-hidden [perspective:1500px]">
+        <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#f4ebe4_0%,#fff9f4_38%,#f8eee6_70%,#fbf7f2_100%)]" />
+        <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(74,48,39,0.075)_0%,rgba(255,250,246,0.02)_36%,rgba(255,255,255,0.44)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_at_center,transparent_44%,rgba(52,35,30,0.07)_100%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-[-1px] z-[3] h-[42vh] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.08)_0%,rgba(251,247,242,0.58)_52%,#fbf7f2_86%)]" />
+        <div
+          className="hero-scroll-layer pointer-events-none absolute inset-x-0 bottom-[-3vh] z-[4] mx-auto h-[55vh] min-h-[330px] max-w-[1240px] translate-y-[11%] px-4 sm:h-[58vh] md:min-h-[390px] lg:h-[61vh]"
+          style={{ opacity: 1 - houseFadeProgress, transform: `translateY(calc(11% + ${houseTranslateY}px))` }}
+        >
+          <div className="relative h-full w-full">
+            <Image
+              src="/images/venue2.jpg"
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 1024px) 1180px, 100vw"
+              className="hero-estate-image object-contain object-bottom opacity-[0.46] mix-blend-multiply"
+            />
           </div>
+        </div>
+
+        <nav className="absolute inset-x-0 top-0 z-40">
+          <div className="mx-auto grid w-full max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-5 py-5 sm:px-8 md:px-12 md:py-6">
+            <div className="hidden items-center justify-start gap-8 text-[12px] font-medium uppercase tracking-[0.12em] text-[#3f302b] md:flex lg:gap-10">
+              <a href="#details" className="nav-link">
+                Details
+              </a>
+              <a href="#dress-code" className="nav-link">
+                Dress Code
+              </a>
+            </div>
+
+            <a
+              href="#"
+              aria-label="Sumaya and Aditya wedding home"
+              className="mobile-header-monogram absolute top-5 inline-flex shrink-0 -translate-x-1/2 items-center justify-center md:static md:col-start-2 md:translate-x-0 md:justify-self-center"
+            >
+              <Image
+                src="/images/sa-monogram.png"
+                alt="Sumaya and Aditya monogram"
+                width={1254}
+                height={1254}
+                sizes="(min-width: 768px) 36px, 48px"
+                priority
+                className="sa-monogram h-12 w-auto object-contain md:h-9"
+              />
+            </a>
+
+            <div className="hidden items-center justify-end gap-8 text-[12px] font-medium uppercase tracking-[0.12em] text-[#3f302b] md:flex lg:gap-10">
+              <a href="#itinerary" className="nav-link">
+                Itinerary
+              </a>
+              <a href="#venue" className="nav-link">
+                Venue
+              </a>
+              <a
+                href="#rsvp"
+                className="rounded-full bg-[#3b231a] px-[18px] py-2.5 text-white shadow-[0_10px_24px_rgba(59,35,26,0.14)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#4a2d22] hover:shadow-[0_12px_30px_rgba(59,35,26,0.18)]"
+              >
+                RSVP
+              </a>
+            </div>
+
+            <button
+              type="button"
+              aria-label={isMobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={isMobileNavOpen}
+              onClick={() => setIsMobileNavOpen((isOpen) => !isOpen)}
+              className="mobile-nav-toggle absolute top-5 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#d9b8aa]/75 bg-[#fffaf7]/74 text-[#8f635b] shadow-[0_10px_24px_rgba(106,73,58,0.06)] backdrop-blur-md transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[#c79a8f] hover:bg-[#fffdf9] md:hidden"
+            >
+              {isMobileNavOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
+          </div>
+
+          {isMobileNavOpen && (
+            <div className="absolute left-5 top-[82px] z-50 w-[calc(100vw-2.5rem)] border-y border-[#d9b8aa]/55 bg-[#fffaf7]/92 px-5 py-5 shadow-[0_16px_34px_rgba(106,73,58,0.10)] backdrop-blur-md md:hidden">
+              <div className="grid gap-4 text-center text-[12px] font-medium uppercase tracking-[0.12em] text-[#3f302b]">
+                <a
+                  href="#details"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="nav-link"
+                >
+                  Details
+                </a>
+                <a
+                  href="#dress-code"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="nav-link"
+                >
+                  Dress Code
+                </a>
+                <a
+                  href="#itinerary"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="nav-link"
+                >
+                  Itinerary
+                </a>
+                <a
+                  href="#venue"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="nav-link"
+                >
+                  Venue
+                </a>
+                <a
+                  href="#rsvp"
+                  onClick={() => setIsMobileNavOpen(false)}
+                  className="mx-auto rounded-full bg-[#3b231a] px-[18px] py-2.5 text-white shadow-[0_10px_24px_rgba(59,35,26,0.14)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#4a2d22]"
+                >
+                  RSVP
+                </a>
+              </div>
+            </div>
+          )}
         </nav>
 
-        <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-6 pb-20 pt-10 md:grid-cols-[1.08fr_0.82fr] md:pb-28 md:pt-20">
+        <audio ref={ambientAudioRef} src={ambientAudioSrc} preload="none" loop />
+        <button
+          type="button"
+          aria-pressed={isAmbientAudioOn}
+          aria-label={isAmbientAudioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
+          onClick={handleAmbientAudioToggle}
+          className="ambient-audio-toggle absolute bottom-6 z-40 inline-flex items-center justify-center gap-2 rounded-full border border-[#d9b8aa]/80 bg-[#fffaf7]/78 px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#a57569] shadow-[0_10px_24px_rgba(106,73,58,0.06)] backdrop-blur-md transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[#c79a8f] hover:bg-[#fffdf9] hover:text-[#8f635b] hover:shadow-[0_14px_28px_rgba(106,73,58,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c79a8f]/45 sm:bottom-7"
+        >
+          {isAmbientAudioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+          <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
+        </button>
+
+        <motion.div
+          aria-hidden="true"
+          initial={shouldReduceMotion ? false : { opacity: 0.58, x: 26, rotateY: -60, scale: 1.08 }}
+          animate={{ opacity: gateOpacity, x: leftGateOffset, rotateY: -18, scale: 1.08 }}
+          transition={{
+            opacity: { duration: 0.4, ease: "easeOut" },
+            x: { duration: 0.4, ease: "easeOut" },
+            rotateY: { duration: shouldReduceMotion ? 0 : 1.6, delay: shouldReduceMotion ? 0 : 0.2, ease: gateOpenEase },
+            scale: { duration: 0.4, ease: "easeOut" },
+          }}
+          className="hero-gate-art pointer-events-none absolute bottom-[-7vh] left-[-21vw] z-10 hidden h-[94vh] max-h-[1000px] min-h-[660px] origin-left md:block lg:left-[-13vw] xl:left-[-8vw] 2xl:left-[-2vw]"
+          style={{ transformOrigin: "left bottom" }}
+        >
+          <Image
+            src="/images/hero-gate-left-clean.png"
+            alt=""
+            width={1024}
+            height={1536}
+            priority
+            sizes="(min-width: 1536px) 640px, (min-width: 1024px) 560px, 45vw"
+            className="h-full w-auto object-contain object-left-bottom"
+          />
+        </motion.div>
+
+        <motion.div
+          aria-hidden="true"
+          initial={shouldReduceMotion ? false : { opacity: 0.58, x: -26, rotateY: 60, scale: 1.08 }}
+          animate={{ opacity: gateOpacity, x: rightGateOffset, rotateY: 18, scale: 1.08 }}
+          transition={{
+            opacity: { duration: 0.4, ease: "easeOut" },
+            x: { duration: 0.4, ease: "easeOut" },
+            rotateY: { duration: shouldReduceMotion ? 0 : 1.6, delay: shouldReduceMotion ? 0 : 0.4, ease: gateOpenEase },
+            scale: { duration: 0.4, ease: "easeOut" },
+          }}
+          className="hero-gate-art pointer-events-none absolute bottom-[-5.5vh] right-[-19vw] z-10 hidden h-[90vh] max-h-[960px] min-h-[640px] origin-right md:block lg:right-[-11vw] xl:right-[-6vw] 2xl:right-[-1vw]"
+          style={{ transformOrigin: "right bottom" }}
+        >
+          <Image
+            src="/images/hero-gate-right-clean.png"
+            alt=""
+            width={1024}
+            height={1536}
+            priority
+            sizes="(min-width: 1536px) 640px, (min-width: 1024px) 560px, 45vw"
+            className="h-full w-auto object-contain object-right-bottom"
+          />
+        </motion.div>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[40vh] bg-[linear-gradient(to_bottom,transparent_0%,rgba(251,247,242,0.68)_62%,#fbf7f2_100%)]" />
+        <div
+          className="hero-scroll-layer pointer-events-none absolute inset-0 z-[22] bg-[linear-gradient(to_bottom,rgba(255,255,255,0)_40%,rgba(251,247,242,1)_100%)]"
+          style={{ opacity: backgroundWashOpacity }}
+        />
+
+        <div className="relative z-30 mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-6 pb-[25vh] pt-[22vh] text-center sm:px-8 sm:pb-[25vh] md:pt-[21vh] lg:pb-[26vh]">
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
+            initial={false}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-[560px]"
+            transition={{ duration: shouldReduceMotion ? 0 : 0.9 }}
+            className="hero-copy max-w-4xl"
+            style={{ opacity: 1 - copyFadeProgress, transform: `translateY(${copyTranslateY}px)` }}
           >
+            <p className="text-[11px] font-semibold uppercase tracking-[0.36em] text-[#46342f] sm:text-xs">
+              WE&rsquo;RE GETTING MARRIED
+            </p>
+            <h1 className="rose-gold-foil hero-title mt-7 font-serif text-[42px] leading-[1.04] sm:text-[72px] md:text-[92px] lg:text-[104px]">
+              <span className="block sm:inline">Sumaya</span>{" "}
+              <span className="block sm:inline">&amp; Aditya</span>
+            </h1>
+            <div className="mx-auto mt-8 flex w-full max-w-[260px] items-center justify-center gap-3">
+              <span className="h-px flex-1 bg-[#b98278]/58" />
+              <span className="h-1.5 w-1.5 rotate-45 bg-[#c79a8f]/86" />
+              <span className="h-px flex-1 bg-[#b98278]/58" />
+            </div>
+            <p className="mx-auto mt-8 max-w-[330px] font-serif text-[12px] uppercase leading-6 tracking-[0.1em] text-[#3f302b]/90 sm:max-w-none sm:text-base sm:leading-normal sm:tracking-[0.28em]">
+              <span className="block sm:inline">01 November 2026</span>
+              <span className="mx-2 hidden text-[#b98278] sm:inline">&middot;</span>
+              <span className="block sm:inline">Caversham House, Swan Valley</span>
+            </p>
+            <p className="mt-4 font-serif text-[15px] tracking-[0.1em] text-[#6a5d55]/88 sm:text-[18px] sm:tracking-[0.18em]">
+              <span className="block sm:inline">4:00 PM Ceremony</span>
+              <span className="mx-2 hidden text-[#c79a8f] sm:inline">&middot;</span>
+              <span className="block sm:inline">Garden House</span>
+            </p>
             <a
               href={googleCalendarUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Add Sumaya and Aditya's wedding to Google Calendar"
-              className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7]/70 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-[#4f4641] shadow-[0_8px_22px_rgba(90,65,50,0.05)] backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[#d8bd96] hover:bg-[#fffaf7]/90 hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
+              className="mt-7 inline-flex items-center gap-2 rounded-full border border-[#d9b8aa] bg-[#fffaf7]/84 px-6 py-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#4f3029]/92 shadow-[0_12px_30px_rgba(106,73,58,0.08)] backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[#c79a8f] hover:bg-[#fffdf9] hover:shadow-[0_16px_36px_rgba(106,73,58,0.14)]"
             >
-              <CalendarPlus className="h-4 w-4 text-[#8f9a7d]" />
+              <CalendarPlus className="h-4 w-4 text-[#b98278]" />
               Save the date
             </a>
-
-            <div className="hero-name-wrap">
-              <h1 className="font-serif text-5xl leading-[1.08] sm:text-6xl md:text-8xl">
-                <span className="rose-gold-foil hero-name-text">Sumaya</span>
-                <span className="rose-gold-foil hero-name-text block">& Aditya</span>
-              </h1>
-            </div>
-
-            <p className="mt-8 max-w-xl font-serif text-[16px] leading-[1.7] text-[#6a5d55]">
-              4:00 PM Ceremony <span className="mx-2 text-[#d8bd96]">&middot;</span> Garden House, Caversham House
-            </p>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.9, delay: 0.15 }}
-            className="relative mx-auto w-full max-w-[332px] sm:max-w-[350px] md:max-w-[365px]"
-          >
-            <div className="absolute -left-8 top-10 h-32 w-32 rounded-full bg-[#eaded6]/45 blur-3xl" />
-            <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-[#d8bd96]/30 blur-3xl" />
-            <div className="relative rounded-[30px] border border-[#efe4dc]/80 bg-[#fffaf7]/58 p-1.5 shadow-[0_16px_42px_rgba(90,65,50,0.08)] backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_18px_46px_rgba(90,65,50,0.10)] sm:p-2">
-              <Image
-                src="/images/venue-card.png"
-                alt="Caversham House wedding venue card for Sumaya and Aditya"
-                width={921}
-                height={1381}
-                priority
-                className="h-auto w-full rounded-[24px] object-contain"
-              />
-            </div>
           </motion.div>
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-28 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-28 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
+        </div>
       </section>
 
-      <section className="relative bg-[#fbf7f2] px-6 py-20 md:py-28">
-        <FadeInSection className="mx-auto max-w-[760px] text-center">
+      <section
+        className="hero-scroll-layer relative bg-[#fbf7f2] px-6 py-20 md:py-28"
+        style={{ opacity: noteRevealProgress, transform: `translateY(${40 * (1 - noteRevealProgress)}px)` }}
+      >
+        <div className="mx-auto max-w-[760px] text-center">
           <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.42em] text-[#6e5b54]">A NOTE FROM US</p>
           <div className="space-y-5 font-serif text-[22px] font-normal leading-[1.55] text-[#3f302b] sm:text-[26px] md:text-[30px] md:leading-[1.5]">
             <p>We are so grateful to be celebrating this day with the people who have been part of our story.</p>
@@ -889,7 +1224,7 @@ export default function WeddingWebsiteStarter() {
               House for a romantic garden celebration.
             </p>
           </div>
-        </FadeInSection>
+        </div>
       </section>
 
       <SoftSection id="details">
@@ -933,44 +1268,119 @@ export default function WeddingWebsiteStarter() {
         </div>
       </SoftSection>
 
-      <SoftSection id="dress-code">
-        <div className="grid items-start gap-12 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="max-w-[590px]">
-            <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.42em] text-[#6e5b54]">
-              {dressCode.eyebrow}
-            </p>
-            <h2 className="font-serif text-[42px] leading-[1] tracking-normal text-[#b58b84] sm:text-[48px] md:text-[58px] lg:text-[62px]">
-              Romantic Garden
-              <br />
-              Formal
-            </h2>
-            <div className="mt-9 space-y-7 text-[17px] leading-[1.9] text-[#4f4641]">
-              <p>{dressCode.intro}</p>
-              <p>{dressCode.details}</p>
-            </div>
-            <div className="mt-9 space-y-4 border-l border-[#d8b8ad] pl-5">
-              <p className="text-[14px] leading-[1.8] text-[#5c514b]">{dressCode.note}</p>
-              <p className="text-[14px] leading-[1.8] text-[#5c514b]">{dressCode.shoeNote}</p>
-            </div>
+      <SoftSection id="dress-code" contentClassName="mx-auto max-w-6xl">
+        <motion.div {...dressRevealMotion(0, 18)} className="mx-auto max-w-3xl text-center">
+          <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.42em] text-[#6e5b54]">
+            {dressCode.eyebrow}
+          </p>
+          <h2 className="font-serif text-[42px] leading-[1.08] text-[#b58b84] sm:text-[56px] md:text-[68px]">
+            {dressCode.title}
+          </h2>
+          <div className="mx-auto mt-7 flex w-full max-w-[280px] items-center justify-center gap-3">
+            <span className="h-px flex-1 bg-[#b98278]/42" />
+            <span className="h-1.5 w-1.5 rotate-45 bg-[#c79a8f]/78" />
+            <span className="h-px flex-1 bg-[#b98278]/42" />
           </div>
+          <p className="mx-auto mt-8 max-w-2xl text-[16px] leading-8 text-[#4f4641]/82 sm:text-[17px]">
+            {dressCode.description}
+          </p>
+        </motion.div>
 
-          <div className="grid gap-5 md:grid-cols-3 lg:grid-cols-1">
-            {dressCode.cards.map((card, index) => {
-              const Icon = dressCodeIcons[index];
+        <motion.article
+          {...dressRevealMotion(0.05, 18)}
+          className="mt-20"
+        >
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-[11px] font-medium uppercase tracking-[0.36em] text-[#8c7a72]">Style Direction</p>
+            <h3 className="mt-3 font-serif text-[38px] leading-tight text-[#a67c6b] sm:text-[48px]">Pastel Formal</h3>
+            <div className="mx-auto mt-5 max-w-2xl space-y-4 text-[15px] leading-7 text-[#4f4641]/78 sm:text-[16px] sm:leading-8">
+              {dressCode.pastelFormalCopy.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
 
-              return (
-                <div
-                  key={card.title}
-                  className="rounded-[1.35rem] border border-[#e8ddd4]/70 bg-[#fffdf8]/75 px-7 py-7 shadow-[0_12px_34px_rgba(101,75,62,0.045)] backdrop-blur-sm transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
+            <motion.div
+              {...swatchRevealContainer}
+              className="mx-auto mt-9 grid max-w-4xl grid-cols-2 gap-x-5 gap-y-7 min-[480px]:grid-cols-3 md:grid-cols-6 md:gap-x-6"
+            >
+              {dressCodePastelPalette.map((swatch) => (
+                <motion.div
+                  key={swatch.name}
+                  variants={shouldReduceMotion ? undefined : swatchRevealItem}
+                  className="group text-center"
                 >
-                  <Icon className="mb-6 h-5 w-5 text-[#b98d83]" />
-                  <h3 className="font-serif text-2xl text-stone-900">{card.title}</h3>
-                  <p className="mt-4 leading-7 text-stone-600">{card.text}</p>
-                </div>
-              );
-            })}
+                  <div
+                    className="mx-auto h-16 w-16 rounded-full shadow-[inset_0_0_0_1px_rgba(255,255,255,0.38),0_10px_26px_rgba(101,75,62,0.08)] transition duration-500 ease-out group-hover:scale-[1.04] group-hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.44),0_14px_34px_var(--swatch-glow)] sm:h-[4.5rem] sm:w-[4.5rem]"
+                    style={{ backgroundColor: swatch.color, "--swatch-glow": swatch.glow } as React.CSSProperties}
+                    aria-label={`${swatch.name} colour swatch`}
+                    role="img"
+                  />
+                  <p className="mx-auto mt-4 max-w-[112px] text-[10px] font-medium uppercase leading-5 tracking-[0.2em] text-[#6e5b54] transition duration-300 ease-out group-hover:text-[#4f4641] sm:text-[11px]">
+                    {swatch.name}
+                  </p>
+                </motion.div>
+              ))}
+            </motion.div>
           </div>
-        </div>
+
+        </motion.article>
+
+        <motion.article {...dressRevealMotion(0.08, 18)} className="mt-24">
+          <div className="mx-auto max-w-3xl text-center">
+            <p className="text-[11px] font-medium uppercase tracking-[0.36em] text-[#8c7a72]">Style Direction</p>
+            <h3 className="mt-3 font-serif text-[38px] leading-tight text-[#a67c6b] sm:text-[48px]">Classic Formal</h3>
+            <div className="mx-auto mt-5 max-w-2xl space-y-4 text-[15px] leading-7 text-[#4f4641]/78 sm:text-[16px] sm:leading-8">
+              {dressCode.classicFormalCopy.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
+
+            <motion.div
+              {...swatchRevealContainer}
+              className="mx-auto mt-8 grid max-w-2xl grid-cols-5 gap-x-3 gap-y-6 sm:gap-x-5"
+            >
+              {dressCodeClassicPalette.map((swatch) => (
+                <motion.div
+                  key={swatch.name}
+                  variants={shouldReduceMotion ? undefined : swatchRevealItem}
+                  className="group text-center"
+                >
+                  <div
+                    className="mx-auto h-11 w-11 rounded-full shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_9px_22px_rgba(101,75,62,0.075)] transition duration-500 ease-out group-hover:scale-[1.04] group-hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.36),0_12px_28px_var(--swatch-glow)] sm:h-14 sm:w-14"
+                    style={{ backgroundColor: swatch.color, "--swatch-glow": swatch.glow } as React.CSSProperties}
+                    aria-label={`${swatch.name} colour swatch`}
+                    role="img"
+                  />
+                  <p className="mx-auto mt-3 max-w-[92px] text-[9px] font-medium uppercase leading-4 tracking-[0.18em] text-[#6e5b54] transition duration-300 ease-out group-hover:text-[#4f4641] sm:text-[10px]">
+                    {swatch.name}
+                  </p>
+                </motion.div>
+              ))}
+            </motion.div>
+            <p className="mt-5 text-[11px] font-medium uppercase tracking-[0.22em] text-[#8c7a72]/82">
+              Structured tones to ground the palette
+            </p>
+          </div>
+
+        </motion.article>
+
+        <motion.div
+          {...dressRevealMotion(0.1, 12)}
+          className="mx-auto mt-16 max-w-2xl text-center"
+        >
+          <h3 className="font-serif text-[26px] leading-tight text-[#8c7a72] sm:text-[30px]">A small note</h3>
+          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-8 text-[#4f4641]/68 sm:text-[16px]">
+            We kindly ask guests to avoid white, ivory, cream, or anything bridal in tone.
+          </p>
+
+          <div className="mx-auto my-9 h-px w-20 bg-[#b98278]/28" />
+
+          <h3 className="font-serif text-[26px] leading-tight text-[#8c7a72] sm:text-[30px]">Garden shoes</h3>
+          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-8 text-[#4f4641]/68 sm:text-[16px]">
+            The ceremony will take place within the venue gardens, so block heels, wedges, flats, or comfortable dress
+            shoes are recommended.
+          </p>
+        </motion.div>
       </SoftSection>
 
       <SoftSection id="itinerary" contentClassName="mx-auto max-w-4xl">
