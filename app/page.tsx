@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { type FormEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import {
-  Calendar,
   CalendarPlus,
   ChevronDown,
   ChevronLeft,
@@ -13,7 +12,6 @@ import {
   Flower2,
   Footprints,
   Mail,
-  MapPin,
   Music,
   Palette,
   Shirt,
@@ -31,8 +29,30 @@ type Faq = {
   answer: string;
 };
 
+type FadeInSectionProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+type SoftSectionProps = {
+  children: ReactNode;
+  id?: string;
+  className?: string;
+  contentClassName?: string;
+};
+
 const googleCalendarUrl =
   "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Sumaya%20%26%20Aditya%E2%80%99s%20Wedding&dates=20261101T160000/20261101T230000&ctz=Australia%2FPerth&location=Caversham%20House%2C%20141%20Caversham%20Avenue%2C%20Caversham%20WA%206055%2C%20Australia&details=We%20can%E2%80%99t%20wait%20to%20celebrate%20with%20you.%20Ceremony%20begins%20at%204%3A00%20PM%20at%20Garden%20House%2C%20followed%20by%20reception%20at%20Main%20House";
+
+const venueImages = [
+  { src: "/images/venue.jpg", alt: "Caversham House Gardens" },
+  { src: "/images/venue2.jpg", alt: "Caversham House Main Building" },
+  { src: "/images/venue3.png", alt: "Caversham House garden lawn and gazebo" },
+];
+
+const venueAutoPlayDelay = 5000;
+const venueManualPauseDelay = 6000;
+const venueSwipeThreshold = 40;
 
 const itinerary = [
   {
@@ -381,6 +401,34 @@ function ItineraryIcon({ title }: { title: string }) {
   return <Clock className="h-5 w-5 text-[#b98d83]" />;
 }
 
+function FadeInSection({ children, className = "" }: FadeInSectionProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.18 }}
+      transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+function SoftSection({ children, id, className = "", contentClassName = "mx-auto max-w-6xl" }: SoftSectionProps) {
+  return (
+    <section
+      id={id}
+      className={`relative overflow-hidden scroll-mt-24 bg-[#fbf7f2] px-6 py-24 md:py-32 ${className}`}
+    >
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,_rgba(232,174,168,0.13),_transparent_32%),radial-gradient(circle_at_82%_76%,_rgba(218,192,138,0.12),_transparent_34%)]" />
+      <FadeInSection className={`relative ${contentClassName}`}>{children}</FadeInSection>
+    </section>
+  );
+}
+
 function SectionHeading({ eyebrow, title, subtitle }: SectionHeadingProps) {
   return (
     <div className="mx-auto mb-10 max-w-3xl text-center">
@@ -395,10 +443,10 @@ function FaqItem({ item, index }: { item: Faq; index: number }) {
   const [open, setOpen] = useState(index === 0);
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white/70 shadow-sm backdrop-blur">
+    <div className="rounded-2xl border border-stone-200 bg-white/70 shadow-sm backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition duration-300 ease-out"
       >
         <span className="font-medium text-stone-800">{item.question}</span>
         <ChevronDown className={`h-5 w-5 text-stone-500 transition ${open ? "rotate-180" : ""}`} />
@@ -410,55 +458,178 @@ function FaqItem({ item, index }: { item: Faq; index: number }) {
 
 function VenueCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const images = [
-    { src: "/images/venue.jpg", alt: "Caversham House Gardens" },
-    { src: "/images/venue2.jpg", alt: "Caversham House Main Building" },
-    { src: "/images/venue3.png", alt: "Caversham House garden lawn and gazebo" },
-  ];
+  const [isHovering, setIsHovering] = useState(false);
+  const [isManuallyPaused, setIsManuallyPaused] = useState(false);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(true);
+  const resumeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const touchStartXRef = useRef<number | null>(null);
 
-  const goToPrevious = () => {
-    setCurrentIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  const pauseAfterInteraction = useCallback(() => {
+    setIsManuallyPaused(true);
+
+    if (resumeTimerRef.current) {
+      clearTimeout(resumeTimerRef.current);
+    }
+
+    resumeTimerRef.current = setTimeout(() => {
+      setIsManuallyPaused(false);
+      resumeTimerRef.current = null;
+    }, venueManualPauseDelay);
+  }, []);
+
+  const goToPrevious = useCallback(
+    (manual = true) => {
+      if (manual) {
+        pauseAfterInteraction();
+      }
+
+      setCurrentIndex((prev) => (prev === 0 ? venueImages.length - 1 : prev - 1));
+    },
+    [pauseAfterInteraction],
+  );
+
+  const goToNext = useCallback(
+    (manual = true) => {
+      if (manual) {
+        pauseAfterInteraction();
+      }
+
+      setCurrentIndex((prev) => (prev === venueImages.length - 1 ? 0 : prev + 1));
+    },
+    [pauseAfterInteraction],
+  );
+
+  const goToImage = useCallback(
+    (index: number) => {
+      pauseAfterInteraction();
+      setCurrentIndex(index);
+    },
+    [pauseAfterInteraction],
+  );
+
+  useEffect(() => {
+    const motionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const handleMotionPreference = () => setPrefersReducedMotion(motionQuery.matches);
+
+    handleMotionPreference();
+    motionQuery.addEventListener("change", handleMotionPreference);
+
+    return () => motionQuery.removeEventListener("change", handleMotionPreference);
+  }, []);
+
+  useEffect(() => {
+    if (prefersReducedMotion || isHovering || isManuallyPaused) {
+      return;
+    }
+
+    const interval = setInterval(() => goToNext(false), venueAutoPlayDelay);
+
+    return () => clearInterval(interval);
+  }, [goToNext, isHovering, isManuallyPaused, prefersReducedMotion]);
+
+  useEffect(() => {
+    return () => {
+      if (resumeTimerRef.current) {
+        clearTimeout(resumeTimerRef.current);
+      }
+    };
+  }, []);
+
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      goToPrevious();
+    }
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      goToNext();
+    }
   };
 
-  const goToNext = () => {
-    setCurrentIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1));
+  const handleTouchStart = (event: React.TouchEvent<HTMLDivElement>) => {
+    touchStartXRef.current = event.touches[0]?.clientX ?? null;
+  };
+
+  const handleTouchEnd = (event: React.TouchEvent<HTMLDivElement>) => {
+    if (touchStartXRef.current === null) {
+      return;
+    }
+
+    const touchEndX = event.changedTouches[0]?.clientX;
+
+    if (touchEndX === undefined) {
+      touchStartXRef.current = null;
+      return;
+    }
+
+    const swipeDistance = touchEndX - touchStartXRef.current;
+
+    if (Math.abs(swipeDistance) > venueSwipeThreshold) {
+      if (swipeDistance > 0) {
+        goToPrevious();
+      } else {
+        goToNext();
+      }
+    }
+
+    touchStartXRef.current = null;
   };
 
   return (
-    <div className="relative overflow-hidden rounded-[2rem] border border-stone-200 bg-white p-3 shadow-xl shadow-stone-300/30">
-      <Image
-        src={images[currentIndex].src}
-        alt={images[currentIndex].alt}
-        width={800}
-        height={600}
-        className="w-full rounded-[1.5rem] object-cover"
-      />
+    <div
+      className="relative overflow-hidden rounded-[2rem] border border-stone-200 bg-white p-3 shadow-xl shadow-stone-300/30 transition duration-300 ease-out hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
+      role="region"
+      aria-roledescription="carousel"
+      aria-label="Venue image carousel"
+      tabIndex={0}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+      onKeyDown={handleKeyDown}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+    >
+      <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem]">
+        {venueImages.map((image, index) => (
+          <Image
+            key={image.src}
+            src={image.src}
+            alt={image.alt}
+            fill
+            priority={index === 0}
+            sizes="(min-width: 768px) 50vw, 100vw"
+            className={`object-cover transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+              index === currentIndex ? "opacity-100" : "opacity-0"
+            }`}
+          />
+        ))}
+      </div>
 
       <button
         type="button"
-        onClick={goToPrevious}
-        aria-label="Show previous venue image"
-        className="absolute left-5 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md transition hover:bg-white"
+        onClick={() => goToPrevious()}
+        aria-label="Previous venue image"
+        className="absolute left-5 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md transition duration-300 ease-out hover:bg-white hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
       >
         <ChevronLeft className="h-5 w-5 text-stone-900" />
       </button>
       <button
         type="button"
-        onClick={goToNext}
-        aria-label="Show next venue image"
-        className="absolute right-5 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md transition hover:bg-white"
+        onClick={() => goToNext()}
+        aria-label="Next venue image"
+        className="absolute right-5 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md transition duration-300 ease-out hover:bg-white hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
       >
         <ChevronRight className="h-5 w-5 text-stone-900" />
       </button>
 
       <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
-        {images.map((image, index) => (
+        {venueImages.map((image, index) => (
           <button
             key={image.src}
             type="button"
-            onClick={() => setCurrentIndex(index)}
+            onClick={() => goToImage(index)}
             aria-label={`Show ${image.alt}`}
-            className={`h-2 rounded-full transition ${
+            className={`h-2 rounded-full transition duration-300 ease-out ${
               index === currentIndex ? "w-6 bg-stone-900" : "w-2 bg-white/50"
             }`}
           />
@@ -469,126 +640,259 @@ function VenueCarousel() {
 }
 
 export default function WeddingWebsiteStarter() {
+  const [guestInviteToken, setGuestInviteToken] = useState("");
+  const [guestName, setGuestName] = useState("");
+  const [guestLookupMessage, setGuestLookupMessage] = useState("");
+  const [attendingCeremony, setAttendingCeremony] = useState("");
+  const [attendingReception, setAttendingReception] = useState("");
+  const [bringingPlusOne, setBringingPlusOne] = useState("");
+  const [plusOneName, setPlusOneName] = useState("");
+  const [rsvpSubmitStatus, setRsvpSubmitStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [rsvpSubmitMessage, setRsvpSubmitMessage] = useState("");
+
+  const lookupGuestFromInvite = useCallback(async (inviteToken: string) => {
+    setGuestInviteToken(inviteToken);
+    setGuestLookupMessage("Finding your invitation...");
+
+    try {
+      const response = await fetch("/api/rsvp/lookup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: inviteToken }),
+      });
+      const result = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+        guest?: {
+          fullName?: string;
+          attendingCeremony?: boolean | null;
+          attendingReception?: boolean | null;
+          bringingPlusOne?: boolean;
+          plusOneName?: string | null;
+          dietaryRequirements?: string | null;
+          songRequest?: string | null;
+        };
+      };
+
+      if (!response.ok || !result.ok || !result.guest?.fullName) {
+        throw new Error(result.error ?? "We could not find this invitation.");
+      }
+
+      setGuestName(result.guest.fullName);
+      setAttendingCeremony(
+        typeof result.guest.attendingCeremony === "boolean" ? (result.guest.attendingCeremony ? "yes" : "no") : "",
+      );
+      setAttendingReception(
+        typeof result.guest.attendingReception === "boolean" ? (result.guest.attendingReception ? "yes" : "no") : "",
+      );
+      setBringingPlusOne(result.guest.bringingPlusOne ? "yes" : "");
+      setPlusOneName(result.guest.plusOneName ?? "");
+      setGuestLookupMessage(`RSVP loaded for ${result.guest.fullName}.`);
+    } catch (error) {
+      setGuestLookupMessage(error instanceof Error ? error.message : "We could not find this invitation.");
+    }
+  }, []);
+
+  useEffect(() => {
+    const inviteToken = new URLSearchParams(window.location.search).get("guest");
+
+    if (inviteToken) {
+      const lookupTimer = window.setTimeout(() => {
+        void lookupGuestFromInvite(inviteToken);
+      }, 0);
+
+      return () => window.clearTimeout(lookupTimer);
+    }
+  }, [lookupGuestFromInvite]);
+
+  const handleCeremonyAttendanceChange = (value: string) => {
+    setAttendingCeremony(value);
+  };
+
+  const handlePlusOneChange = (value: string) => {
+    setBringingPlusOne(value);
+
+    if (value !== "yes") {
+      setPlusOneName("");
+    }
+  };
+
+  const handleRsvpSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const dietaryRequirements = String(formData.get("dietaryRequirements") ?? "").trim();
+    const songRequest = String(formData.get("songRequest") ?? "").trim();
+    const trimmedGuestName = guestName.trim();
+
+    if (!trimmedGuestName) {
+      setRsvpSubmitStatus("error");
+      setRsvpSubmitMessage("Please enter your full name before submitting.");
+      return;
+    }
+
+    if (!attendingCeremony || !attendingReception) {
+      setRsvpSubmitStatus("error");
+      setRsvpSubmitMessage("Please answer both ceremony and reception attendance questions.");
+      return;
+    }
+
+    if (bringingPlusOne === "yes" && !plusOneName.trim()) {
+      setRsvpSubmitStatus("error");
+      setRsvpSubmitMessage("Please enter your +1's name.");
+      return;
+    }
+
+    setRsvpSubmitStatus("submitting");
+    setRsvpSubmitMessage("");
+
+    try {
+      const response = await fetch("/api/rsvp/submit", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          inviteToken: guestInviteToken || undefined,
+          guestName: trimmedGuestName,
+          attendingCeremony: attendingCeremony === "yes",
+          attendingReception: attendingReception === "yes",
+          bringingPlusOne: bringingPlusOne === "yes",
+          plusOneName: bringingPlusOne === "yes" ? plusOneName.trim() : null,
+          dietaryRequirements,
+          songRequest,
+        }),
+      });
+
+      const result = (await response.json()) as { ok?: boolean; error?: string; message?: string };
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error ?? "Something went wrong while saving your RSVP.");
+      }
+
+      form.reset();
+      if (!guestInviteToken) {
+        setGuestName("");
+        setAttendingCeremony("");
+        setAttendingReception("");
+        setBringingPlusOne("");
+        setPlusOneName("");
+      }
+      setRsvpSubmitStatus("success");
+      setRsvpSubmitMessage(result.message ?? "Thank you. Your RSVP has been saved.");
+    } catch (error) {
+      setRsvpSubmitStatus("error");
+      setRsvpSubmitMessage(error instanceof Error ? error.message : "Something went wrong while saving your RSVP.");
+    }
+  };
+
   return (
-    <main className="min-h-screen bg-[#fbf7f3] text-stone-800">
+    <main className="min-h-screen bg-[#fbf7f2] text-stone-800">
       <section className="relative isolate overflow-hidden">
-        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_top_left,_rgba(232,196,184,0.55),_transparent_34%),radial-gradient(circle_at_bottom_right,_rgba(210,184,153,0.42),_transparent_30%)]" />
+        <div className="absolute inset-0 -z-10 bg-[radial-gradient(circle_at_10%_14%,_rgba(203,185,163,0.36),_transparent_31%),radial-gradient(circle_at_82%_24%,_rgba(143,154,125,0.14),_transparent_30%),radial-gradient(circle_at_58%_78%,_rgba(185,130,120,0.12),_transparent_34%)]" />
         <div className="absolute left-1/2 top-8 -z-10 h-[520px] w-[520px] -translate-x-1/2 rounded-full bg-white/35 blur-3xl" />
 
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-          <div className="font-serif text-2xl tracking-wide text-stone-800">S & A</div>
-          <div className="hidden items-center gap-8 text-sm text-stone-700 md:flex">
-            <a href="#details" className="hover:text-stone-950">
+        <nav className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+          <Image
+            src="/images/sa-monogram.png"
+            alt="Sumaya and Aditya monogram"
+            width={599}
+            height={792}
+            priority
+            className="h-12 w-auto object-contain sm:h-14"
+          />
+          <div className="hidden items-center gap-8 text-sm text-[#3f302b] md:flex">
+            <a href="#details" className="transition-colors duration-300 ease-out hover:text-[#b98278]">
               Details
             </a>
-            <a href="#dress-code" className="hover:text-stone-950">
+            <a href="#dress-code" className="transition-colors duration-300 ease-out hover:text-[#b98278]">
               Dress Code
             </a>
-            <a href="#itinerary" className="hover:text-stone-950">
+            <a href="#itinerary" className="transition-colors duration-300 ease-out hover:text-[#b98278]">
               Itinerary
             </a>
-            <a href="#venue" className="hover:text-stone-950">
+            <a href="#venue" className="transition-colors duration-300 ease-out hover:text-[#b98278]">
               Venue
             </a>
             <a
               href="#rsvp"
-              className="rounded-full bg-[#2A1D19] px-5 py-2 text-white shadow-sm transition hover:bg-[#221815]"
+              className="rounded-full bg-[#241815] px-5 py-2 text-white shadow-[0_10px_24px_rgba(36,24,21,0.16)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#382722] hover:shadow-[0_12px_30px_rgba(36,24,21,0.20)]"
             >
               RSVP
             </a>
           </div>
         </nav>
 
-        <div className="mx-auto grid max-w-6xl items-center gap-12 px-6 pb-20 pt-10 md:grid-cols-[1.05fr_0.95fr] md:pb-28 md:pt-20">
-          <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }}>
+        <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-6 pb-20 pt-10 md:grid-cols-[1.08fr_0.82fr] md:pb-28 md:pt-20">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-[560px]"
+          >
             <a
               href={googleCalendarUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Add Sumaya and Aditya's wedding to Google Calendar"
-              className="mb-5 inline-flex items-center gap-2 rounded-full border border-white/70 bg-white/50 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-stone-600 shadow-sm backdrop-blur transition hover:bg-white/75"
+              className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7]/70 px-4 py-2 text-xs font-medium uppercase tracking-[0.25em] text-[#4f4641] shadow-[0_8px_22px_rgba(90,65,50,0.05)] backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[#d8bd96] hover:bg-[#fffaf7]/90 hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
             >
-              <CalendarPlus className="h-4 w-4 text-[#b98278]" />
+              <CalendarPlus className="h-4 w-4 text-[#8f9a7d]" />
               Save the date
             </a>
 
             <div className="hero-name-wrap">
-              <h1 className="font-serif text-6xl leading-[1.08] md:text-8xl">
+              <h1 className="font-serif text-5xl leading-[1.08] sm:text-6xl md:text-8xl">
                 <span className="rose-gold-foil hero-name-text">Sumaya</span>
                 <span className="rose-gold-foil hero-name-text block">& Aditya</span>
               </h1>
             </div>
-            <p className="mt-8 max-w-xl text-lg leading-8 text-stone-600">
-              We are getting married in the gardens of Caversham House and would love you to celebrate with us.
+
+            <p className="mt-8 max-w-xl font-serif text-[16px] leading-[1.7] text-[#6a5d55]">
+              4:00 PM Ceremony <span className="mx-2 text-[#d8bd96]">&middot;</span> Garden House, Caversham House
             </p>
-
-            <div className="mt-10 grid gap-5 text-sm text-stone-700 sm:grid-cols-2">
-              <div className="flex items-start gap-4 rounded-[1.35rem] border border-[#eaded6]/70 bg-[#fffaf4]/65 px-5 py-5 shadow-[0_10px_30px_rgba(101,75,62,0.045)] backdrop-blur-sm">
-                <Calendar className="mt-1 h-4 w-4 shrink-0 text-[#b98d83]" />
-                <div className="leading-6">
-                  <p className="font-medium tracking-[0.01em] text-stone-900">Sunday, 1 November 2026</p>
-                  <p className="mt-1 text-stone-600">4:00 PM ceremony</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-4 rounded-[1.35rem] border border-[#eaded6]/70 bg-[#fffaf4]/65 px-5 py-5 shadow-[0_10px_30px_rgba(101,75,62,0.045)] backdrop-blur-sm">
-                <MapPin className="mt-1 h-4 w-4 shrink-0 text-[#b98d83]" />
-                <div className="leading-6">
-                  <p className="font-medium tracking-[0.01em] text-stone-900">Caversham House</p>
-                  <p className="mt-1 text-stone-600">Swan Valley, Perth</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-              <a
-                href="#rsvp"
-                className="rounded-full bg-[#2A1D19] px-7 py-3 text-center text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-lg shadow-[#2a1d19]/20 transition hover:bg-[#221815]"
-              >
-                RSVP
-              </a>
-              <a
-                href="#details"
-                className="rounded-full border border-stone-300 bg-white/45 px-7 py-3 text-center text-sm font-semibold uppercase tracking-[0.18em] text-stone-800 backdrop-blur transition hover:bg-white"
-              >
-                View Details
-              </a>
-            </div>
           </motion.div>
 
           <motion.div
             initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.9, delay: 0.15 }}
-            className="relative mx-auto w-full max-w-[430px] md:max-w-md"
+            className="relative mx-auto w-full max-w-[332px] sm:max-w-[350px] md:max-w-[365px]"
           >
-            <div className="absolute -left-8 top-10 h-32 w-32 rounded-full bg-[#ead3cd] blur-2xl" />
-            <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-[#dac0a3] blur-2xl" />
-            <div className="relative rounded-[34px] border border-white/75 bg-[#fffaf7]/80 p-3 shadow-[0_24px_70px_rgba(90,65,50,0.14)] backdrop-blur">
+            <div className="absolute -left-8 top-10 h-32 w-32 rounded-full bg-[#eaded6]/45 blur-3xl" />
+            <div className="absolute -bottom-8 -right-8 h-40 w-40 rounded-full bg-[#d8bd96]/30 blur-3xl" />
+            <div className="relative rounded-[30px] border border-[#efe4dc]/80 bg-[#fffaf7]/58 p-1.5 shadow-[0_16px_42px_rgba(90,65,50,0.08)] backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_18px_46px_rgba(90,65,50,0.10)] sm:p-2">
               <Image
                 src="/images/venue-card.png"
                 alt="Caversham House wedding venue card for Sumaya and Aditya"
-                width={1024}
-                height={1536}
+                width={921}
+                height={1381}
                 priority
-                className="h-auto w-full rounded-[28px] object-contain"
+                className="h-auto w-full rounded-[24px] object-contain"
               />
             </div>
           </motion.div>
         </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-28 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
       </section>
 
-      <section className="bg-[#fbf7f3] px-6 py-16 md:py-20">
-        <div className="mx-auto max-w-3xl text-center">
-          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.35em] text-stone-500">A note from us</p>
-          <p className="font-serif text-2xl leading-10 text-[#4f4641] md:text-3xl md:leading-[1.55]">
-            We are so excited to celebrate this day with the people who have been part of our story. More details will
-            be shared closer to the day, but for now, we would love for you to save the date and join us for a romantic
-            garden celebration at Caversham House.
-          </p>
-        </div>
+      <section className="relative bg-[#fbf7f2] px-6 py-20 md:py-28">
+        <FadeInSection className="mx-auto max-w-[760px] text-center">
+          <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.42em] text-[#6e5b54]">A NOTE FROM US</p>
+          <div className="space-y-5 font-serif text-[22px] font-normal leading-[1.55] text-[#3f302b] sm:text-[26px] md:text-[30px] md:leading-[1.5]">
+            <p>We are so grateful to be celebrating this day with the people who have been part of our story.</p>
+            <p>
+              More details will be shared closer to the day, but for now, we would love for you to join us at Caversham
+              House for a romantic garden celebration.
+            </p>
+          </div>
+        </FadeInSection>
       </section>
 
-      <section id="details" className="bg-[#fbf7f2] px-6 py-20 md:py-28">
+      <SoftSection id="details">
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-stone-500">The celebration</p>
           <h2 className="font-serif text-4xl text-[#b58b84] md:text-5xl">
@@ -619,7 +923,7 @@ export default function WeddingWebsiteStarter() {
           ].map((card) => (
             <div
               key={card.title}
-              className="rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7] px-8 py-10 shadow-[0_18px_45px_rgba(101,75,62,0.07)] backdrop-blur-sm"
+              className="rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7] px-8 py-10 shadow-[0_18px_45px_rgba(101,75,62,0.07)] backdrop-blur-sm transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
             >
               <card.icon className="mb-7 h-6 w-6 text-[#b98278]" />
               <h3 className="font-serif text-2xl text-[#4f4641]">{card.title}</h3>
@@ -627,11 +931,10 @@ export default function WeddingWebsiteStarter() {
             </div>
           ))}
         </div>
-      </section>
+      </SoftSection>
 
-      <section id="dress-code" className="relative overflow-hidden bg-[#fff8f2] px-6 py-20 md:py-28">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_20%,_rgba(232,174,168,0.2),_transparent_34%),radial-gradient(circle_at_82%_78%,_rgba(218,192,138,0.18),_transparent_30%)]" />
-        <div className="relative mx-auto grid max-w-6xl items-start gap-12 lg:grid-cols-[0.92fr_1.08fr]">
+      <SoftSection id="dress-code">
+        <div className="grid items-start gap-12 lg:grid-cols-[0.92fr_1.08fr]">
           <div className="max-w-[590px]">
             <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.42em] text-[#6e5b54]">
               {dressCode.eyebrow}
@@ -658,7 +961,7 @@ export default function WeddingWebsiteStarter() {
               return (
                 <div
                   key={card.title}
-                  className="rounded-[1.35rem] border border-[#e8ddd4]/70 bg-[#fffdf8]/75 px-7 py-7 shadow-[0_12px_34px_rgba(101,75,62,0.045)] backdrop-blur-sm"
+                  className="rounded-[1.35rem] border border-[#e8ddd4]/70 bg-[#fffdf8]/75 px-7 py-7 shadow-[0_12px_34px_rgba(101,75,62,0.045)] backdrop-blur-sm transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
                 >
                   <Icon className="mb-6 h-5 w-5 text-[#b98d83]" />
                   <h3 className="font-serif text-2xl text-stone-900">{card.title}</h3>
@@ -668,21 +971,21 @@ export default function WeddingWebsiteStarter() {
             })}
           </div>
         </div>
-      </section>
+      </SoftSection>
 
-      <section id="itinerary" className="bg-[#f3ebe4] px-6 py-20 md:py-28">
+      <SoftSection id="itinerary" contentClassName="mx-auto max-w-4xl">
         <SectionHeading
           eyebrow="Our day"
           title="Wedding itinerary"
           subtitle="The final schedule may be refined closer to the day, but this is the planned flow for guests."
         />
-        <div className="mx-auto max-w-4xl">
+        <div>
           {itinerary.map((item) => (
             <div key={item.title} className="grid grid-cols-[90px_1fr] gap-5 md:grid-cols-[120px_1fr]">
               <div className="pt-1 text-right text-sm font-semibold text-stone-500">{item.time}</div>
               <div className="relative border-l border-stone-300 pb-10 pl-7 last:pb-0">
-                <div className="absolute -left-[7px] top-1 h-3.5 w-3.5 rounded-full bg-[#b98d83] ring-4 ring-[#f3ebe4]" />
-                <div className="rounded-2xl border border-white/70 bg-white/60 p-5 shadow-sm backdrop-blur">
+                <div className="absolute -left-[7px] top-1 h-3.5 w-3.5 rounded-full bg-[#b98d83] ring-4 ring-[#fbf7f2]" />
+                <div className="rounded-2xl border border-white/70 bg-white/60 p-5 shadow-sm backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]">
                   <div className="flex items-center gap-3">
                     <ItineraryIcon title={item.title} />
                     <h3 className="font-serif text-2xl text-stone-900">{item.title}</h3>
@@ -693,30 +996,44 @@ export default function WeddingWebsiteStarter() {
             </div>
           ))}
         </div>
-      </section>
+      </SoftSection>
 
-      <section id="venue" className="px-6 py-20 md:py-28">
-        <div className="mx-auto grid max-w-6xl items-center gap-10 md:grid-cols-2">
+      <SoftSection id="venue" className="mb-20 mt-24 md:mb-24 md:mt-28">
+        <div className="mx-auto mb-14 max-w-3xl text-center md:mb-16">
+          <p className="mb-3 text-[12px] font-medium uppercase tracking-[0.25em] text-[#8c7a72]">VENUE</p>
+          <h2 className="font-serif text-[42px] leading-[1.2] text-[#a67c6b]">Caversham House</h2>
+          <p className="mx-auto mt-4 max-w-[560px] text-[16px] leading-[1.6] text-[#5f524b]">
+            A Swan Valley garden setting with a romantic ceremony at Garden House and a reception at Main House.
+          </p>
+        </div>
+
+        <div className="grid items-center gap-8 md:grid-cols-[1.05fr_0.95fr] md:gap-10">
           <div className="relative isolate">
             <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-[radial-gradient(circle_at_center,_rgba(218,192,138,0.34),_rgba(244,226,190,0.18)_44%,_transparent_72%)] blur-3xl" />
             <VenueCarousel />
           </div>
-          <div>
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-stone-500">Venue</p>
-            <h2 className="rose-gold-foil font-serif text-4xl md:text-5xl">Caversham House</h2>
-            <p className="mt-5 text-lg leading-8 text-stone-600">
-              A Swan Valley garden setting with a romantic ceremony at Garden House and a reception at Main House.
-            </p>
-            <div className="mt-8 rounded-3xl border border-stone-200 bg-white/70 p-6 shadow-sm backdrop-blur">
-              <p className="font-semibold text-stone-900">Guest note</p>
-              <p className="mt-2 leading-7 text-stone-600">
-                Parking and arrival guidance will be added here once final guest information is ready.
-              </p>
+          <div className="mx-auto w-full max-w-[480px]">
+            <div className="rounded-3xl border border-[#eaded6] bg-[#fffaf7]/76 p-6 shadow-[0_12px_34px_rgba(90,65,50,0.055)] backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]">
+              <h3 className="font-serif text-2xl text-[#4f4641]">Getting There &amp; Parking</h3>
+              <div className="mt-4 space-y-3 text-[15px] leading-[1.65] text-[#6a5d55]">
+                <p>
+                  Caversham House
+                  <br />
+                  Swan Valley, Perth
+                </p>
+                <p>
+                  Parking is available at the Main House car park. Please follow signage upon arrival.
+                </p>
+                <p>
+                  We recommend arriving 20&ndash;30 minutes before the ceremony to allow time to settle into the
+                  gardens.
+                </p>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="mx-auto mt-12 max-w-6xl overflow-hidden rounded-[2rem] border border-stone-200 shadow-xl shadow-stone-300/30">
+        <div className="mt-12 overflow-hidden rounded-[2rem] border border-stone-200 shadow-xl shadow-stone-300/30 transition duration-300 ease-out hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]">
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3384.9999!2d115.9905802!3d-31.8777983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2a32b77920209d99%3A0xeb200b707ad3d95d!2sCaversham%20House%2C%20141%20Caversham%20Ave%2C%20Caversham%20WA%206055!5e0!3m2!1sen!2sau!4v1620000000000"
             width="100%"
@@ -727,21 +1044,21 @@ export default function WeddingWebsiteStarter() {
             referrerPolicy="no-referrer-when-downgrade"
           />
         </div>
-      </section>
+      </SoftSection>
 
-      <section id="rsvp" className="bg-[#2A1D19] px-6 py-20 text-white md:py-28">
-        <div className="mx-auto max-w-4xl">
+      <SoftSection id="rsvp" contentClassName="mx-auto max-w-4xl">
+        <div className="rounded-[2.25rem] border border-[#eaded6]/20 bg-[#2A1D19] px-5 py-10 text-white shadow-[0_24px_70px_rgba(90,65,50,0.16)] md:px-10 md:py-12">
           <div className="mx-auto max-w-3xl text-center">
             <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-[#d8c7bf]">RSVP</p>
             <h2 className="rose-gold-foil font-serif text-4xl md:text-5xl">We hope you can celebrate with us</h2>
             <p className="mt-5 text-lg leading-8 text-[#e6d9d2]">
-              We would be so grateful if you could let us know whether you’ll be joining us. The ceremony is child
-              friendly, while the reception is adults only.
+              We would be so grateful if you could let us know which parts of the day you will be joining and whether
+              you will be bringing a +1.
             </p>
           </div>
 
           <form
-            onSubmit={(event) => event.preventDefault()}
+            onSubmit={handleRsvpSubmit}
             className="mt-10 rounded-[2rem] border border-[#eaded6]/25 bg-[#fffaf7] p-6 text-[#4f4641] shadow-2xl shadow-black/20 md:p-8"
           >
             <div className="grid gap-6">
@@ -750,20 +1067,33 @@ export default function WeddingWebsiteStarter() {
                 <input
                   type="text"
                   name="guestName"
+                  value={guestName}
+                  onChange={(event) => setGuestName(event.target.value)}
+                  readOnly={Boolean(guestInviteToken && guestName)}
                   placeholder="Your full name"
-                  className="min-h-12 rounded-2xl border border-[#eaded6] bg-white px-4 text-[#4f4641] outline-none transition placeholder:text-[#a99790] focus:border-[#b98278]"
+                  className="min-h-12 rounded-2xl border border-[#eaded6] bg-white px-4 text-[#4f4641] outline-none transition placeholder:text-[#a99790] read-only:bg-[#fbf7f2] focus:border-[#b98278]"
                 />
+                {guestLookupMessage && (
+                  <span className="text-[13px] leading-[1.6] text-[#7a6a62]">{guestLookupMessage}</span>
+                )}
               </label>
 
-              <div className="grid gap-5 md:grid-cols-2">
+              <div className="grid gap-5 md:grid-cols-[1.12fr_0.88fr]">
                 <fieldset className="rounded-2xl border border-[#eaded6] bg-white/70 p-5">
                   <legend className="px-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">
-                    Attending ceremony?
+                    Will you be joining us for the ceremony?
                   </legend>
                   <div className="mt-4 grid gap-3 text-sm text-[#4f4641]">
                     {["Yes", "No"].map((option) => (
                       <label key={option} className="flex items-center gap-3">
-                        <input type="radio" name="attendingCeremony" value={option.toLowerCase()} />
+                        <input
+                          type="radio"
+                          name="attendingCeremony"
+                          value={option.toLowerCase()}
+                          checked={attendingCeremony === option.toLowerCase()}
+                          onChange={() => handleCeremonyAttendanceChange(option.toLowerCase())}
+                          className="accent-[#b98278]"
+                        />
                         {option}
                       </label>
                     ))}
@@ -772,18 +1102,65 @@ export default function WeddingWebsiteStarter() {
 
                 <fieldset className="rounded-2xl border border-[#eaded6] bg-white/70 p-5">
                   <legend className="px-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">
-                    Attending reception?
+                    Will you be joining us for the reception?
                   </legend>
                   <div className="mt-4 grid gap-3 text-sm text-[#4f4641]">
                     {["Yes", "No"].map((option) => (
                       <label key={option} className="flex items-center gap-3">
-                        <input type="radio" name="attendingReception" value={option.toLowerCase()} />
+                        <input
+                          type="radio"
+                          name="attendingReception"
+                          value={option.toLowerCase()}
+                          checked={attendingReception === option.toLowerCase()}
+                          onChange={() => setAttendingReception(option.toLowerCase())}
+                          className="accent-[#b98278]"
+                        />
                         {option}
                       </label>
                     ))}
                   </div>
                 </fieldset>
               </div>
+
+              <fieldset className="rounded-2xl border border-[#eaded6] bg-white/70 p-5">
+                <legend className="px-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">
+                  Will you be bringing a +1?
+                </legend>
+                <div className="mt-4 grid gap-3 text-sm text-[#4f4641]">
+                  {["Yes", "No"].map((option) => (
+                    <label key={option} className="flex items-center gap-3">
+                      <input
+                        type="radio"
+                        name="bringingPlusOne"
+                        value={option.toLowerCase()}
+                        checked={bringingPlusOne === option.toLowerCase()}
+                        onChange={() => handlePlusOneChange(option.toLowerCase())}
+                        className="accent-[#b98278]"
+                      />
+                      {option}
+                    </label>
+                  ))}
+                </div>
+
+                {bringingPlusOne === "yes" && (
+                  <label className="mt-5 grid gap-2 rounded-[18px] border border-[#eaded6] bg-[#fffaf7]/70 p-5">
+                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7b6760]">
+                      +1 full name
+                    </span>
+                    <input
+                      type="text"
+                      name="plusOneName"
+                      value={plusOneName}
+                      onChange={(event) => setPlusOneName(event.target.value)}
+                      placeholder="Their full name"
+                      className="min-h-12 rounded-2xl border border-[#eaded6] bg-white/85 px-4 text-[#4f4641] outline-none transition placeholder:text-[#a99790] focus:border-[#b98278]"
+                    />
+                    <span className="mt-2 text-[13px] leading-[1.6] text-[#7a6a62]">
+                      This helps us keep the guest list and seating plan beautifully organised.
+                    </span>
+                  </label>
+                )}
+              </fieldset>
 
               <label className="grid gap-2">
                 <span className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">
@@ -807,40 +1184,47 @@ export default function WeddingWebsiteStarter() {
                 />
               </label>
 
-              <div className="rounded-2xl border border-[#eaded6] bg-[#fbf7f2] px-5 py-4 text-sm leading-6 text-[#6e5b54]">
-                Children are very welcome at the ceremony at Garden House. The reception at Main House will be adults
-                only.
-              </div>
+              {rsvpSubmitMessage && (
+                <div
+                  className={`rounded-2xl border px-5 py-4 text-sm leading-6 ${
+                    rsvpSubmitStatus === "success"
+                      ? "border-[#d8bd96] bg-[#fbf7f2] text-[#5f524b]"
+                      : "border-[#e6c8c2] bg-[#fff4f2] text-[#8b5f58]"
+                  }`}
+                >
+                  {rsvpSubmitMessage}
+                </div>
+              )}
 
               <div className="flex flex-col gap-3 border-t border-[#eaded6] pt-6 sm:flex-row sm:items-center sm:justify-between">
                 <p className="text-sm leading-6 text-[#7b6760]">
-                  Formal RSVPs will open once invitations are sent.
+                  Your response will be saved to our wedding RSVP list.
                 </p>
                 <button
                   type="submit"
-                  disabled
-                  className="rounded-full bg-[#e9cfc8] px-7 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-[#4f302b] opacity-70"
+                  disabled={rsvpSubmitStatus === "submitting"}
+                  className="rounded-full bg-[#241815] px-7 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-[0_12px_30px_rgba(36,24,21,0.18)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#382722] disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  RSVP opens soon
+                  {rsvpSubmitStatus === "submitting" ? "Saving..." : "Submit RSVP"}
                 </button>
               </div>
             </div>
           </form>
         </div>
-      </section>
+      </SoftSection>
 
-      <section className="px-6 py-20 md:py-28">
+      <SoftSection contentClassName="mx-auto max-w-4xl">
         <SectionHeading
           eyebrow="Good to know"
           title="Guest FAQ"
           subtitle="A simple place for guests to quickly find the details without messaging you both separately."
         />
-        <div className="mx-auto grid max-w-4xl gap-4">
+        <div className="grid gap-4">
           {faqs.map((item, index) => (
             <FaqItem key={item.question} item={item} index={index} />
           ))}
         </div>
-      </section>
+      </SoftSection>
 
       <footer className="border-t border-stone-200 px-6 py-10 text-center">
         <p className="font-serif text-3xl text-stone-900">Sumaya & Aditya</p>
