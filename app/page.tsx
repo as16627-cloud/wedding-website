@@ -920,7 +920,7 @@ export default function WeddingWebsiteStarter() {
   const heavyScrollProgress = shouldReduceMotion || isHeroMobile ? 0 : visualScrollProgress;
   const mobileScrollProgress = shouldReduceMotion || !isHeroMobile ? 0 : visualScrollProgress;
   const noteRevealProgress = shouldReduceMotion ? 1 : smoothProgress((heroScrollProgress - 0.48) / 0.22);
-  const gateOpacity = 0.84 * (1 - heavyScrollProgress);
+  const gateOpacity = isHeroMobile ? 0.62 : 0.84 * (1 - heavyScrollProgress);
   const leftGateOffset = -40 * 0.8 * heavyScrollProgress;
   const rightGateOffset = 40 * 0.8 * heavyScrollProgress;
   const houseFadeProgress = isHeroMobile ? mobileScrollProgress * 0.14 : heavyScrollProgress;
@@ -952,15 +952,18 @@ export default function WeddingWebsiteStarter() {
         <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
       </button>
 
-      <section ref={heroRef} className="relative isolate h-[160vh] overflow-visible bg-[#fbf7f2] text-[#34231e] md:h-[170vh]">
+      <section ref={heroRef} className="hero-section relative isolate overflow-visible bg-[#fbf7f2] text-[#34231e]">
         <div className="hero-inner sticky top-0 h-screen overflow-hidden [perspective:1500px]">
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#f4ebe4_0%,#fff9f4_38%,#f8eee6_70%,#fbf7f2_100%)]" />
         <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(74,48,39,0.075)_0%,rgba(255,250,246,0.02)_36%,rgba(255,255,255,0.44)_100%)]" />
         <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_at_center,transparent_44%,rgba(52,35,30,0.07)_100%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-[-1px] z-[3] h-[40vh] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.06)_0%,rgba(251,247,242,0.50)_54%,#fbf7f2_90%)]" />
         <div
-          className="hero-scroll-layer pointer-events-none absolute inset-x-0 bottom-[-3vh] z-[4] mx-auto h-[55vh] min-h-[330px] max-w-[1240px] translate-y-[11%] px-4 sm:h-[58vh] md:min-h-[390px] lg:h-[61vh]"
-          style={{ opacity: 1 - houseFadeProgress, transform: `translateY(calc(11% + ${houseTranslateY}px))` }}
+          className="hero-estate-layer hero-scroll-layer pointer-events-none absolute inset-x-0 bottom-[-3vh] z-[4] mx-auto h-[55vh] min-h-[330px] max-w-[1240px] translate-y-[11%] px-4 sm:h-[58vh] md:min-h-[390px] lg:h-[61vh]"
+          style={{
+            opacity: isHeroMobile ? 0.72 - houseFadeProgress : 1 - houseFadeProgress,
+            transform: isHeroMobile ? `translateY(${-4 * mobileScrollProgress}px)` : `translateY(calc(11% + ${houseTranslateY}px))`,
+          }}
         >
           <div className="relative h-full w-full">
             <Image
@@ -1081,7 +1084,7 @@ export default function WeddingWebsiteStarter() {
             rotateY: { duration: shouldReduceMotion ? 0 : 1.6, delay: shouldReduceMotion ? 0 : 0.2, ease: gateOpenEase },
             scale: { duration: 0.4, ease: "easeOut" },
           }}
-          className="hero-gate-art pointer-events-none absolute bottom-[-7vh] left-[-48vw] z-10 block h-[88vh] min-h-0 origin-left md:left-[-21vw] md:h-[94vh] md:max-h-[1000px] md:min-h-[660px] lg:left-[-13vw] xl:left-[-8vw] 2xl:left-[-2vw]"
+          className="hero-gate-art hero-gate-left pointer-events-none absolute bottom-[-7vh] left-[-48vw] z-10 block h-[88vh] min-h-0 origin-left md:left-[-21vw] md:h-[94vh] md:max-h-[1000px] md:min-h-[660px] lg:left-[-13vw] xl:left-[-8vw] 2xl:left-[-2vw]"
           style={{ transformOrigin: "left bottom" }}
         >
           <Image
@@ -1105,7 +1108,7 @@ export default function WeddingWebsiteStarter() {
             rotateY: { duration: shouldReduceMotion ? 0 : 1.6, delay: shouldReduceMotion ? 0 : 0.4, ease: gateOpenEase },
             scale: { duration: 0.4, ease: "easeOut" },
           }}
-          className="hero-gate-art pointer-events-none absolute bottom-[-5.5vh] right-[-46vw] z-10 block h-[86vh] min-h-0 origin-right md:right-[-19vw] md:h-[90vh] md:max-h-[960px] md:min-h-[640px] lg:right-[-11vw] xl:right-[-6vw] 2xl:right-[-1vw]"
+          className="hero-gate-art hero-gate-right pointer-events-none absolute bottom-[-5.5vh] right-[-46vw] z-10 block h-[86vh] min-h-0 origin-right md:right-[-19vw] md:h-[90vh] md:max-h-[960px] md:min-h-[640px] lg:right-[-11vw] xl:right-[-6vw] 2xl:right-[-1vw]"
           style={{ transformOrigin: "right bottom" }}
         >
           <Image
@@ -1119,13 +1122,13 @@ export default function WeddingWebsiteStarter() {
           />
         </motion.div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[36vh] bg-[linear-gradient(to_bottom,transparent_0%,rgba(251,247,242,0.56)_64%,#fbf7f2_100%)]" />
+        <div className="hero-bottom-fade pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[36vh] bg-[linear-gradient(to_bottom,transparent_0%,rgba(251,247,242,0.56)_64%,#fbf7f2_100%)]" />
         <div
           className="hero-scroll-layer pointer-events-none absolute inset-0 z-[22] bg-[linear-gradient(to_bottom,rgba(255,255,255,0)_40%,rgba(251,247,242,1)_100%)]"
           style={{ opacity: backgroundWashOpacity }}
         />
 
-        <div className="relative z-30 mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-6 pb-[25vh] pt-[22vh] text-center sm:px-8 sm:pb-[25vh] md:pt-[21vh] lg:pb-[26vh]">
+        <div className="hero-content relative z-30 mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-6 pb-[25vh] pt-[22vh] text-center sm:px-8 sm:pb-[25vh] md:pt-[21vh] lg:pb-[26vh]">
           <motion.div
             initial={false}
             animate={{ opacity: 1, y: 0 }}
@@ -1133,8 +1136,8 @@ export default function WeddingWebsiteStarter() {
             className="hero-copy max-w-4xl"
             style={{ opacity: 1 - copyFadeProgress, transform: `translateY(${copyTranslateY}px)` }}
           >
-            <p className="heading-micro font-serif text-[#46342f] sm:text-xs">
-              WE&rsquo;RE GETTING MARRIED
+            <p className="font-serif text-base tracking-[0.14em] text-[#46342f] sm:text-lg">
+              We&rsquo;re Getting Married
             </p>
             <h1 className="rose-gold-foil hero-title mt-7 font-serif text-[42px] leading-[1.04] sm:text-[72px] md:text-[92px] lg:text-[104px]">
               <span className="block sm:inline">Sumaya</span>{" "}

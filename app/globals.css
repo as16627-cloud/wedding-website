@@ -135,6 +135,18 @@ body {
   width: 7.5rem;
 }
 
+.hero-section {
+  height: 135vh;
+  height: 135svh;
+}
+
+.hero-inner,
+.hero-content {
+  height: 100vh;
+  height: 100svh;
+  min-height: 680px;
+}
+
 .hero-estate-image {
   filter: saturate(0.88) contrast(1.01) brightness(1.03);
   -webkit-mask-image:
@@ -156,10 +168,66 @@ body {
 }
 
 @media (max-width: 767px) {
+  .hero-section {
+    height: 122vh;
+    height: 122svh;
+  }
+
+  .hero-inner,
+  .hero-content {
+    height: 100vh;
+    height: 100svh;
+    min-height: 640px;
+  }
+
+  .hero-estate-layer {
+    bottom: 7svh;
+    height: min(42svh, 340px);
+    min-height: 255px;
+    max-width: 112vw;
+    padding-inline: 0;
+  }
+
   .hero-estate-image {
-    opacity: 0.55;
-    filter: saturate(0.88) contrast(1.0) brightness(1.06);
+    opacity: 0.72;
+    object-fit: cover;
+    object-position: center bottom;
+    filter: saturate(0.92) contrast(1.04) brightness(1.04);
     mix-blend-mode: normal;
+    -webkit-mask-image:
+      linear-gradient(to top, #000 0%, #000 82%, rgba(0, 0, 0, 0.8) 91%, transparent 100%),
+      linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%);
+    mask-image:
+      linear-gradient(to top, #000 0%, #000 82%, rgba(0, 0, 0, 0.8) 91%, transparent 100%),
+      linear-gradient(to right, transparent 0%, #000 7%, #000 93%, transparent 100%);
+  }
+
+  .hero-gate-art {
+    z-index: 21;
+    bottom: -1.5svh;
+    height: min(74svh, 620px);
+    min-height: 500px;
+    filter: saturate(0.9) contrast(0.96) drop-shadow(0 18px 22px rgba(72, 54, 43, 0.08));
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 88%, rgba(0, 0, 0, 0.7) 96%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 0%, #000 88%, rgba(0, 0, 0, 0.7) 96%, transparent 100%);
+  }
+
+  .hero-gate-left {
+    left: -58vw;
+  }
+
+  .hero-gate-right {
+    right: -44vw;
+  }
+
+  .hero-bottom-fade {
+    height: 27svh;
+    background: linear-gradient(to bottom, transparent 0%, rgba(251, 247, 242, 0.28) 70%, #fbf7f2 100%);
+  }
+
+  .hero-content {
+    padding-top: 8.25rem;
+    padding-bottom: 18svh;
   }
 
   .hero-copy::before {
@@ -167,6 +235,21 @@ body {
     width: 118vw;
     height: 300px;
     opacity: 0.86;
+  }
+}
+
+@media (max-width: 380px) {
+  .hero-gate-left {
+    left: -68vw;
+  }
+
+  .hero-gate-right {
+    right: -54vw;
+  }
+
+  .hero-estate-layer {
+    height: 38svh;
+    min-height: 230px;
   }
 }
 
@@ -179,6 +262,10 @@ body {
 }
 
 @media (min-width: 768px) {
+  .hero-section {
+    height: 170vh;
+  }
+
   .mobile-header-monogram,
   .mobile-nav-toggle {
     left: auto;
