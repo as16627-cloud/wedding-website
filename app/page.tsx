@@ -11,6 +11,7 @@ import {
   Clock,
   Flower2,
   Mail,
+  MapPin,
   Menu,
   Music,
   Utensils,
@@ -49,6 +50,9 @@ type SoftSectionProps = {
 
 const googleCalendarUrl =
   "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Sumaya%20%26%20Aditya%E2%80%99s%20Wedding&dates=20261101T160000/20261101T230000&ctz=Australia%2FPerth&location=Caversham%20House%2C%20141%20Caversham%20Avenue%2C%20Caversham%20WA%206055%2C%20Australia&details=We%20can%E2%80%99t%20wait%20to%20celebrate%20with%20you.%20Ceremony%20begins%20at%204%3A00%20PM%20at%20Garden%20House%2C%20followed%20by%20reception%20at%20Main%20House";
+
+const googleDirectionsUrl =
+  "https://www.google.com/maps/dir/?api=1&destination=Caversham%20House%2C%20141%20Caversham%20Avenue%2C%20Caversham%20WA%206055%2C%20Australia";
 
 const venueImages = [
   { src: "/images/venue.jpg", alt: "Caversham House Gardens" },
@@ -174,12 +178,6 @@ const swatchLabelStyle: React.CSSProperties = {
   display: "block",
   maxWidth: "112px",
   marginTop: "16px",
-  color: "rgba(110,91,84,0.7)",
-  fontSize: "11px",
-  fontWeight: 500,
-  lineHeight: 1.6,
-  letterSpacing: "0.24em",
-  textTransform: "uppercase",
 };
 
 const faqs = [
@@ -483,7 +481,7 @@ function SoftSection({ children, id, className = "", contentClassName = "mx-auto
   return (
     <section
       id={id}
-      className={`relative overflow-hidden scroll-mt-24 bg-[#fbf7f2] px-6 py-24 md:py-32 ${className}`}
+      className={`mobile-invite-section relative overflow-hidden scroll-mt-24 bg-[#fbf7f2] px-6 py-24 md:py-32 ${className}`}
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
@@ -498,7 +496,7 @@ function SectionHeading({ eyebrow, title, subtitle }: SectionHeadingProps) {
     <div className="mx-auto mb-10 max-w-3xl text-center">
       <p className="heading-micro mb-3">{eyebrow}</p>
       <h2 className="heading-primary">{title}</h2>
-      {subtitle && <p className="heading-copy mt-4 text-base md:text-lg">{subtitle}</p>}
+      {subtitle && <p className="heading-copy mt-4">{subtitle}</p>}
     </div>
   );
 }
@@ -507,7 +505,7 @@ function Swatch({ swatch }: { swatch: DressCodeSwatch }) {
   return (
     <div className="swatchItem" style={swatchItemStyle}>
       <div className="swatchCircle" style={{ ...swatchCircleStyle, backgroundColor: swatch.color }} />
-      <span className="swatchLabel" style={swatchLabelStyle}>
+      <span className="type-swatch-label swatchLabel" style={swatchLabelStyle}>
         {swatch.label}
       </span>
     </div>
@@ -518,15 +516,15 @@ function FaqItem({ item, index }: { item: Faq; index: number }) {
   const [open, setOpen] = useState(index === 0);
 
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white/70 shadow-sm backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]">
+    <div className="card-luxe card-luxe-text card-luxe-hover">
       <button
         onClick={() => setOpen(!open)}
         className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition duration-300 ease-out"
       >
-        <span className="font-medium text-stone-800">{item.question}</span>
-        <ChevronDown className={`h-5 w-5 text-stone-500 transition ${open ? "rotate-180" : ""}`} />
+        <span className="type-question">{item.question}</span>
+        <ChevronDown className={`h-5 w-5 text-[#9a817b] transition ${open ? "rotate-180" : ""}`} />
       </button>
-      {open && <p className="px-5 pb-5 text-sm leading-6 text-stone-600">{item.answer}</p>}
+      {open && <p className="type-card-body px-5 pb-5">{item.answer}</p>}
     </div>
   );
 }
@@ -653,7 +651,7 @@ function VenueCarousel() {
 
   return (
     <div
-      className="relative h-full overflow-hidden rounded-[2rem] border border-stone-200 bg-white p-3 shadow-xl shadow-stone-300/30 transition duration-300 ease-out hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
+      className="card-luxe-image card-luxe-hover relative h-full"
       role="region"
       aria-roledescription="carousel"
       aria-label="Venue image carousel"
@@ -664,14 +662,13 @@ function VenueCarousel() {
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      <div className="relative aspect-[4/3] overflow-hidden rounded-[1.5rem]">
+      <div className="card-luxe-media-frame relative aspect-[4/3]">
         {venueImages.map((image, index) => (
           <Image
             key={image.src}
             src={image.src}
             alt={image.alt}
             fill
-            priority={index === 0}
             sizes="(min-width: 768px) 50vw, 100vw"
             className={`object-cover contrast-[1.04] saturate-[0.88] transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
               index === currentIndex ? "opacity-100" : "opacity-0"
@@ -686,17 +683,17 @@ function VenueCarousel() {
         type="button"
         onClick={() => goToPrevious()}
         aria-label="Previous venue image"
-        className="absolute left-5 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md transition duration-300 ease-out hover:bg-white hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
+        className="venue-carousel-control absolute left-5 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md transition duration-300 ease-out hover:bg-white hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
       >
-        <ChevronLeft className="h-5 w-5 text-stone-900" />
+        <ChevronLeft className="h-5 w-5 text-[var(--color-deep-cocoa)]" />
       </button>
       <button
         type="button"
         onClick={() => goToNext()}
         aria-label="Next venue image"
-        className="absolute right-5 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md transition duration-300 ease-out hover:bg-white hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
+        className="venue-carousel-control absolute right-5 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md transition duration-300 ease-out hover:bg-white hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
       >
-        <ChevronRight className="h-5 w-5 text-stone-900" />
+        <ChevronRight className="h-5 w-5 text-[var(--color-deep-cocoa)]" />
       </button>
 
       <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
@@ -707,7 +704,7 @@ function VenueCarousel() {
             onClick={() => goToImage(index)}
             aria-label={`Show ${image.alt}`}
             className={`h-2 rounded-full transition duration-300 ease-out ${
-              index === currentIndex ? "w-6 bg-stone-900" : "w-2 bg-white/50"
+              index === currentIndex ? "w-6 bg-[var(--color-deep-cocoa)]" : "w-2 bg-white/50"
             }`}
           />
         ))}
@@ -920,7 +917,8 @@ export default function WeddingWebsiteStarter() {
   const heavyScrollProgress = shouldReduceMotion || isHeroMobile ? 0 : visualScrollProgress;
   const mobileScrollProgress = shouldReduceMotion || !isHeroMobile ? 0 : visualScrollProgress;
   const noteRevealProgress = shouldReduceMotion ? 1 : smoothProgress((heroScrollProgress - 0.48) / 0.22);
-  const gateOpacity = isHeroMobile ? 0.62 : 0.84 * (1 - heavyScrollProgress);
+  const gateOpacity = isHeroMobile ? 0.72 : 0.84 * (1 - heavyScrollProgress);
+  const gateScale = isHeroMobile ? 0.9 : 1.08;
   const leftGateOffset = -40 * 0.8 * heavyScrollProgress;
   const rightGateOffset = 40 * 0.8 * heavyScrollProgress;
   const houseFadeProgress = isHeroMobile ? mobileScrollProgress * 0.14 : heavyScrollProgress;
@@ -928,7 +926,9 @@ export default function WeddingWebsiteStarter() {
   const copyFadeProgress = isHeroMobile ? mobileScrollProgress * 0.08 : visualScrollProgress * 0.15;
   const copyTranslateY = isHeroMobile ? -4 * mobileScrollProgress : -10 * visualScrollProgress;
   const backgroundWashOpacity = isHeroMobile ? mobileScrollProgress * 0.35 : visualScrollProgress;
-  const audioToggleRevealClass = isAudioToggleVisible ? "translate-y-0 opacity-100" : "translate-y-2.5 opacity-60";
+  const audioToggleRevealClass = isAudioToggleVisible
+    ? "translate-y-0 opacity-70 sm:opacity-100"
+    : "translate-y-1.5 opacity-70 sm:translate-y-2.5 sm:opacity-60";
   const audioToggleMotionClass = shouldReduceMotion
     ? ""
     : "transition-[opacity,transform,box-shadow,border-color,background-color,color] duration-[400ms] ease-out hover:scale-[1.02]";
@@ -939,14 +939,28 @@ export default function WeddingWebsiteStarter() {
     transition: { duration: shouldReduceMotion ? 0 : 0.5, delay: shouldReduceMotion ? 0 : delay, ease: gateOpenEase },
   });
   return (
-    <main className="min-h-screen bg-[#fbf7f2] text-stone-800">
+    <main className="invite-page min-h-screen bg-[#fbf7f2] text-[var(--color-body)]">
       <audio ref={ambientAudioRef} src={ambientAudioSrc} preload="none" loop />
+      <nav className="mobile-sticky-actions md:hidden" aria-label="Quick wedding actions">
+        <a href={googleCalendarUrl} target="_blank" rel="noopener noreferrer" aria-label="Save the wedding date">
+          <CalendarPlus className="h-4 w-4" />
+          <span>Save Date</span>
+        </a>
+        <a href={googleDirectionsUrl} target="_blank" rel="noopener noreferrer" aria-label="Open venue directions">
+          <MapPin className="h-4 w-4" />
+          <span>Venue</span>
+        </a>
+        <a href="#rsvp" aria-label="Jump to RSVP details">
+          <Mail className="h-4 w-4" />
+          <span>RSVP</span>
+        </a>
+      </nav>
       <button
         type="button"
         aria-pressed={isAmbientAudioOn}
         aria-label={isAmbientAudioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
         onClick={handleAmbientAudioToggle}
-        className={`ambient-audio-toggle fixed bottom-6 right-6 z-50 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#d9b8aa]/78 bg-[#fffaf7]/76 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#a57569] shadow-[0_8px_24px_rgba(90,65,50,0.08)] backdrop-blur-[6px] hover:border-[#c79a8f] hover:bg-[#fffdf9]/88 hover:text-[#8f635b] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c79a8f]/45 ${audioToggleRevealClass} ${audioToggleMotionClass}`}
+        className={`ambient-audio-toggle type-button fixed bottom-4 right-4 z-50 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[#d9b8aa]/78 bg-[#fffaf7]/76 px-3 py-1.5 text-[#a57569] shadow-[0_8px_24px_rgba(90,65,50,0.08)] backdrop-blur-[6px] hover:border-[#c79a8f] hover:bg-[#fffdf9]/88 hover:text-[#8f635b] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c79a8f]/45 sm:bottom-6 sm:right-6 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 ${audioToggleRevealClass} ${audioToggleMotionClass}`}
       >
         {isAmbientAudioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
         <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
@@ -970,8 +984,8 @@ export default function WeddingWebsiteStarter() {
               src="/images/venue2.jpg"
               alt=""
               fill
-              priority
-              sizes="(min-width: 1024px) 1180px, 100vw"
+              loading="eager"
+              sizes="(max-width: 767px) 132vw, (min-width: 1024px) 1180px, 100vw"
               className="hero-estate-image object-contain object-bottom opacity-[0.52] mix-blend-multiply"
             />
           </div>
@@ -979,7 +993,7 @@ export default function WeddingWebsiteStarter() {
 
         <nav className="absolute inset-x-0 top-0 z-40">
           <div className="mx-auto grid w-full max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-5 py-5 sm:px-8 md:px-12 md:py-6">
-            <div className="hidden items-center justify-start gap-8 text-[12px] font-medium uppercase tracking-[0.12em] text-[#3f302b] md:flex lg:gap-10">
+            <div className="type-nav hidden items-center justify-start gap-8 md:flex lg:gap-10">
               <a href="#details" className="nav-link">
                 Details
               </a>
@@ -999,13 +1013,13 @@ export default function WeddingWebsiteStarter() {
                 width={1254}
                 height={1254}
                 sizes="(min-width: 768px) 76px, 58px"
-                priority
+                loading="eager"
                 className="sa-monogram h-auto object-contain"
                 style={{ width: "clamp(58px, 5vw, 76px)" }}
               />
             </a>
 
-            <div className="hidden items-center justify-end gap-8 text-[12px] font-medium uppercase tracking-[0.12em] text-[#3f302b] md:flex lg:gap-10">
+            <div className="type-nav hidden items-center justify-end gap-8 md:flex lg:gap-10">
               <a href="#itinerary" className="nav-link">
                 Itinerary
               </a>
@@ -1014,7 +1028,7 @@ export default function WeddingWebsiteStarter() {
               </a>
               <a
                 href="#rsvp"
-                className="rounded-full bg-[#3b231a] px-[18px] py-2.5 text-white shadow-[0_10px_24px_rgba(59,35,26,0.14)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#4a2d22] hover:shadow-[0_12px_30px_rgba(59,35,26,0.18)]"
+                className="type-button rounded-full bg-[#3b231a] px-[18px] py-2.5 text-[var(--color-warm-ivory)] shadow-[0_10px_24px_rgba(59,35,26,0.14)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#4a2d22] hover:shadow-[0_12px_30px_rgba(59,35,26,0.18)]"
               >
                 RSVP
               </a>
@@ -1032,8 +1046,8 @@ export default function WeddingWebsiteStarter() {
           </div>
 
           {isMobileNavOpen && (
-            <div className="absolute left-5 top-[82px] z-50 w-[calc(100vw-2.5rem)] border-y border-[#d9b8aa]/55 bg-[#fffaf7]/92 px-5 py-5 shadow-[0_16px_34px_rgba(106,73,58,0.10)] backdrop-blur-md md:hidden">
-              <div className="grid gap-4 text-center text-[12px] font-medium uppercase tracking-[0.12em] text-[#3f302b]">
+            <div className="mobile-nav-panel absolute left-5 top-[82px] z-50 w-[calc(100vw-2.5rem)] border-y border-[#d9b8aa]/55 bg-[#fffaf7]/92 px-5 py-5 shadow-[0_16px_34px_rgba(106,73,58,0.10)] backdrop-blur-md md:hidden">
+              <div className="type-nav grid gap-4 text-center">
                 <a
                   href="#details"
                   onClick={() => setIsMobileNavOpen(false)}
@@ -1065,7 +1079,7 @@ export default function WeddingWebsiteStarter() {
                 <a
                   href="#rsvp"
                   onClick={() => setIsMobileNavOpen(false)}
-                  className="mx-auto rounded-full bg-[#3b231a] px-[18px] py-2.5 text-white shadow-[0_10px_24px_rgba(59,35,26,0.14)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#4a2d22]"
+                  className="type-button mx-auto rounded-full bg-[#3b231a] px-[18px] py-2.5 text-[var(--color-warm-ivory)] shadow-[0_10px_24px_rgba(59,35,26,0.14)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#4a2d22]"
                 >
                   RSVP
                 </a>
@@ -1076,8 +1090,8 @@ export default function WeddingWebsiteStarter() {
 
         <motion.div
           aria-hidden="true"
-          initial={shouldReduceMotion ? false : { opacity: 0.58, x: 26, rotateY: -60, scale: 1.08 }}
-          animate={{ opacity: gateOpacity, x: leftGateOffset, rotateY: -18, scale: 1.08 }}
+          initial={shouldReduceMotion ? false : { opacity: 0.58, x: 26, rotateY: -60, scale: gateScale }}
+          animate={{ opacity: gateOpacity, x: leftGateOffset, rotateY: -18, scale: gateScale }}
           transition={{
             opacity: { duration: 0.4, ease: "easeOut" },
             x: { duration: 0.4, ease: "easeOut" },
@@ -1092,7 +1106,7 @@ export default function WeddingWebsiteStarter() {
             alt=""
             width={1024}
             height={1536}
-            priority
+            loading="eager"
             sizes="(min-width: 1536px) 640px, (min-width: 1024px) 560px, (min-width: 768px) 45vw, 30vw"
             className="h-full w-auto object-contain object-left-bottom"
           />
@@ -1100,8 +1114,8 @@ export default function WeddingWebsiteStarter() {
 
         <motion.div
           aria-hidden="true"
-          initial={shouldReduceMotion ? false : { opacity: 0.58, x: -26, rotateY: 60, scale: 1.08 }}
-          animate={{ opacity: gateOpacity, x: rightGateOffset, rotateY: 18, scale: 1.08 }}
+          initial={shouldReduceMotion ? false : { opacity: 0.58, x: -26, rotateY: 60, scale: gateScale }}
+          animate={{ opacity: gateOpacity, x: rightGateOffset, rotateY: 18, scale: gateScale }}
           transition={{
             opacity: { duration: 0.4, ease: "easeOut" },
             x: { duration: 0.4, ease: "easeOut" },
@@ -1116,7 +1130,7 @@ export default function WeddingWebsiteStarter() {
             alt=""
             width={1024}
             height={1536}
-            priority
+            loading="eager"
             sizes="(min-width: 1536px) 640px, (min-width: 1024px) 560px, (min-width: 768px) 45vw, 30vw"
             className="h-full w-auto object-contain object-right-bottom"
           />
@@ -1127,6 +1141,7 @@ export default function WeddingWebsiteStarter() {
           className="hero-scroll-layer pointer-events-none absolute inset-0 z-[22] bg-[linear-gradient(to_bottom,rgba(255,255,255,0)_40%,rgba(251,247,242,1)_100%)]"
           style={{ opacity: backgroundWashOpacity }}
         />
+        <div className="hero-mobile-depth-overlay pointer-events-none absolute inset-0 z-[23]" />
 
         <div className="hero-content relative z-30 mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-6 pb-[25vh] pt-[22vh] text-center sm:px-8 sm:pb-[25vh] md:pt-[21vh] lg:pb-[26vh]">
           <motion.div
@@ -1136,37 +1151,54 @@ export default function WeddingWebsiteStarter() {
             className="hero-copy max-w-4xl"
             style={{ opacity: 1 - copyFadeProgress, transform: `translateY(${copyTranslateY}px)` }}
           >
-            <p className="font-serif text-base tracking-[0.14em] text-[#46342f] sm:text-lg">
+            <p className="type-section-eyebrow text-[var(--color-deep-cocoa)]">
               We&rsquo;re Getting Married
             </p>
-            <h1 className="rose-gold-foil hero-title mt-7 font-serif text-[42px] leading-[1.04] sm:text-[72px] md:text-[92px] lg:text-[104px]">
+            <h1 className="rose-gold-foil hero-title type-hero-title mt-8">
               <span className="block sm:inline">Sumaya</span>{" "}
               <span className="block sm:inline">&amp; Aditya</span>
             </h1>
-            <div className="mx-auto mt-8 flex w-full max-w-[260px] items-center justify-center gap-3">
+            <div className="mx-auto mt-10 flex w-full max-w-[260px] items-center justify-center gap-3">
               <span className="h-px flex-1 bg-[#b98278]/58" />
               <span className="h-1.5 w-1.5 rotate-45 bg-[#c79a8f]/86" />
               <span className="h-px flex-1 bg-[#b98278]/58" />
             </div>
-            <p className="mx-auto mt-8 max-w-[330px] font-serif text-[12px] uppercase leading-6 tracking-[0.1em] text-[#3f302b]/90 sm:max-w-none sm:text-base sm:leading-normal sm:tracking-[0.28em]">
+            <p className="type-meta mx-auto mt-9 max-w-[330px] text-[var(--color-deep-cocoa)] sm:max-w-none">
               <span className="block sm:inline">01 November 2026</span>
               <span className="mx-2 hidden text-[#b98278] sm:inline">&middot;</span>
-              <span className="block sm:inline">Caversham House, Swan Valley</span>
+              <span className="mt-3 block sm:mt-0 sm:inline">Caversham House, Swan Valley</span>
             </p>
-            <p className="mt-4 font-serif text-[15px] tracking-[0.1em] text-[#6a5d55]/88 sm:text-[18px] sm:tracking-[0.18em]">
+            <p className="type-meta mt-7 text-[var(--color-body)]">
               <span className="block sm:inline">4:00 PM Ceremony</span>
               <span className="mx-2 hidden text-[#c79a8f] sm:inline">&middot;</span>
-              <span className="block sm:inline">Garden House</span>
+              <span className="mt-2 block sm:mt-0 sm:inline">Garden House</span>
             </p>
             <a
               href={googleCalendarUrl}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Add Sumaya and Aditya's wedding to Google Calendar"
-              className="mt-9 inline-flex items-center gap-2 rounded-full border border-[#d9b8aa] bg-[#fffaf7]/84 px-6 py-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#4f3029]/92 shadow-[0_12px_30px_rgba(106,73,58,0.08)] backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[#c79a8f] hover:bg-[#fffdf9] hover:shadow-[0_16px_36px_rgba(106,73,58,0.14)]"
+              className="type-button mx-auto mt-6 hidden w-fit items-center justify-center gap-2 rounded-full border border-[#d9b8aa] bg-[#fffaf7]/84 px-5 py-2.5 text-[#4f3029]/92 shadow-[0_12px_30px_rgba(106,73,58,0.08)] backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[#c79a8f] hover:bg-[#fffdf9] hover:shadow-[0_16px_36px_rgba(106,73,58,0.14)] sm:mt-9 sm:inline-flex sm:px-6 sm:py-3"
             >
               <CalendarPlus className="h-4 w-4 text-[#b98278]" />
               Save the date
+            </a>
+            <div className="mobile-hero-actions sm:hidden">
+              <a
+                href={googleCalendarUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Add Sumaya and Aditya's wedding to Google Calendar"
+              >
+                <CalendarPlus className="h-4 w-4" />
+                Save Date
+              </a>
+              <a href="#rsvp" aria-label="Jump to RSVP details">
+                RSVP
+              </a>
+            </div>
+            <a href="#details" className="mobile-scroll-cue sm:hidden" aria-label="Scroll to wedding details">
+              <span />
             </a>
           </motion.div>
         </div>
@@ -1174,24 +1206,24 @@ export default function WeddingWebsiteStarter() {
         </div>
       </section>
 
-      <section className="bg-[#fbf7f2] px-6 py-16 sm:py-20 md:py-24">
+      <section className="mobile-invite-quote bg-[#fbf7f2] px-6 py-16 sm:py-20 md:py-24">
         <div className="mx-auto max-w-[600px] text-center">
-          <blockquote className="font-serif text-[24px] italic leading-[1.6] text-[#8f6b62]/76 sm:text-[28px] md:text-[32px]">
+          <blockquote className="type-quote">
             &ldquo;Whatever our souls are made of, his and mine are the same.&rdquo;
           </blockquote>
-          <p className="mt-6 text-[11px] font-medium uppercase tracking-[0.24em] text-[#7d6b62]/58">
+          <p className="type-quote-attribution type-section-eyebrow mt-6">
             &mdash; Emily Bront&euml;
           </p>
         </div>
       </section>
 
       <section
-        className="hero-scroll-layer relative bg-[#fbf7f2] px-6 py-20 md:py-28"
+        className="mobile-invite-note hero-scroll-layer relative bg-[#fbf7f2] px-6 py-20 md:py-28"
         style={{ opacity: noteRevealProgress, transform: `translateY(${40 * (1 - noteRevealProgress)}px)` }}
       >
         <div className="mx-auto max-w-[760px] text-center">
           <p className="heading-micro mb-5">A NOTE FROM US</p>
-          <div className="space-y-5 font-serif text-[22px] font-normal leading-[1.55] text-[#3f302b] sm:text-[26px] md:text-[30px] md:leading-[1.5]">
+          <div className="type-feature-copy space-y-5">
             <p>We are so grateful to be celebrating this day with the people who have been part of our story.</p>
             <p>
               More details will be shared closer to the day, but for now, we would love for you to join us at Caversham
@@ -1207,7 +1239,7 @@ export default function WeddingWebsiteStarter() {
           <h2 className="heading-primary">
             A garden ceremony, an intimate dinner, and an evening to remember
           </h2>
-          <p className="heading-copy mt-4 text-base md:text-lg">
+          <p className="heading-copy mt-4">
             Our day has been designed to feel romantic, relaxed, and full of warmth — with garden moments, beautiful
             food, music, and time to celebrate with the people we love most.
           </p>
@@ -1229,15 +1261,19 @@ export default function WeddingWebsiteStarter() {
               title: "Celebration",
               text: "Music, drinks, and dancing as the evening unfolds.",
             },
-          ].map((card) => (
-            <div
+          ].map((card, index) => (
+            <motion.div
               key={card.title}
-              className="rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7] px-8 py-10 shadow-[0_18px_45px_rgba(101,75,62,0.07)] backdrop-blur-sm transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.24 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.58, delay: shouldReduceMotion ? 0 : index * 0.06, ease: "easeOut" }}
+              className="mobile-invite-card card-luxe card-luxe-text card-luxe-hover px-8 py-10"
             >
               <card.icon className="mb-7 h-6 w-6 text-[#b98278]" />
-              <h3 className="font-serif text-2xl text-[#4f4641]">{card.title}</h3>
-              <p className="mt-4 leading-7 text-[#4f4641]/80">{card.text}</p>
-            </div>
+              <h3 className="type-card-title">{card.title}</h3>
+              <p className="type-card-body mt-4">{card.text}</p>
+            </motion.div>
           ))}
         </div>
       </SoftSection>
@@ -1259,7 +1295,7 @@ export default function WeddingWebsiteStarter() {
             <span className="h-1.5 w-1.5 rotate-45 bg-[#c79a8f]/78" />
             <span className="h-px flex-1 bg-[#b98278]/42" />
           </div>
-          <p className="heading-copy mx-auto mt-8 max-w-[600px] text-[16px] sm:text-[17px]">
+          <p className="heading-copy mx-auto mt-8 max-w-[600px]">
             {dressCode.description}
           </p>
         </motion.div>
@@ -1270,7 +1306,7 @@ export default function WeddingWebsiteStarter() {
         >
           <div className="mx-auto max-w-3xl text-center">
             <h3 className="heading-secondary">Pastel Formal</h3>
-            <div className="mx-auto mt-6 max-w-[600px] space-y-3 text-[15px] leading-[1.76] text-[#4f4641]/76 sm:text-[16px]">
+            <div className="type-card-body mx-auto mt-6 max-w-[600px] space-y-3">
               {dressCode.pastelFormalCopy.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
@@ -1294,7 +1330,7 @@ export default function WeddingWebsiteStarter() {
         <motion.article {...dressRevealMotion(0.05, 8)} className="mt-8">
           <div className="mx-auto max-w-3xl text-center">
             <h3 className="heading-secondary">Classic Formal</h3>
-            <div className="mx-auto mt-5 max-w-[600px] space-y-2 text-[15px] leading-[1.74] text-[#4f4641]/76 sm:text-[16px]">
+            <div className="type-card-body mx-auto mt-5 max-w-[600px] space-y-2">
               {dressCode.classicFormalCopy.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
@@ -1305,7 +1341,7 @@ export default function WeddingWebsiteStarter() {
                 <Swatch key={swatch.label} swatch={swatch} />
               ))}
             </div>
-            <p className="mt-5 text-[11px] font-medium uppercase tracking-[0.22em] text-[#8c7a72]/82">
+            <p className="type-meta mt-5">
               Structured tones to ground the palette
             </p>
           </div>
@@ -1314,15 +1350,15 @@ export default function WeddingWebsiteStarter() {
 
         <motion.div
           {...dressRevealMotion(0.08, 8)}
-          className="mx-auto mt-12 max-w-2xl text-center"
+          className="mobile-editorial-callout mx-auto mt-12 max-w-2xl text-center"
         >
-          <h3 className="font-serif text-[23px] font-medium leading-tight tracking-[0.006em] text-[#9a817b] sm:text-[26px]">A small note</h3>
-          <p className="mx-auto mt-3 max-w-[600px] text-[14px] leading-[1.76] text-[#4f4641]/62 sm:text-[15px]">
+          <h3 className="type-card-title">A small note</h3>
+          <p className="type-card-body mx-auto mt-3 max-w-[600px]">
             We kindly ask guests to avoid white, ivory, cream, or anything bridal in tone.
           </p>
 
-          <h3 className="mt-7 font-serif text-[23px] font-medium leading-tight tracking-[0.006em] text-[#9a817b] sm:text-[26px]">Garden shoes</h3>
-          <p className="mx-auto mt-3 max-w-[600px] text-[14px] leading-[1.76] text-[#4f4641]/62 sm:text-[15px]">
+          <h3 className="type-card-title mt-7">Garden shoes</h3>
+          <p className="type-card-body mx-auto mt-3 max-w-[600px]">
             The ceremony will take place within the venue gardens, so block heels, wedges, flats, or comfortable dress
             shoes are recommended.
           </p>
@@ -1331,7 +1367,7 @@ export default function WeddingWebsiteStarter() {
 
       <SoftSection id="itinerary" contentClassName="mx-auto max-w-5xl">
         <div className="mx-auto mb-12 max-w-3xl text-center">
-          <h2 className="font-serif text-[50px] font-medium leading-none tracking-[0.012em] text-[#9a6f66] sm:text-[68px] md:text-[82px]">
+          <h2 className="heading-primary">
             Wedding itinerary
           </h2>
           <div className="mx-auto my-6 flex w-full max-w-[128px] items-center justify-center gap-2.5">
@@ -1339,17 +1375,17 @@ export default function WeddingWebsiteStarter() {
             <span className="font-serif text-[20px] leading-none text-[#c9a79e]/82">❦</span>
             <span className="h-px flex-1 bg-[#b98278]/30" />
           </div>
-          <p className="mx-auto max-w-[560px] text-[15px] leading-7 text-[#4f4641]/72 md:text-base">
+          <p className="heading-copy mx-auto max-w-[560px]">
             The final schedule may be refined closer to the day, but this is the planned flow for guests.
           </p>
-          <p className="mt-7 font-serif text-[15px] italic leading-relaxed tracking-[0.01em] text-[#4f4641]/72 md:text-[16px]">
+          <p className="type-editorial-note mt-7">
             A gentle unfolding of our day
           </p>
         </div>
-        <div className="relative mx-auto grid max-w-[900px] gap-0">
+        <div className="itinerary-list relative mx-auto grid max-w-[900px] gap-0">
           <div
             aria-hidden="true"
-            className="pointer-events-none absolute bottom-6 left-[calc(68px+0.75rem+12px)] top-4 w-px md:left-[calc(130px+1.5rem+20px)]"
+            className="itinerary-line pointer-events-none absolute bottom-6 left-[calc(68px+0.75rem+12px)] top-4 w-px md:left-[calc(130px+1.5rem+20px)]"
             style={{ background: "rgba(150,120,110,0.25)" }}
           />
           {itinerary.map((item, index) => (
@@ -1359,25 +1395,25 @@ export default function WeddingWebsiteStarter() {
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: shouldReduceMotion ? 0 : 0.56, delay: shouldReduceMotion ? 0 : index * 0.08, ease: "easeOut" }}
-              className="grid grid-cols-[68px_24px_1fr] gap-x-3 md:grid-cols-[130px_40px_1fr] md:gap-x-6"
+              className="itinerary-item grid grid-cols-[68px_24px_1fr] gap-x-3 md:grid-cols-[130px_40px_1fr] md:gap-x-6"
             >
-              <div className="pt-4 text-right text-[11px] font-medium uppercase tracking-[0.2em] text-[#7d4f48]/78 md:text-[12px]">
+              <div className="type-timeline-time pt-4 text-right">
                 {item.time}
               </div>
-              <div className="relative flex justify-center pt-[1.05rem]">
+              <div className="itinerary-marker relative flex justify-center pt-[1.05rem]">
                 <div className="relative z-10 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-[#c9a79e] bg-[#fbf7f2] shadow-[0_0_0_5px_rgba(200,170,160,0.10)]">
                   <span className="h-[7px] w-[7px] rounded-full bg-[#c9a79e]" />
                 </div>
               </div>
-              <div className="pb-7">
+              <div className="itinerary-content pb-7">
                 <div className="pb-5">
                   <div className="flex items-center gap-4">
                     <ItineraryIcon title={item.title} />
-                    <h3 className="font-serif text-[1.58rem] leading-tight tracking-[0.014em] text-[#9a6f66] md:text-[1.82rem]">
+                    <h3 className="type-timeline-title">
                       {item.title}
                     </h3>
                   </div>
-                  <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[rgba(80,70,65,0.76)] md:text-base">
+                  <p className="type-card-body mt-4 max-w-2xl">
                     {item.detail}
                   </p>
                 </div>
@@ -1412,10 +1448,10 @@ export default function WeddingWebsiteStarter() {
             <span className="h-1.5 w-1.5 rotate-45 bg-[#c79a8f]/72" />
             <span className="h-px flex-1 bg-[#b98278]/32" />
           </div>
-          <p className="heading-copy mx-auto max-w-[560px] text-[16px]">
+          <p className="heading-copy mx-auto max-w-[560px]">
             A Swan Valley garden setting with a romantic ceremony at Garden House and a reception at Main House.
           </p>
-          <p className="mx-auto mt-3 max-w-[520px] text-sm leading-6 text-[#6a5d55]/72">
+          <p className="type-card-body mx-auto mt-3 max-w-[520px]">
             A soft garden setting for the day to unfold slowly, warmly, and beautifully.
           </p>
         </div>
@@ -1426,9 +1462,9 @@ export default function WeddingWebsiteStarter() {
             <VenueCarousel />
           </div>
           <div className="mx-auto flex h-full w-full max-w-[480px] md:max-w-none">
-            <div className="flex h-full w-full flex-col justify-center rounded-3xl border border-[#e7ddd5] bg-[#fffaf7]/72 p-8 shadow-[0_8px_24px_rgba(90,65,50,0.035)] backdrop-blur-sm md:p-9">
-              <h3 className="font-serif text-2xl text-[#4f4641]">Getting There &amp; Parking</h3>
-              <div className="mt-5 space-y-4 text-[15px] leading-[1.7] text-[#6a5d55]">
+            <div className="card-luxe card-luxe-text flex h-full w-full flex-col justify-center p-8 md:p-9">
+              <h3 className="type-card-title">Getting There &amp; Parking</h3>
+              <div className="type-card-body mt-5 space-y-4">
                 <p>
                   Caversham House
                   <br />
@@ -1443,11 +1479,18 @@ export default function WeddingWebsiteStarter() {
                   gardens.
                 </p>
               </div>
+              <div className="mobile-venue-actions mt-6 md:hidden">
+                <a href={googleDirectionsUrl} target="_blank" rel="noopener noreferrer">
+                  <MapPin className="h-4 w-4" />
+                  Get Directions
+                </a>
+                <a href="#venue-map">View Map</a>
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="relative mt-12 overflow-hidden rounded-[2rem] border border-stone-200 shadow-xl shadow-stone-300/30 transition duration-300 ease-out hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]">
+        <div id="venue-map" className="card-luxe-map card-luxe-hover relative mt-12">
           <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3384.9999!2d115.9905802!3d-31.8777983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2a32b77920209d99%3A0xeb200b707ad3d95d!2sCaversham%20House%2C%20141%20Caversham%20Ave%2C%20Caversham%20WA%206055!5e0!3m2!1sen!2sau!4v1620000000000"
@@ -1463,23 +1506,23 @@ export default function WeddingWebsiteStarter() {
       </SoftSection>
 
       <SoftSection id="rsvp" contentClassName="mx-auto max-w-4xl">
-        <div className="rounded-[2.25rem] border border-[#eaded6]/20 bg-[#2A1D19] px-5 py-10 text-white shadow-[0_24px_70px_rgba(90,65,50,0.16)] md:px-10 md:py-12">
+        <div className="card-luxe card-luxe-dark px-5 py-10 md:px-10 md:py-12">
           <div className="mx-auto max-w-3xl text-center">
             <p className="heading-micro heading-micro-light mb-3">RSVP</p>
             <h2 className="heading-primary">We hope you can celebrate with us</h2>
-            <p className="mt-5 text-lg leading-8 text-[#e6d9d2]">
+            <p className="heading-copy mt-5">
               Your formal invitation will include a private RSVP link created just for you. Please use that link so we
               can recognise your invitation and save your response to the right guest record.
             </p>
           </div>
 
-          <div className="mt-10 rounded-[2rem] border border-[#eaded6]/25 bg-[#fffaf7] p-6 text-center text-[#4f4641] shadow-2xl shadow-black/20 md:p-8">
-            <p className="mx-auto max-w-2xl text-[15px] leading-7 text-[#6a5d55]">
+          <div className="card-luxe card-luxe-text mt-10 p-6 text-center text-[#4f4641] md:p-8">
+            <p className="type-card-body mx-auto max-w-2xl">
               There is no public name-search RSVP form, so your private link is the most reliable way for us to prefill
               your invitation details and ask only the questions relevant to you.
             </p>
             <div className="mx-auto mt-6 h-px w-24 bg-[#b98278]/24" />
-            <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[#7b6760]">
+            <p className="type-card-body mx-auto mt-6 max-w-xl">
               If you cannot find your link, please message Sumaya or Aditya and we can send it again.
             </p>
           </div>
@@ -1489,7 +1532,7 @@ export default function WeddingWebsiteStarter() {
           >
             <div className="grid gap-6">
               <label className="grid gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">Guest name</span>
+                <span className="type-section-eyebrow">Guest name</span>
                 <input
                   type="text"
                   name="guestName"
@@ -1500,16 +1543,16 @@ export default function WeddingWebsiteStarter() {
                   className="min-h-12 rounded-2xl border border-[#eaded6] bg-white px-4 text-[#4f4641] outline-none transition placeholder:text-[#a99790] read-only:bg-[#fbf7f2] focus:border-[#b98278]"
                 />
                 {guestLookupMessage && (
-                  <span className="text-[13px] leading-[1.6] text-[#7a6a62]">{guestLookupMessage}</span>
+                  <span className="type-card-body text-[0.85rem]">{guestLookupMessage}</span>
                 )}
               </label>
 
               <div className="grid gap-5 md:grid-cols-[1.12fr_0.88fr]">
                 <fieldset className="rounded-2xl border border-[#eaded6] bg-white/70 p-5">
-                  <legend className="px-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">
+                  <legend className="type-section-eyebrow px-1">
                     Will you be joining us for the ceremony?
                   </legend>
-                  <div className="mt-4 grid gap-3 text-sm text-[#4f4641]">
+                  <div className="type-card-body mt-4 grid gap-3">
                     {["Yes", "No"].map((option) => (
                       <label key={option} className="flex items-center gap-3">
                         <input
@@ -1527,10 +1570,10 @@ export default function WeddingWebsiteStarter() {
                 </fieldset>
 
                 <fieldset className="rounded-2xl border border-[#eaded6] bg-white/70 p-5">
-                  <legend className="px-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">
+                  <legend className="type-section-eyebrow px-1">
                     Will you be joining us for the reception?
                   </legend>
-                  <div className="mt-4 grid gap-3 text-sm text-[#4f4641]">
+                  <div className="type-card-body mt-4 grid gap-3">
                     {["Yes", "No"].map((option) => (
                       <label key={option} className="flex items-center gap-3">
                         <input
@@ -1549,10 +1592,10 @@ export default function WeddingWebsiteStarter() {
               </div>
 
               <fieldset className="rounded-2xl border border-[#eaded6] bg-white/70 p-5">
-                <legend className="px-1 text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">
+                <legend className="type-section-eyebrow px-1">
                   Will you be bringing a +1?
                 </legend>
-                <div className="mt-4 grid gap-3 text-sm text-[#4f4641]">
+                <div className="type-card-body mt-4 grid gap-3">
                   {["Yes", "No"].map((option) => (
                     <label key={option} className="flex items-center gap-3">
                       <input
@@ -1570,7 +1613,7 @@ export default function WeddingWebsiteStarter() {
 
                 {bringingPlusOne === "yes" && (
                   <label className="mt-5 grid gap-2 rounded-[18px] border border-[#eaded6] bg-[#fffaf7]/70 p-5">
-                    <span className="text-xs font-semibold uppercase tracking-[0.2em] text-[#7b6760]">
+                    <span className="type-section-eyebrow">
                       +1 full name
                     </span>
                     <input
@@ -1581,7 +1624,7 @@ export default function WeddingWebsiteStarter() {
                       placeholder="Their full name"
                       className="min-h-12 rounded-2xl border border-[#eaded6] bg-white/85 px-4 text-[#4f4641] outline-none transition placeholder:text-[#a99790] focus:border-[#b98278]"
                     />
-                    <span className="mt-2 text-[13px] leading-[1.6] text-[#7a6a62]">
+                    <span className="type-card-body mt-2 text-[0.85rem]">
                       This helps us keep the guest list and seating plan beautifully organised.
                     </span>
                   </label>
@@ -1589,7 +1632,7 @@ export default function WeddingWebsiteStarter() {
               </fieldset>
 
               <label className="grid gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">
+                <span className="type-section-eyebrow">
                   Dietary requirements
                 </span>
                 <textarea
@@ -1601,7 +1644,7 @@ export default function WeddingWebsiteStarter() {
               </label>
 
               <label className="grid gap-2">
-                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">Song request</span>
+                <span className="type-section-eyebrow">Song request</span>
                 <input
                   type="text"
                   name="songRequest"
@@ -1612,7 +1655,7 @@ export default function WeddingWebsiteStarter() {
 
               {rsvpSubmitMessage && (
                 <div
-                  className={`rounded-2xl border px-5 py-4 text-sm leading-6 ${
+                  className={`type-card-body rounded-2xl border px-5 py-4 ${
                     rsvpSubmitStatus === "success"
                       ? "border-[#d8bd96] bg-[#fbf7f2] text-[#5f524b]"
                       : "border-[#e6c8c2] bg-[#fff4f2] text-[#8b5f58]"
@@ -1623,13 +1666,13 @@ export default function WeddingWebsiteStarter() {
               )}
 
               <div className="flex flex-col gap-3 border-t border-[#eaded6] pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm leading-6 text-[#7b6760]">
+                <p className="type-card-body">
                   Your response will be saved to our wedding RSVP list.
                 </p>
                 <button
                   type="submit"
                   disabled={rsvpSubmitStatus === "submitting"}
-                  className="rounded-full bg-[#241815] px-7 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-[0_12px_30px_rgba(36,24,21,0.18)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#382722] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="type-button rounded-full bg-[#241815] px-7 py-3 text-[var(--color-warm-ivory)] shadow-[0_12px_30px_rgba(36,24,21,0.18)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#382722] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {rsvpSubmitStatus === "submitting" ? "Saving..." : "Submit RSVP"}
                 </button>
@@ -1652,19 +1695,19 @@ export default function WeddingWebsiteStarter() {
         </div>
       </SoftSection>
 
-      <footer className="border-t border-stone-200 px-6 py-10 text-center">
-        <p className="font-serif text-3xl text-stone-900">Sumaya & Aditya</p>
-        <p className="mt-2 text-sm uppercase tracking-[0.25em] text-stone-500">01 November 2026 &middot; Perth</p>
-        <div className="mx-auto mt-6 flex max-w-md items-center justify-center gap-2 rounded-full border border-stone-200 bg-white/60 px-5 py-3 text-sm text-stone-600">
+      <footer className="border-t border-[#e4d1cb] px-6 py-10 text-center">
+        <p className="type-card-title">Sumaya & Aditya</p>
+        <p className="type-meta mt-2">01 November 2026 &middot; Perth</p>
+        <div className="card-luxe-pill type-card-body mx-auto mt-6 flex max-w-md items-center justify-center gap-2 px-5 py-3">
           <Mail className="h-4 w-4" />
           Wedding website and RSVP system in progress
         </div>
         <div className="mt-8 flex items-center justify-center gap-5">
-          <a href="/guest-list" className="text-[11px] uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-400">Guest List</a>
-          <span className="text-stone-200">&middot;</span>
-          <a href="/inner-circle" className="text-[11px] uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-400">Inner Circle</a>
-          <span className="text-stone-200">&middot;</span>
-          <a href="/private-planning" className="text-[11px] uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-400">Planning</a>
+          <a href="/guest-list" className="type-nav text-[#b8aaa4] transition hover:text-[var(--color-muted)]">Guest List</a>
+          <span className="text-[#e4d1cb]">&middot;</span>
+          <a href="/inner-circle" className="type-nav text-[#b8aaa4] transition hover:text-[var(--color-muted)]">Inner Circle</a>
+          <span className="text-[#e4d1cb]">&middot;</span>
+          <a href="/private-planning" className="type-nav text-[#b8aaa4] transition hover:text-[var(--color-muted)]">Planning</a>
         </div>
       </footer>
     </main>
