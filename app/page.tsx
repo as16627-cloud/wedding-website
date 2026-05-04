@@ -1621,6 +1621,13 @@ export default function WeddingWebsiteStarter() {
           <Mail className="h-4 w-4" />
           Wedding website and RSVP system in progress
         </div>
+        <div className="mt-8 flex items-center justify-center gap-5">
+          <a href="/guest-list" className="text-[11px] uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-400">Guest List</a>
+          <span className="text-stone-200">&middot;</span>
+          <a href="/inner-circle" className="text-[11px] uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-400">Inner Circle</a>
+          <span className="text-stone-200">&middot;</span>
+          <a href="/private-planning" className="text-[11px] uppercase tracking-[0.18em] text-stone-300 transition hover:text-stone-400">Planning</a>
+        </div>
       </footer>
     </main>
   );
