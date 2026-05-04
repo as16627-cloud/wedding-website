@@ -245,6 +245,9 @@ export default function TokenRsvpForm({ token }: { token: string }) {
       setGuest(result.guest);
       setStatus("success");
       setMessage(result.message ?? "Thank you. Your RSVP has been saved.");
+      window.setTimeout(() => {
+        window.location.href = "https://sumi-adi-knot-ready.com";
+      }, 3000);
     } catch (error) {
       setStatus("error");
       setMessage(error instanceof Error ? error.message : "Something went wrong while saving your RSVP.");

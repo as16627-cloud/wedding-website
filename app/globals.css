@@ -157,8 +157,9 @@ body {
 
 @media (max-width: 767px) {
   .hero-estate-image {
-    opacity: 0.4;
-    filter: saturate(0.84) contrast(0.98) brightness(1.04);
+    opacity: 0.55;
+    filter: saturate(0.88) contrast(1.0) brightness(1.06);
+    mix-blend-mode: normal;
   }
 
   .hero-copy::before {

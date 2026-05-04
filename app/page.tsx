@@ -813,6 +813,41 @@ export default function WeddingWebsiteStarter() {
   }, []);
 
   useEffect(() => {
+    let started = false;
+
+    async function tryPlay() {
+      if (started) return;
+      const audio = ambientAudioRef.current;
+      if (!audio) return;
+      try {
+        audio.loop = true;
+        audio.volume = 0;
+        await audio.play();
+        started = true;
+        setIsAmbientAudioOn(true);
+        fadeAmbientAudio(ambientAudioTargetVolume);
+      } catch {
+        // Blocked by browser — will retry on first user gesture
+      }
+    }
+
+    function onGesture() {
+      void tryPlay();
+    }
+
+    void tryPlay();
+    window.addEventListener("touchstart", onGesture, { once: true, passive: true });
+    window.addEventListener("click", onGesture, { once: true });
+    window.addEventListener("scroll", onGesture, { once: true, passive: true });
+
+    return () => {
+      window.removeEventListener("touchstart", onGesture);
+      window.removeEventListener("click", onGesture);
+      window.removeEventListener("scroll", onGesture);
+    };
+  }, [fadeAmbientAudio]);
+
+  useEffect(() => {
     let animationFrame = 0;
 
     const updateHeroProgress = () => {
@@ -1046,7 +1081,7 @@ export default function WeddingWebsiteStarter() {
             rotateY: { duration: shouldReduceMotion ? 0 : 1.6, delay: shouldReduceMotion ? 0 : 0.2, ease: gateOpenEase },
             scale: { duration: 0.4, ease: "easeOut" },
           }}
-          className="hero-gate-art pointer-events-none absolute bottom-[-7vh] left-[-100vw] z-10 block h-[88vh] min-h-0 origin-left md:left-[-21vw] md:h-[94vh] md:max-h-[1000px] md:min-h-[660px] lg:left-[-13vw] xl:left-[-8vw] 2xl:left-[-2vw]"
+          className="hero-gate-art pointer-events-none absolute bottom-[-7vh] left-[-48vw] z-10 block h-[88vh] min-h-0 origin-left md:left-[-21vw] md:h-[94vh] md:max-h-[1000px] md:min-h-[660px] lg:left-[-13vw] xl:left-[-8vw] 2xl:left-[-2vw]"
           style={{ transformOrigin: "left bottom" }}
         >
           <Image
@@ -1070,7 +1105,7 @@ export default function WeddingWebsiteStarter() {
             rotateY: { duration: shouldReduceMotion ? 0 : 1.6, delay: shouldReduceMotion ? 0 : 0.4, ease: gateOpenEase },
             scale: { duration: 0.4, ease: "easeOut" },
           }}
-          className="hero-gate-art pointer-events-none absolute bottom-[-5.5vh] right-[-100vw] z-10 block h-[86vh] min-h-0 origin-right md:right-[-19vw] md:h-[90vh] md:max-h-[960px] md:min-h-[640px] lg:right-[-11vw] xl:right-[-6vw] 2xl:right-[-1vw]"
+          className="hero-gate-art pointer-events-none absolute bottom-[-5.5vh] right-[-46vw] z-10 block h-[86vh] min-h-0 origin-right md:right-[-19vw] md:h-[90vh] md:max-h-[960px] md:min-h-[640px] lg:right-[-11vw] xl:right-[-6vw] 2xl:right-[-1vw]"
           style={{ transformOrigin: "right bottom" }}
         >
           <Image
@@ -1098,7 +1133,7 @@ export default function WeddingWebsiteStarter() {
             className="hero-copy max-w-4xl"
             style={{ opacity: 1 - copyFadeProgress, transform: `translateY(${copyTranslateY}px)` }}
           >
-            <p className="heading-micro text-[#46342f] sm:text-xs">
+            <p className="heading-micro font-serif text-[#46342f] sm:text-xs">
               WE&rsquo;RE GETTING MARRIED
             </p>
             <h1 className="rose-gold-foil hero-title mt-7 font-serif text-[42px] leading-[1.04] sm:text-[72px] md:text-[92px] lg:text-[104px]">
