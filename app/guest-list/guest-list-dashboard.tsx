@@ -4,7 +4,9 @@ import { type FormEvent, useMemo, useState } from "react";
 import {
   CheckCircle2,
   CheckSquare,
+  Copy,
   Download,
+  ExternalLink,
   LockKeyhole,
   MessageCircle,
   Pencil,
@@ -26,26 +28,41 @@ type CoupleGuest = {
   side: string | null;
   notes: string | null;
   inviteToken: string;
+  rsvpToken: string;
+  invitedToCeremony: boolean;
+  invitedToReception: boolean;
+  plusOneAllowed: boolean;
+  smsSentAt: string | null;
   rsvpResponse: RsvpStatus;
+  rsvpStatus: RsvpStatus;
   attendingCeremony: boolean | null;
   attendingReception: boolean | null;
   bringingPlusOne: boolean;
+  ceremonyResponse: boolean | null;
+  receptionResponse: boolean | null;
+  plusOneResponse: boolean | null;
   plusOneName: string | null;
   dietaryRequirements: string | null;
+  guestDietary: string | null;
+  plusOneDietary: string | null;
   songRequest: string | null;
   message: string | null;
+  guestMessage: string | null;
   respondedAt: string | null;
   updatedAt: string;
 };
 
 type GuestSummary = {
   total: number;
+  headcount: number;
   responded: number;
   notResponded: number;
   ceremonyYes: number;
   receptionYes: number;
   plusOnes: number;
   dietaryNotes: number;
+  noPhone: number;
+  smsNotSent: number;
 };
 
 type GuestListResponse = {
@@ -65,6 +82,9 @@ type GuestForm = {
   email: string;
   side: string;
   notes: string;
+  invitedToCeremony: "Yes" | "No";
+  invitedToReception: "Yes" | "No";
+  plusOneAllowed: "Yes" | "No";
   rsvpResponse: RsvpStatus;
   attendingCeremony: AttendanceValue;
   attendingReception: AttendanceValue;
@@ -77,12 +97,15 @@ type GuestForm = {
 
 const emptySummary: GuestSummary = {
   total: 0,
+  headcount: 0,
   responded: 0,
   notResponded: 0,
   ceremonyYes: 0,
   receptionYes: 0,
   plusOnes: 0,
   dietaryNotes: 0,
+  noPhone: 0,
+  smsNotSent: 0,
 };
 
 const emptyGuestForm: GuestForm = {
@@ -91,6 +114,9 @@ const emptyGuestForm: GuestForm = {
   email: "",
   side: "",
   notes: "",
+  invitedToCeremony: "Yes",
+  invitedToReception: "Yes",
+  plusOneAllowed: "No",
   rsvpResponse: "Not responded",
   attendingCeremony: "Not answered",
   attendingReception: "Not answered",
@@ -102,6 +128,15 @@ const emptyGuestForm: GuestForm = {
 };
 
 const statusFilters = ["All", "Responded", "Not responded"] as const;
+const quickFilters = [
+  "All",
+  "Attending ceremony",
+  "Attending reception",
+  "Bringing plus one",
+  "Has dietary",
+  "No phone",
+  "SMS not sent",
+] as const;
 const attendanceOptions: AttendanceValue[] = ["Not answered", "Yes", "No"];
 
 function booleanToAttendance(value: boolean | null): AttendanceValue {
@@ -142,13 +177,33 @@ function formatValue(value: string | null) {
   return value && value.trim().length > 0 ? value : "Not provided";
 }
 
+function getGuestStatus(guest: CoupleGuest): RsvpStatus {
+  return guest.rsvpStatus ?? guest.rsvpResponse;
+}
+
+function getCeremonyResponse(guest: CoupleGuest) {
+  return guest.ceremonyResponse ?? guest.attendingCeremony;
+}
+
+function getReceptionResponse(guest: CoupleGuest) {
+  return guest.receptionResponse ?? guest.attendingReception;
+}
+
+function getPlusOneResponse(guest: CoupleGuest) {
+  return guest.plusOneResponse ?? guest.bringingPlusOne;
+}
+
+function getDietaryNotes(guest: CoupleGuest) {
+  return [guest.guestDietary ?? guest.dietaryRequirements, guest.plusOneDietary].filter(Boolean).join(" / ");
+}
+
 function normalizePhone(value: string | null) {
   return value?.replace(/[^\d+]/g, "") ?? "";
 }
 
 function buildInviteLink(siteUrl: string, inviteToken: string) {
   const baseUrl = siteUrl || "";
-  return `${baseUrl}/?guest=${encodeURIComponent(inviteToken)}#rsvp`;
+  return `${baseUrl}/rsvp/${encodeURIComponent(inviteToken)}`;
 }
 
 function buildInviteMessage(fullName: string, inviteLink: string) {
@@ -188,14 +243,14 @@ function buildCsv(guests: CoupleGuest[]) {
     guest.phoneNumber,
     guest.email,
     guest.side,
-    guest.rsvpResponse,
-    formatAnswer(guest.attendingCeremony),
-    formatAnswer(guest.attendingReception),
-    guest.bringingPlusOne ? "Yes" : "No",
+    getGuestStatus(guest),
+    formatAnswer(getCeremonyResponse(guest)),
+    formatAnswer(getReceptionResponse(guest)),
+    getPlusOneResponse(guest) ? "Yes" : "No",
     guest.plusOneName,
-    guest.dietaryRequirements,
+    getDietaryNotes(guest),
     guest.songRequest,
-    guest.message,
+    guest.guestMessage ?? guest.message,
     guest.notes,
     guest.respondedAt,
   ]);
@@ -210,20 +265,26 @@ function formFromGuest(guest: CoupleGuest): GuestForm {
     email: guest.email ?? "",
     side: guest.side ?? "",
     notes: guest.notes ?? "",
-    rsvpResponse: guest.rsvpResponse,
-    attendingCeremony: booleanToAttendance(guest.attendingCeremony),
-    attendingReception: booleanToAttendance(guest.attendingReception),
-    bringingPlusOne: guest.bringingPlusOne ? "Yes" : "No",
+    invitedToCeremony: guest.invitedToCeremony ? "Yes" : "No",
+    invitedToReception: guest.invitedToReception ? "Yes" : "No",
+    plusOneAllowed: guest.plusOneAllowed ? "Yes" : "No",
+    rsvpResponse: getGuestStatus(guest),
+    attendingCeremony: booleanToAttendance(getCeremonyResponse(guest)),
+    attendingReception: booleanToAttendance(getReceptionResponse(guest)),
+    bringingPlusOne: getPlusOneResponse(guest) ? "Yes" : "No",
     plusOneName: guest.plusOneName ?? "",
-    dietaryRequirements: guest.dietaryRequirements ?? "",
+    dietaryRequirements: guest.guestDietary ?? guest.dietaryRequirements ?? "",
     songRequest: guest.songRequest ?? "",
-    message: guest.message ?? "",
+    message: guest.guestMessage ?? guest.message ?? "",
   };
 }
 
 function formToBody(form: GuestForm) {
   return {
     ...form,
+    invitedToCeremony: form.invitedToCeremony === "Yes",
+    invitedToReception: form.invitedToReception === "Yes",
+    plusOneAllowed: form.plusOneAllowed === "Yes",
     attendingCeremony: attendanceToBody(form.attendingCeremony),
     attendingReception: attendanceToBody(form.attendingReception),
     bringingPlusOne: form.bringingPlusOne === "Yes",
@@ -257,9 +318,9 @@ function SummaryTile({
 
 function DetailLine({ label, value }: { label: string; value: string }) {
   return (
-    <div>
+    <div className="min-w-0">
       <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#8c7a72]">{label}</p>
-      <p className="mt-1 text-sm leading-6 text-[#4f4641]">{value}</p>
+      <p className="mt-1 break-all text-sm leading-6 text-[#4f4641]">{value}</p>
     </div>
   );
 }
@@ -363,7 +424,7 @@ function GuestEditor({
   return (
     <form onSubmit={onSubmit} className="rounded-2xl border border-[#eaded6] bg-[#fffaf7]/82 p-5">
       <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="font-serif text-2xl leading-tight text-[#3f302b]">{title}</h2>
+        <h2 className="heading-secondary heading-secondary-compact">{title}</h2>
         <div className="flex flex-wrap gap-2">
           {onCancel && (
             <button
@@ -410,6 +471,12 @@ function GuestEditor({
           onChange={(value) => onChange("attendingReception", value)}
         />
         <SelectField
+          label="Plus one allowed"
+          value={form.plusOneAllowed}
+          options={["No", "Yes"] as const}
+          onChange={(value) => onChange("plusOneAllowed", value)}
+        />
+        <SelectField
           label="Plus one"
           value={form.bringingPlusOne}
           options={["No", "Yes"] as const}
@@ -445,6 +512,7 @@ export default function GuestListDashboard() {
   const [message, setMessage] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<(typeof statusFilters)[number]>("All");
+  const [quickFilter, setQuickFilter] = useState<(typeof quickFilters)[number]>("All");
   const [selectedGuestIds, setSelectedGuestIds] = useState<Set<string>>(new Set());
   const [addForm, setAddForm] = useState<GuestForm>(emptyGuestForm);
   const [editingGuestId, setEditingGuestId] = useState("");
@@ -457,11 +525,18 @@ export default function GuestListDashboard() {
     const normalizedQuery = query.trim().toLowerCase();
 
     return guests.filter((guest) => {
-      const matchesStatus = statusFilter === "All" || guest.rsvpResponse === statusFilter;
+      const matchesStatus = statusFilter === "All" || getGuestStatus(guest) === statusFilter;
 
       if (!matchesStatus) {
         return false;
       }
+
+      if (quickFilter === "Attending ceremony" && getCeremonyResponse(guest) !== true) return false;
+      if (quickFilter === "Attending reception" && getReceptionResponse(guest) !== true) return false;
+      if (quickFilter === "Bringing plus one" && getPlusOneResponse(guest) !== true) return false;
+      if (quickFilter === "Has dietary" && !getDietaryNotes(guest)) return false;
+      if (quickFilter === "No phone" && guest.phoneNumber) return false;
+      if (quickFilter === "SMS not sent" && guest.smsSentAt) return false;
 
       if (!normalizedQuery) {
         return true;
@@ -472,12 +547,12 @@ export default function GuestListDashboard() {
         guest.phoneNumber,
         guest.email,
         guest.side,
-        guest.rsvpResponse,
-        guest.dietaryRequirements,
+        getGuestStatus(guest),
+        getDietaryNotes(guest),
         guest.plusOneName,
       ].some((value) => value?.toLowerCase().includes(normalizedQuery));
     });
-  }, [guests, query, statusFilter]);
+  }, [guests, query, quickFilter, statusFilter]);
 
   const selectedGuests = useMemo(
     () => guests.filter((guest) => selectedGuestIds.has(guest.id)),
@@ -497,7 +572,13 @@ export default function GuestListDashboard() {
         "x-guest-list-passcode": passcodeToUse,
       },
     });
-    const result = (await response.json()) as GuestListResponse;
+
+    let result: GuestListResponse;
+    try {
+      result = (await response.json()) as GuestListResponse;
+    } catch {
+      throw new Error("Server error — could not load the guest list. Please try again.");
+    }
 
     if (!response.ok || !result.ok || !result.guests || !result.summary) {
       throw new Error(result.error ?? "Could not load the guest list.");
@@ -521,7 +602,13 @@ export default function GuestListDashboard() {
       },
       body: JSON.stringify(body),
     });
-    const result = (await response.json()) as GuestListResponse;
+
+    let result: GuestListResponse;
+    try {
+      result = (await response.json()) as GuestListResponse;
+    } catch {
+      throw new Error("Server error — could not save the guest list. Please try again.");
+    }
 
     if (!response.ok || !result.ok) {
       throw new Error(result.error ?? "Could not save the guest list.");
@@ -649,12 +736,24 @@ export default function GuestListDashboard() {
 
   function getGuestInviteMessage(guest: CoupleGuest) {
     const currentSiteUrl = typeof window === "undefined" ? "" : window.location.origin;
-    return buildInviteMessage(guest.fullName, buildInviteLink(currentSiteUrl, guest.inviteToken));
+    return buildInviteMessage(guest.fullName, buildInviteLink(currentSiteUrl, guest.rsvpToken ?? guest.inviteToken));
   }
 
-  function openGuestSms(guest: CoupleGuest) {
+  async function markGuestSmsSent(guest: CoupleGuest) {
+    await requestGuestChange("PATCH", { id: guest.id, action: "markSmsSent" });
+    await loadGuests();
+  }
+
+  async function openGuestSms(guest: CoupleGuest) {
     if (!normalizePhone(guest.phoneNumber)) {
       return;
+    }
+
+    try {
+      await markGuestSmsSent(guest);
+    } catch {
+      setStatus("error");
+      setMessage("SMS opened, but we could not update the SMS sent marker.");
     }
 
     window.location.href = buildSmsHref(guest.phoneNumber, getGuestInviteMessage(guest));
@@ -670,6 +769,20 @@ export default function GuestListDashboard() {
     } catch {
       setStatus("error");
       setMessage("Could not copy SMS text. You can still use the SMS button.");
+    }
+  }
+
+  async function copyGuestRsvpLink(guest: CoupleGuest) {
+    try {
+      const currentSiteUrl = typeof window === "undefined" ? "" : window.location.origin;
+      await navigator.clipboard.writeText(buildInviteLink(currentSiteUrl, guest.rsvpToken ?? guest.inviteToken));
+      setCopiedGuestId(guest.id);
+      setStatus("success");
+      setMessage(`Copied RSVP link for ${guest.fullName}.`);
+      window.setTimeout(() => setCopiedGuestId(""), 1800);
+    } catch {
+      setStatus("error");
+      setMessage("Could not copy RSVP link.");
     }
   }
 
@@ -706,10 +819,10 @@ export default function GuestListDashboard() {
           <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full border border-[#eaded6] bg-[#fffaf7] text-[#9b6f68]">
             <LockKeyhole aria-hidden="true" className="h-6 w-6" />
           </div>
-          <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.42em] text-[#6e5b54]">
+          <p className="heading-micro mb-5">
             Sumaya & Aditya
           </p>
-          <h1 className="rose-gold-foil font-serif text-5xl leading-tight md:text-6xl">Guest List</h1>
+          <h1 className="heading-primary">Guest List</h1>
           <p className="mt-6 text-base leading-8 text-[#6a5d55]">
             Private guest list and SMS composer for sending RSVP links from your phone.
           </p>
@@ -750,8 +863,8 @@ export default function GuestListDashboard() {
       <section className="mx-auto max-w-7xl">
         <header className="mb-7 flex flex-col gap-5 border-b border-[#eaded6] pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-[0.36em] text-[#6e5b54]">Sumaya & Aditya</p>
-            <h1 className="mt-3 font-serif text-4xl leading-tight text-[#3f302b] md:text-5xl">Guest List</h1>
+            <p className="heading-micro">Sumaya & Aditya</p>
+            <h1 className="heading-primary mt-3">Guest List</h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-[#6a5d55]">
               Open each SMS from your phone to send the prepared RSVP message using your normal mobile plan.
             </p>
@@ -778,8 +891,9 @@ export default function GuestListDashboard() {
           </div>
         </header>
 
-        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-7">
+        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-8">
           <SummaryTile label="Total" value={summary.total} />
+          <SummaryTile label="Headcount" value={summary.headcount} />
           <SummaryTile label="Responded" value={summary.responded} tone="sage" />
           <SummaryTile label="Waiting" value={summary.notResponded} tone="warm" />
           <SummaryTile label="Ceremony" value={summary.ceremonyYes} />
@@ -829,6 +943,20 @@ export default function GuestListDashboard() {
                 </button>
               ))}
             </div>
+            <div className="flex flex-wrap gap-2">
+              {quickFilters.map((filter) => (
+                <button
+                  key={filter}
+                  type="button"
+                  onClick={() => setQuickFilter(filter)}
+                  className={`min-h-9 rounded-full px-4 text-xs font-semibold uppercase tracking-[0.12em] transition ${
+                    quickFilter === filter ? "bg-[#241815] text-white" : "border border-[#eaded6] bg-white/75 text-[#5f524b] hover:bg-[#fbf7f2]"
+                  }`}
+                >
+                  {filter}
+                </button>
+              ))}
+            </div>
             <button
               type="button"
               onClick={toggleVisibleSelection}
@@ -865,6 +993,7 @@ export default function GuestListDashboard() {
           {filteredGuests.map((guest) => {
             const selected = selectedGuestIds.has(guest.id);
             const phone = normalizePhone(guest.phoneNumber);
+            const inviteLink = buildInviteLink("", guest.rsvpToken ?? guest.inviteToken);
 
             return (
               <article key={guest.id} className="rounded-2xl border border-[#eaded6] bg-[#fffaf7]/82 p-5">
@@ -884,12 +1013,12 @@ export default function GuestListDashboard() {
                         <p className="font-serif text-2xl leading-tight text-[#3f302b]">{guest.fullName}</p>
                         <span
                           className={`rounded-full px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${
-                            guest.rsvpResponse === "Responded"
+                            getGuestStatus(guest) === "Responded"
                               ? "bg-[#eef5e9] text-[#52634a]"
                               : "bg-[#fff2e8] text-[#8a6758]"
                           }`}
                         >
-                          {guest.rsvpResponse}
+                          {getGuestStatus(guest)}
                         </span>
                       </div>
                       <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -897,22 +1026,40 @@ export default function GuestListDashboard() {
                         <DetailLine label="Email" value={formatValue(guest.email)} />
                         <DetailLine label="Side" value={formatValue(guest.side)} />
                         <DetailLine label="Responded" value={formatDate(guest.respondedAt)} />
-                        <DetailLine label="Ceremony" value={formatAnswer(guest.attendingCeremony)} />
-                        <DetailLine label="Reception" value={formatAnswer(guest.attendingReception)} />
-                        <DetailLine label="Plus one" value={guest.bringingPlusOne ? guest.plusOneName ?? "Yes" : "No"} />
-                        <DetailLine label="Dietary" value={formatValue(guest.dietaryRequirements)} />
+                        <DetailLine label="Ceremony" value={formatAnswer(getCeremonyResponse(guest))} />
+                        <DetailLine label="Reception" value={formatAnswer(getReceptionResponse(guest))} />
+                        <DetailLine label="Plus one" value={getPlusOneResponse(guest) ? guest.plusOneName ?? "Yes" : "No"} />
+                        <DetailLine label="Dietary" value={getDietaryNotes(guest) || "Not provided"} />
                         <DetailLine label="Song" value={formatValue(guest.songRequest)} />
-                        <DetailLine label="Message" value={formatValue(guest.message)} />
+                        <DetailLine label="Message" value={formatValue(guest.guestMessage ?? guest.message)} />
+                        <DetailLine label="SMS sent" value={formatDate(guest.smsSentAt)} />
                         <DetailLine label="Notes" value={formatValue(guest.notes)} />
                       </div>
                     </div>
                   </div>
 
                   <div className="flex shrink-0 flex-wrap gap-2">
+                    <a
+                      href={inviteLink}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96]"
+                    >
+                      <ExternalLink aria-hidden="true" className="h-4 w-4" />
+                      Open RSVP
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => void copyGuestRsvpLink(guest)}
+                      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96]"
+                    >
+                      <Copy aria-hidden="true" className="h-4 w-4" />
+                      {copiedGuestId === guest.id ? "Copied" : "Copy RSVP"}
+                    </button>
                     {phone ? (
                       <button
                         type="button"
-                        onClick={() => openGuestSms(guest)}
+                        onClick={() => void openGuestSms(guest)}
                         className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#6f7d5b] px-4 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#5d6c4c]"
                       >
                         <MessageCircle aria-hidden="true" className="h-4 w-4" />

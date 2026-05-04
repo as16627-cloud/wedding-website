@@ -3,9 +3,10 @@ import prisma from "../lib/prisma";
 async function main() {
   await prisma.guest.deleteMany({
     where: {
-      inviteToken: {
-        in: ["TESTADITYA", "TESTSUMAYA"],
-      },
+      OR: [
+        { inviteToken: { in: ["TESTADITYA", "TESTSUMAYA"] } },
+        { rsvpToken: { in: ["TESTADITYA", "TESTSUMAYA"] } },
+      ],
     },
   });
 
@@ -17,6 +18,10 @@ async function main() {
         email: "aditya.test@example.com",
         side: "Groom",
         inviteToken: "TESTADITYA",
+        rsvpToken: "TESTADITYA",
+        invitedToCeremony: true,
+        invitedToReception: true,
+        plusOneAllowed: true,
       },
       {
         fullName: "Sumaya Test",
@@ -24,6 +29,10 @@ async function main() {
         email: "sumaya.test@example.com",
         side: "Bride",
         inviteToken: "TESTSUMAYA",
+        rsvpToken: "TESTSUMAYA",
+        invitedToCeremony: true,
+        invitedToReception: true,
+        plusOneAllowed: true,
       },
     ],
   });

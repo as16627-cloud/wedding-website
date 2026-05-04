@@ -1,125 +1,124 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import {
+  guestSelect,
+  mapGuestForPublic,
+  optionalString,
+  parseOptionalBoolean,
+} from "@/lib/guest-rsvp";
 
 export const runtime = "nodejs";
 
 type RsvpBody = {
-  guestId?: string;
-  inviteToken?: string;
   token?: string;
-  guestName?: string;
-  attendingCeremony?: boolean | string;
-  attendingReception?: boolean | string;
-  bringingPlusOne?: boolean | string;
+  rsvpToken?: string;
+  ceremonyResponse?: boolean | string | null;
+  receptionResponse?: boolean | string | null;
+  plusOneResponse?: boolean | string | null;
   plusOneName?: string;
+  guestDietary?: string;
   dietaryRequirements?: string;
+  plusOneDietary?: string;
   songRequest?: string;
+  guestMessage?: string;
   message?: string;
 };
-
-function optionalString(value: unknown) {
-  const text = typeof value === "string" ? value.trim() : "";
-  return text.length > 0 ? text : null;
-}
-
-function parseBoolean(value: unknown) {
-  if (typeof value === "boolean") {
-    return value;
-  }
-
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim().toLowerCase();
-
-  if (["yes", "true", "1"].includes(normalized)) {
-    return true;
-  }
-
-  if (["no", "false", "0"].includes(normalized)) {
-    return false;
-  }
-
-  return null;
-}
 
 export async function POST(request: Request) {
   try {
     const body = (await request.json()) as RsvpBody;
-    const guestId = optionalString(body.guestId);
-    const inviteToken = optionalString(body.inviteToken) ?? optionalString(body.token);
-    const guestName = optionalString(body.guestName);
-    const attendingCeremony = parseBoolean(body.attendingCeremony);
-    const attendingReception = parseBoolean(body.attendingReception);
-    const bringingPlusOne = parseBoolean(body.bringingPlusOne) ?? false;
-    const plusOneName = bringingPlusOne ? optionalString(body.plusOneName) : null;
+    const token = optionalString(body.rsvpToken) ?? optionalString(body.token);
 
-    if (attendingCeremony === null || attendingReception === null) {
+    if (!token) {
       return NextResponse.json(
-        { ok: false, error: "Please answer both ceremony and reception attendance questions." },
-        { status: 400 }
-      );
-    }
-
-    if (bringingPlusOne && !plusOneName) {
-      return NextResponse.json(
-        { ok: false, error: "Please enter your +1's name." },
-        { status: 400 }
+        { ok: false, error: "Please use your private RSVP link." },
+        { status: 400 },
       );
     }
 
     const guest = await prisma.guest.findFirst({
-      where: guestId
-        ? { id: guestId }
-        : inviteToken
-          ? { inviteToken }
-          : guestName
-            ? { fullName: guestName }
-            : { id: "" },
+      where: {
+        OR: [{ rsvpToken: token }, { inviteToken: token }],
+      },
+      select: guestSelect,
     });
 
     if (!guest) {
       return NextResponse.json(
-        {
-          ok: false,
-          error:
-            "We could not find that name on the guest list. Please use your invite link or message us to confirm.",
-        },
-        { status: 404 }
+        { ok: false, error: "We could not find this RSVP link. Please message us to confirm." },
+        { status: 404 },
+      );
+    }
+
+    const ceremonyResponse = guest.invitedToCeremony ? parseOptionalBoolean(body.ceremonyResponse) : null;
+    const receptionResponse = guest.invitedToReception ? parseOptionalBoolean(body.receptionResponse) : null;
+    const plusOneResponse = guest.plusOneAllowed ? parseOptionalBoolean(body.plusOneResponse) : false;
+    const plusOneName = plusOneResponse ? optionalString(body.plusOneName) : null;
+    const guestDietary = optionalString(body.guestDietary) ?? optionalString(body.dietaryRequirements);
+    const guestMessage = optionalString(body.guestMessage) ?? optionalString(body.message);
+
+    if (guest.invitedToCeremony && ceremonyResponse === null) {
+      return NextResponse.json(
+        { ok: false, error: "Please answer the ceremony attendance question." },
+        { status: 400 },
+      );
+    }
+
+    if (guest.invitedToReception && receptionResponse === null) {
+      return NextResponse.json(
+        { ok: false, error: "Please answer the reception attendance question." },
+        { status: 400 },
+      );
+    }
+
+    if (guest.plusOneAllowed && plusOneResponse === null) {
+      return NextResponse.json(
+        { ok: false, error: "Please answer the plus-one question." },
+        { status: 400 },
+      );
+    }
+
+    if (plusOneResponse && !plusOneName) {
+      return NextResponse.json(
+        { ok: false, error: "Please enter your plus-one's full name." },
+        { status: 400 },
       );
     }
 
     const updatedGuest = await prisma.guest.update({
       where: { id: guest.id },
       data: {
+        rsvpStatus: "Responded",
         rsvpResponse: "Responded",
-        attendingCeremony,
-        attendingReception,
-        bringingPlusOne,
+        ceremonyResponse,
+        attendingCeremony: ceremonyResponse,
+        receptionResponse,
+        attendingReception: receptionResponse,
+        plusOneResponse,
+        bringingPlusOne: Boolean(plusOneResponse),
         plusOneName,
-        dietaryRequirements: optionalString(body.dietaryRequirements),
+        guestDietary,
+        dietaryRequirements: guestDietary,
+        plusOneDietary: plusOneResponse ? optionalString(body.plusOneDietary) : null,
         songRequest: optionalString(body.songRequest),
-        message: optionalString(body.message),
+        guestMessage,
+        message: guestMessage,
         respondedAt: new Date(),
       },
+      select: guestSelect,
     });
 
     return NextResponse.json({
       ok: true,
       message: "Thank you. Your RSVP has been saved.",
-      guest: {
-        id: updatedGuest.id,
-        fullName: updatedGuest.fullName,
-        rsvpResponse: updatedGuest.rsvpResponse,
-      },
+      guest: mapGuestForPublic(updatedGuest),
     });
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
       { ok: false, error: "Something went wrong while saving your RSVP." },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

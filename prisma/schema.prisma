@@ -4,7 +4,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 model Guest {
@@ -15,17 +16,31 @@ model Guest {
   side        String?
   notes       String?
 
-  inviteToken  String @unique
+  inviteToken String  @unique
+  rsvpToken   String? @unique
+
+  invitedToCeremony Boolean @default(true)
+  invitedToReception Boolean @default(true)
+  plusOneAllowed    Boolean @default(false)
+  smsSentAt         DateTime?
+
   rsvpResponse String @default("Not responded")
+  rsvpStatus   String @default("Not responded")
 
   attendingCeremony  Boolean?
   attendingReception Boolean?
   bringingPlusOne    Boolean  @default(false)
+  ceremonyResponse   Boolean?
+  receptionResponse  Boolean?
+  plusOneResponse    Boolean?
   plusOneName        String?
 
   dietaryRequirements String?
+  guestDietary        String?
+  plusOneDietary      String?
   songRequest         String?
   message             String?
+  guestMessage        String?
 
   respondedAt DateTime?
   createdAt   DateTime  @default(now())

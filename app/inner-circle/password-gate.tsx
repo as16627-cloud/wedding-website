@@ -99,9 +99,9 @@ function SectionHeading({
 }) {
   return (
     <div className="mx-auto mb-10 max-w-3xl text-center">
-      {eyebrow && <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.38em] text-[#8c7a72]">{eyebrow}</p>}
-      <h2 className="font-serif text-[38px] leading-[1.18] text-[#a67c6b] md:text-[46px]">{title}</h2>
-      {copy && <p className="mx-auto mt-4 max-w-[620px] text-[16px] leading-[1.75] text-[#5f524b]">{copy}</p>}
+      {eyebrow && <p className="heading-micro mb-3">{eyebrow}</p>}
+      <h2 className="heading-primary">{title}</h2>
+      {copy && <p className="heading-copy mx-auto mt-4 max-w-[620px] text-[16px]">{copy}</p>}
     </div>
   );
 }
@@ -122,8 +122,8 @@ function InnerCircleContent() {
       <section className="relative isolate overflow-hidden px-6 pb-20 pt-20 text-center md:pb-24 md:pt-28">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_20%,_rgba(185,130,120,0.13),_transparent_34%),radial-gradient(circle_at_18%_70%,_rgba(203,185,163,0.18),_transparent_30%),radial-gradient(circle_at_86%_68%,_rgba(143,154,125,0.10),_transparent_28%)]" />
         <div className="mx-auto max-w-4xl">
-          <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.42em] text-[#6e5b54]">INNER CIRCLE</p>
-          <h1 className="rose-gold-foil font-serif text-5xl leading-tight md:text-7xl">Our Closest People</h1>
+          <p className="heading-micro mb-5">INNER CIRCLE</p>
+          <h1 className="heading-primary">Our Closest People</h1>
           <p className="mx-auto mt-8 max-w-2xl font-serif text-[22px] leading-[1.6] text-[#3f302b] md:text-[28px]">
             You are not just guests on this day &mdash; you are part of it. This page holds everything you need to move
             through the day with us, calmly and beautifully.
@@ -135,8 +135,8 @@ function InnerCircleContent() {
       </section>
 
       <PrivateSection className="pt-12 md:pt-16" contentClassName="mx-auto max-w-[760px] text-center">
-        <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.38em] text-[#8c7a72]">A NOTE FROM US</p>
-        <h2 className="font-serif text-[36px] leading-[1.2] text-[#a67c6b] md:text-[44px]">A Note From Us</h2>
+        <p className="heading-micro mb-4">A NOTE FROM US</p>
+        <h2 className="heading-primary">A Note From Us</h2>
         <div className="mt-7 space-y-5 font-serif text-[22px] leading-[1.55] text-[#3f302b] md:text-[27px]">
           <p>We couldn&rsquo;t imagine this day without you.</p>
           <p>
@@ -162,8 +162,8 @@ function InnerCircleContent() {
 
       <PrivateSection contentClassName="mx-auto grid max-w-5xl items-start gap-6 md:grid-cols-2">
         <SoftCard>
-          <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.32em] text-[#8c7a72]">TIMING</p>
-          <h2 className="font-serif text-[32px] leading-[1.2] text-[#a67c6b]">Getting Ready &amp; Arrival</h2>
+          <p className="heading-micro mb-3">TIMING</p>
+          <h2 className="heading-secondary">Getting Ready &amp; Arrival</h2>
           <div className="mt-5 space-y-4 text-[15px] leading-[1.7] text-[#5f524b]">
             <p>
               Please arrive at your designated location at your allocated time. We recommend allowing extra time to
@@ -174,8 +174,8 @@ function InnerCircleContent() {
         </SoftCard>
 
         <SoftCard>
-          <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.32em] text-[#8c7a72]">FLOW</p>
-          <h2 className="font-serif text-[32px] leading-[1.2] text-[#a67c6b]">Photos &amp; Flow</h2>
+          <p className="heading-micro mb-3">FLOW</p>
+          <h2 className="heading-secondary">Photos &amp; Flow</h2>
           <p className="mt-5 text-[15px] leading-[1.7] text-[#5f524b]">
             We&rsquo;ll guide you through photos so everything feels natural and relaxed.
           </p>
@@ -220,8 +220,8 @@ function InnerCircleContent() {
 
       <PrivateSection className="pb-24 md:pb-28" contentClassName="mx-auto max-w-3xl">
         <SoftCard className="text-center">
-          <p className="mb-3 text-[11px] font-medium uppercase tracking-[0.32em] text-[#8c7a72]">ON THE DAY</p>
-          <h2 className="font-serif text-[36px] leading-[1.2] text-[#a67c6b]">On the Day</h2>
+          <p className="heading-micro mb-3">ON THE DAY</p>
+          <h2 className="heading-secondary">On the Day</h2>
           <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-[1.75] text-[#5f524b]">
             If you need anything on the day, please contact the nominated point person. We&rsquo;ll share their details
             closer to the wedding so everything can run smoothly while we stay present.
@@ -261,8 +261,8 @@ export default function InnerCircleGate() {
   return (
     <main className="min-h-screen bg-[#fbf7f2] px-6 py-16 text-[#4f4641]">
       <section className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl flex-col items-center justify-center text-center">
-        <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.42em] text-[#6e5b54]">Sumaya & Aditya</p>
-        <h1 className="rose-gold-foil font-serif text-5xl leading-tight md:text-6xl">Inner Circle</h1>
+        <p className="heading-micro mb-5">Sumaya & Aditya</p>
+        <h1 className="heading-primary">Inner Circle</h1>
         <p className="mt-6 text-base leading-8 text-[#6a5d55]">
           A private page for the bridal party and closest family. Please enter the passcode to continue.
         </p>

@@ -1,111 +1,103 @@
-import { randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import {
+  buildGuestSummary,
+  createRsvpToken,
+  guestSelect,
+  mapGuestForAdmin,
+  normalizeRsvpStatus,
+  optionalString,
+  parseOptionalBoolean,
+} from "@/lib/guest-rsvp";
 
 export const runtime = "nodejs";
 
 const GUEST_LIST_PASSCODE =
   process.env.COUPLE_GUEST_LIST_PASSCODE ?? process.env.ADMIN_PASSCODE ?? "garden2026";
 
-function isAuthorized(request: Request) {
-  return request.headers.get("x-guest-list-passcode") === GUEST_LIST_PASSCODE;
-}
-
 type GuestListBody = {
+  action?: string;
   id?: string;
   fullName?: string;
   phoneNumber?: string;
   email?: string;
   side?: string;
   notes?: string;
+  rsvpStatus?: string;
   rsvpResponse?: string;
+  invitedToCeremony?: boolean | string | null;
+  invitedToReception?: boolean | string | null;
+  plusOneAllowed?: boolean | string | null;
+  ceremonyResponse?: boolean | string | null;
+  receptionResponse?: boolean | string | null;
+  plusOneResponse?: boolean | string | null;
   attendingCeremony?: boolean | string | null;
   attendingReception?: boolean | string | null;
   bringingPlusOne?: boolean | string | null;
   plusOneName?: string;
+  guestDietary?: string;
   dietaryRequirements?: string;
+  plusOneDietary?: string;
   songRequest?: string;
+  guestMessage?: string;
   message?: string;
 };
 
-function optionalString(value: unknown) {
-  const text = typeof value === "string" ? value.trim() : "";
-  return text.length > 0 ? text : null;
+type GuestUpdateData = {
+  fullName?: string;
+  phoneNumber?: string | null;
+  email?: string | null;
+  side?: string | null;
+  notes?: string | null;
+  invitedToCeremony?: boolean;
+  invitedToReception?: boolean;
+  plusOneAllowed?: boolean;
+  smsSentAt?: Date | null;
+  rsvpStatus?: string;
+  rsvpResponse?: string;
+  ceremonyResponse?: boolean | null;
+  attendingCeremony?: boolean | null;
+  receptionResponse?: boolean | null;
+  attendingReception?: boolean | null;
+  plusOneResponse?: boolean | null;
+  bringingPlusOne?: boolean;
+  plusOneName?: string | null;
+  guestDietary?: string | null;
+  dietaryRequirements?: string | null;
+  plusOneDietary?: string | null;
+  songRequest?: string | null;
+  guestMessage?: string | null;
+  message?: string | null;
+  respondedAt?: Date | null;
+};
+
+function isAuthorized(request: Request) {
+  return request.headers.get("x-guest-list-passcode") === GUEST_LIST_PASSCODE;
 }
 
-function parseOptionalBoolean(value: unknown) {
-  if (value === null || value === undefined || value === "") {
-    return null;
-  }
-
-  if (typeof value === "boolean") {
-    return value;
-  }
-
-  if (typeof value !== "string") {
-    return null;
-  }
-
-  const normalized = value.trim().toLowerCase();
-
-  if (["yes", "true", "1"].includes(normalized)) {
-    return true;
-  }
-
-  if (["no", "false", "0"].includes(normalized)) {
-    return false;
-  }
-
-  return null;
+function hasField(body: GuestListBody, key: keyof GuestListBody) {
+  return Object.prototype.hasOwnProperty.call(body, key);
 }
-
-function createInviteToken() {
-  return randomBytes(6).toString("hex").toUpperCase();
-}
-
-const guestListSelect = {
-  id: true,
-  fullName: true,
-  phoneNumber: true,
-  email: true,
-  side: true,
-  notes: true,
-  inviteToken: true,
-  rsvpResponse: true,
-  attendingCeremony: true,
-  attendingReception: true,
-  bringingPlusOne: true,
-  plusOneName: true,
-  dietaryRequirements: true,
-  songRequest: true,
-  message: true,
-  respondedAt: true,
-  updatedAt: true,
-} as const;
 
 export async function GET(request: Request) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ ok: false, error: "Incorrect passcode." }, { status: 401 });
   }
 
-  const guests = await prisma.guest.findMany({
-    orderBy: [{ rsvpResponse: "asc" }, { fullName: "asc" }],
-    select: guestListSelect,
-  });
+  try {
+    const guests = await prisma.guest.findMany({
+      orderBy: [{ rsvpStatus: "asc" }, { fullName: "asc" }],
+      select: guestSelect,
+    });
 
-  return NextResponse.json({
-    ok: true,
-    guests,
-    summary: {
-      total: guests.length,
-      responded: guests.filter((guest) => guest.rsvpResponse === "Responded").length,
-      notResponded: guests.filter((guest) => guest.rsvpResponse !== "Responded").length,
-      ceremonyYes: guests.filter((guest) => guest.attendingCeremony === true).length,
-      receptionYes: guests.filter((guest) => guest.attendingReception === true).length,
-      plusOnes: guests.filter((guest) => guest.bringingPlusOne).length,
-      dietaryNotes: guests.filter((guest) => Boolean(guest.dietaryRequirements)).length,
-    },
-  });
+    return NextResponse.json({
+      ok: true,
+      guests: guests.map(mapGuestForAdmin),
+      summary: buildGuestSummary(guests),
+    });
+  } catch {
+    return NextResponse.json({ ok: false, error: "Database error — could not load guests." }, { status: 500 });
+  }
 }
 
 export async function POST(request: Request) {
@@ -120,6 +112,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ ok: false, error: "Guest name is required." }, { status: 400 });
   }
 
+  const rsvpToken = createRsvpToken();
+  const rsvpStatus = normalizeRsvpStatus(body.rsvpStatus ?? body.rsvpResponse);
+  const ceremonyResponse = parseOptionalBoolean(body.ceremonyResponse ?? body.attendingCeremony);
+  const receptionResponse = parseOptionalBoolean(body.receptionResponse ?? body.attendingReception);
+  const plusOneResponse = parseOptionalBoolean(body.plusOneResponse ?? body.bringingPlusOne);
+  const guestDietary = optionalString(body.guestDietary) ?? optionalString(body.dietaryRequirements);
+  const guestMessage = optionalString(body.guestMessage) ?? optionalString(body.message);
+
   const guest = await prisma.guest.create({
     data: {
       fullName,
@@ -127,21 +127,32 @@ export async function POST(request: Request) {
       email: optionalString(body.email),
       side: optionalString(body.side),
       notes: optionalString(body.notes),
-      inviteToken: createInviteToken(),
-      rsvpResponse: optionalString(body.rsvpResponse) === "Responded" ? "Responded" : "Not responded",
-      attendingCeremony: parseOptionalBoolean(body.attendingCeremony),
-      attendingReception: parseOptionalBoolean(body.attendingReception),
-      bringingPlusOne: parseOptionalBoolean(body.bringingPlusOne) ?? false,
-      plusOneName: optionalString(body.plusOneName),
-      dietaryRequirements: optionalString(body.dietaryRequirements),
+      inviteToken: rsvpToken,
+      rsvpToken,
+      invitedToCeremony: parseOptionalBoolean(body.invitedToCeremony) ?? true,
+      invitedToReception: parseOptionalBoolean(body.invitedToReception) ?? true,
+      plusOneAllowed: parseOptionalBoolean(body.plusOneAllowed) ?? false,
+      rsvpStatus,
+      rsvpResponse: rsvpStatus,
+      ceremonyResponse,
+      attendingCeremony: ceremonyResponse,
+      receptionResponse,
+      attendingReception: receptionResponse,
+      plusOneResponse,
+      bringingPlusOne: Boolean(plusOneResponse),
+      plusOneName: plusOneResponse ? optionalString(body.plusOneName) : null,
+      guestDietary,
+      dietaryRequirements: guestDietary,
+      plusOneDietary: optionalString(body.plusOneDietary),
       songRequest: optionalString(body.songRequest),
-      message: optionalString(body.message),
-      respondedAt: optionalString(body.rsvpResponse) === "Responded" ? new Date() : null,
+      guestMessage,
+      message: guestMessage,
+      respondedAt: rsvpStatus === "Responded" ? new Date() : null,
     },
-    select: guestListSelect,
+    select: guestSelect,
   });
 
-  return NextResponse.json({ ok: true, guest });
+  return NextResponse.json({ ok: true, guest: mapGuestForAdmin(guest) });
 }
 
 export async function PATCH(request: Request) {
@@ -156,38 +167,96 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ ok: false, error: "Guest id is required." }, { status: 400 });
   }
 
-  const fullName = optionalString(body.fullName);
+  if (body.action === "markSmsSent") {
+    const guest = await prisma.guest.update({
+      where: { id },
+      data: { smsSentAt: new Date() },
+      select: guestSelect,
+    });
 
-  if (!fullName) {
-    return NextResponse.json({ ok: false, error: "Guest name is required." }, { status: 400 });
+    return NextResponse.json({ ok: true, guest: mapGuestForAdmin(guest) });
   }
 
-  const rsvpResponse = optionalString(body.rsvpResponse);
-  const normalizedRsvp = rsvpResponse === "Responded" ? "Responded" : "Not responded";
-  const bringingPlusOne = parseOptionalBoolean(body.bringingPlusOne) ?? false;
+  const data: GuestUpdateData = {};
+
+  if (hasField(body, "fullName")) {
+    const fullName = optionalString(body.fullName);
+
+    if (!fullName) {
+      return NextResponse.json({ ok: false, error: "Guest name is required." }, { status: 400 });
+    }
+
+    data.fullName = fullName;
+  }
+
+  if (hasField(body, "phoneNumber")) data.phoneNumber = optionalString(body.phoneNumber);
+  if (hasField(body, "email")) data.email = optionalString(body.email);
+  if (hasField(body, "side")) data.side = optionalString(body.side);
+  if (hasField(body, "notes")) data.notes = optionalString(body.notes);
+
+  if (hasField(body, "invitedToCeremony")) {
+    data.invitedToCeremony = parseOptionalBoolean(body.invitedToCeremony) ?? false;
+  }
+
+  if (hasField(body, "invitedToReception")) {
+    data.invitedToReception = parseOptionalBoolean(body.invitedToReception) ?? false;
+  }
+
+  if (hasField(body, "plusOneAllowed")) {
+    data.plusOneAllowed = parseOptionalBoolean(body.plusOneAllowed) ?? false;
+  }
+
+  if (hasField(body, "rsvpStatus") || hasField(body, "rsvpResponse")) {
+    const rsvpStatus = normalizeRsvpStatus(body.rsvpStatus ?? body.rsvpResponse);
+    data.rsvpStatus = rsvpStatus;
+    data.rsvpResponse = rsvpStatus;
+    data.respondedAt = rsvpStatus === "Responded" ? new Date() : null;
+  }
+
+  if (hasField(body, "ceremonyResponse") || hasField(body, "attendingCeremony")) {
+    const ceremonyResponse = parseOptionalBoolean(body.ceremonyResponse ?? body.attendingCeremony);
+    data.ceremonyResponse = ceremonyResponse;
+    data.attendingCeremony = ceremonyResponse;
+  }
+
+  if (hasField(body, "receptionResponse") || hasField(body, "attendingReception")) {
+    const receptionResponse = parseOptionalBoolean(body.receptionResponse ?? body.attendingReception);
+    data.receptionResponse = receptionResponse;
+    data.attendingReception = receptionResponse;
+  }
+
+  if (hasField(body, "plusOneResponse") || hasField(body, "bringingPlusOne")) {
+    const plusOneResponse = parseOptionalBoolean(body.plusOneResponse ?? body.bringingPlusOne);
+    data.plusOneResponse = plusOneResponse;
+    data.bringingPlusOne = Boolean(plusOneResponse);
+    data.plusOneName = plusOneResponse ? optionalString(body.plusOneName) : null;
+    data.plusOneDietary = plusOneResponse ? optionalString(body.plusOneDietary) : null;
+  } else if (hasField(body, "plusOneName")) {
+    data.plusOneName = optionalString(body.plusOneName);
+  }
+
+  if (hasField(body, "guestDietary") || hasField(body, "dietaryRequirements")) {
+    const guestDietary = optionalString(body.guestDietary) ?? optionalString(body.dietaryRequirements);
+    data.guestDietary = guestDietary;
+    data.dietaryRequirements = guestDietary;
+  }
+
+  if (hasField(body, "plusOneDietary")) data.plusOneDietary = optionalString(body.plusOneDietary);
+  if (hasField(body, "songRequest")) data.songRequest = optionalString(body.songRequest);
+
+  if (hasField(body, "guestMessage") || hasField(body, "message")) {
+    const guestMessage = optionalString(body.guestMessage) ?? optionalString(body.message);
+    data.guestMessage = guestMessage;
+    data.message = guestMessage;
+  }
 
   const guest = await prisma.guest.update({
     where: { id },
-    data: {
-      fullName,
-      phoneNumber: optionalString(body.phoneNumber),
-      email: optionalString(body.email),
-      side: optionalString(body.side),
-      notes: optionalString(body.notes),
-      rsvpResponse: normalizedRsvp,
-      attendingCeremony: parseOptionalBoolean(body.attendingCeremony),
-      attendingReception: parseOptionalBoolean(body.attendingReception),
-      bringingPlusOne,
-      plusOneName: bringingPlusOne ? optionalString(body.plusOneName) : null,
-      dietaryRequirements: optionalString(body.dietaryRequirements),
-      songRequest: optionalString(body.songRequest),
-      message: optionalString(body.message),
-      respondedAt: normalizedRsvp === "Responded" ? new Date() : null,
-    },
-    select: guestListSelect,
+    data,
+    select: guestSelect,
   });
 
-  return NextResponse.json({ ok: true, guest });
+  return NextResponse.json({ ok: true, guest: mapGuestForAdmin(guest) });
 }
 
 export async function DELETE(request: Request) {

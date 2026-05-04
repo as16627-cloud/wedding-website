@@ -1,8 +1,8 @@
 "use client";
 
-import React, { type FormEvent, type ReactNode, useCallback, useEffect, useRef, useState } from "react";
+import React, { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { motion, type MotionProps, useReducedMotion, type Variants } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   CalendarPlus,
   ChevronDown,
@@ -28,6 +28,11 @@ type SectionHeadingProps = {
 type Faq = {
   question: string;
   answer: string;
+};
+
+type DressCodeSwatch = {
+  label: string;
+  color: string;
 };
 
 type FadeInSectionProps = {
@@ -119,22 +124,63 @@ const dressCode = {
   ],
 };
 
-const dressCodePastelPalette = [
-  { name: "Blush Pink", color: "#e7c1bc", glow: "rgba(231,193,188,0.46)" },
-  { name: "Soft Sage", color: "#b7c2b0", glow: "rgba(183,194,176,0.44)" },
-  { name: "Dusty Lavender", color: "#c6bfd6", glow: "rgba(198,191,214,0.44)" },
-  { name: "Powder Blue", color: "#b9c7dc", glow: "rgba(185,199,220,0.44)" },
-  { name: "Nude", color: "#d8c8bd", glow: "rgba(216,200,189,0.44)" },
-  { name: "Champagne", color: "#e6d3b3", glow: "rgba(230,211,179,0.48)" },
+const dressCodePastelPalette: DressCodeSwatch[] = [
+  { label: "Blush Pink", color: "#e8c4bf" },
+  { label: "Soft Sage", color: "#c8d0be" },
+  { label: "Dusty Lavender", color: "#cfc5d6" },
+  { label: "Powder Blue", color: "#c9d5e5" },
+  { label: "Nude", color: "#e4d4c9" },
+  { label: "Champagne", color: "#e8d7bd" },
 ];
 
-const dressCodeClassicPalette = [
-  { name: "Navy", color: "#2f3e55", glow: "rgba(47,62,85,0.28)" },
-  { name: "Charcoal", color: "#4a4a4a", glow: "rgba(74,74,74,0.24)" },
-  { name: "Beige", color: "#d9cbbf", glow: "rgba(217,203,191,0.38)" },
-  { name: "Black", color: "#1f1f1f", glow: "rgba(31,31,31,0.22)" },
-  { name: "Champagne", color: "#e6d3b3", glow: "rgba(230,211,179,0.42)" },
+const dressCodeClassicPalette: DressCodeSwatch[] = [
+  { label: "Navy", color: "#2f3e55" },
+  { label: "Charcoal", color: "#4a4a4a" },
+  { label: "Beige", color: "#d9cbbf" },
+  { label: "Black", color: "#1f1f1f" },
+  { label: "Champagne", color: "#e6d3b3" },
 ];
+
+const swatchRowStyle: React.CSSProperties = {
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "flex-start",
+  gap: "48px",
+  flexWrap: "wrap",
+};
+
+const swatchItemStyle: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  textAlign: "center",
+};
+
+const swatchCircleStyle: React.CSSProperties = {
+  width: "72px",
+  height: "72px",
+  minWidth: "72px",
+  minHeight: "72px",
+  aspectRatio: "1 / 1",
+  borderRadius: "9999px",
+  display: "block",
+  flexShrink: 0,
+  opacity: 1,
+  visibility: "visible",
+  boxShadow: "0 10px 28px rgba(90,65,50,0.08)",
+};
+
+const swatchLabelStyle: React.CSSProperties = {
+  display: "block",
+  maxWidth: "112px",
+  marginTop: "16px",
+  color: "rgba(110,91,84,0.7)",
+  fontSize: "11px",
+  fontWeight: 500,
+  lineHeight: 1.6,
+  letterSpacing: "0.24em",
+  textTransform: "uppercase",
+};
 
 const faqs = [
   {
@@ -450,9 +496,20 @@ function SoftSection({ children, id, className = "", contentClassName = "mx-auto
 function SectionHeading({ eyebrow, title, subtitle }: SectionHeadingProps) {
   return (
     <div className="mx-auto mb-10 max-w-3xl text-center">
-      <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-stone-500">{eyebrow}</p>
-      <h2 className="rose-gold-foil font-serif text-4xl md:text-5xl">{title}</h2>
-      {subtitle && <p className="mt-4 text-base leading-7 text-stone-600 md:text-lg">{subtitle}</p>}
+      <p className="heading-micro mb-3">{eyebrow}</p>
+      <h2 className="heading-primary">{title}</h2>
+      {subtitle && <p className="heading-copy mt-4 text-base md:text-lg">{subtitle}</p>}
+    </div>
+  );
+}
+
+function Swatch({ swatch }: { swatch: DressCodeSwatch }) {
+  return (
+    <div className="swatchItem" style={swatchItemStyle}>
+      <div className="swatchCircle" style={{ ...swatchCircleStyle, backgroundColor: swatch.color }} />
+      <span className="swatchLabel" style={swatchLabelStyle}>
+        {swatch.label}
+      </span>
     </div>
   );
 }
@@ -596,7 +653,7 @@ function VenueCarousel() {
 
   return (
     <div
-      className="relative overflow-hidden rounded-[2rem] border border-stone-200 bg-white p-3 shadow-xl shadow-stone-300/30 transition duration-300 ease-out hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
+      className="relative h-full overflow-hidden rounded-[2rem] border border-stone-200 bg-white p-3 shadow-xl shadow-stone-300/30 transition duration-300 ease-out hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
       role="region"
       aria-roledescription="carousel"
       aria-label="Venue image carousel"
@@ -616,11 +673,13 @@ function VenueCarousel() {
             fill
             priority={index === 0}
             sizes="(min-width: 768px) 50vw, 100vw"
-            className={`object-cover transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
+            className={`object-cover contrast-[1.04] saturate-[0.88] transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
               index === currentIndex ? "opacity-100" : "opacity-0"
             }`}
           />
         ))}
+        <div className="pointer-events-none absolute inset-0 bg-[rgba(230,210,190,0.08)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,0,0,0)_58%,_rgba(55,38,31,0.055)_100%)]" />
       </div>
 
       <button
@@ -662,76 +721,20 @@ export default function WeddingWebsiteStarter() {
   const heroRef = useRef<HTMLElement | null>(null);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
   const ambientAudioFadeRef = useRef<number | null>(null);
-  const [guestInviteToken, setGuestInviteToken] = useState("");
+  const [guestInviteToken] = useState("");
   const [guestName, setGuestName] = useState("");
-  const [guestLookupMessage, setGuestLookupMessage] = useState("");
+  const [guestLookupMessage] = useState("");
   const [attendingCeremony, setAttendingCeremony] = useState("");
   const [attendingReception, setAttendingReception] = useState("");
   const [bringingPlusOne, setBringingPlusOne] = useState("");
   const [plusOneName, setPlusOneName] = useState("");
-  const [rsvpSubmitStatus, setRsvpSubmitStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
-  const [rsvpSubmitMessage, setRsvpSubmitMessage] = useState("");
+  const [rsvpSubmitStatus] = useState<"idle" | "submitting" | "success" | "error">("idle");
+  const [rsvpSubmitMessage] = useState("");
   const [heroScrollProgress, setHeroScrollProgress] = useState(0);
   const [isHeroMobile, setIsHeroMobile] = useState(false);
   const [isAmbientAudioOn, setIsAmbientAudioOn] = useState(false);
+  const [isAudioToggleVisible, setIsAudioToggleVisible] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-
-  const lookupGuestFromInvite = useCallback(async (inviteToken: string) => {
-    setGuestInviteToken(inviteToken);
-    setGuestLookupMessage("Finding your invitation...");
-
-    try {
-      const response = await fetch("/api/rsvp/lookup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ token: inviteToken }),
-      });
-      const result = (await response.json()) as {
-        ok?: boolean;
-        error?: string;
-        guest?: {
-          fullName?: string;
-          attendingCeremony?: boolean | null;
-          attendingReception?: boolean | null;
-          bringingPlusOne?: boolean;
-          plusOneName?: string | null;
-          dietaryRequirements?: string | null;
-          songRequest?: string | null;
-        };
-      };
-
-      if (!response.ok || !result.ok || !result.guest?.fullName) {
-        throw new Error(result.error ?? "We could not find this invitation.");
-      }
-
-      setGuestName(result.guest.fullName);
-      setAttendingCeremony(
-        typeof result.guest.attendingCeremony === "boolean" ? (result.guest.attendingCeremony ? "yes" : "no") : "",
-      );
-      setAttendingReception(
-        typeof result.guest.attendingReception === "boolean" ? (result.guest.attendingReception ? "yes" : "no") : "",
-      );
-      setBringingPlusOne(result.guest.bringingPlusOne ? "yes" : "");
-      setPlusOneName(result.guest.plusOneName ?? "");
-      setGuestLookupMessage(`RSVP loaded for ${result.guest.fullName}.`);
-    } catch (error) {
-      setGuestLookupMessage(error instanceof Error ? error.message : "We could not find this invitation.");
-    }
-  }, []);
-
-  useEffect(() => {
-    const inviteToken = new URLSearchParams(window.location.search).get("guest");
-
-    if (inviteToken) {
-      const lookupTimer = window.setTimeout(() => {
-        void lookupGuestFromInvite(inviteToken);
-      }, 0);
-
-      return () => window.clearTimeout(lookupTimer);
-    }
-  }, [lookupGuestFromInvite]);
 
   const fadeAmbientAudio = useCallback((targetVolume: number, pauseWhenDone = false) => {
     const audio = ambientAudioRef.current;
@@ -814,6 +817,10 @@ export default function WeddingWebsiteStarter() {
 
     const updateHeroProgress = () => {
       animationFrame = 0;
+      const shouldShowAudioToggle = window.scrollY > 80;
+
+      setIsAudioToggleVisible((current) => (current === shouldShowAudioToggle ? current : shouldShowAudioToggle));
+
       const hero = heroRef.current;
 
       if (!hero) {
@@ -874,76 +881,6 @@ export default function WeddingWebsiteStarter() {
     }
   };
 
-  const handleRsvpSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    const form = event.currentTarget;
-    const formData = new FormData(form);
-    const dietaryRequirements = String(formData.get("dietaryRequirements") ?? "").trim();
-    const songRequest = String(formData.get("songRequest") ?? "").trim();
-    const trimmedGuestName = guestName.trim();
-
-    if (!trimmedGuestName) {
-      setRsvpSubmitStatus("error");
-      setRsvpSubmitMessage("Please enter your full name before submitting.");
-      return;
-    }
-
-    if (!attendingCeremony || !attendingReception) {
-      setRsvpSubmitStatus("error");
-      setRsvpSubmitMessage("Please answer both ceremony and reception attendance questions.");
-      return;
-    }
-
-    if (bringingPlusOne === "yes" && !plusOneName.trim()) {
-      setRsvpSubmitStatus("error");
-      setRsvpSubmitMessage("Please enter your +1's name.");
-      return;
-    }
-
-    setRsvpSubmitStatus("submitting");
-    setRsvpSubmitMessage("");
-
-    try {
-      const response = await fetch("/api/rsvp/submit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          inviteToken: guestInviteToken || undefined,
-          guestName: trimmedGuestName,
-          attendingCeremony: attendingCeremony === "yes",
-          attendingReception: attendingReception === "yes",
-          bringingPlusOne: bringingPlusOne === "yes",
-          plusOneName: bringingPlusOne === "yes" ? plusOneName.trim() : null,
-          dietaryRequirements,
-          songRequest,
-        }),
-      });
-
-      const result = (await response.json()) as { ok?: boolean; error?: string; message?: string };
-
-      if (!response.ok || !result.ok) {
-        throw new Error(result.error ?? "Something went wrong while saving your RSVP.");
-      }
-
-      form.reset();
-      if (!guestInviteToken) {
-        setGuestName("");
-        setAttendingCeremony("");
-        setAttendingReception("");
-        setBringingPlusOne("");
-        setPlusOneName("");
-      }
-      setRsvpSubmitStatus("success");
-      setRsvpSubmitMessage(result.message ?? "Thank you. Your RSVP has been saved.");
-    } catch (error) {
-      setRsvpSubmitStatus("error");
-      setRsvpSubmitMessage(error instanceof Error ? error.message : "Something went wrong while saving your RSVP.");
-    }
-  };
-
   const visualScrollProgress = shouldReduceMotion ? 0 : smoothProgress(heroScrollProgress);
   const heavyScrollProgress = shouldReduceMotion || isHeroMobile ? 0 : visualScrollProgress;
   const mobileScrollProgress = shouldReduceMotion || !isHeroMobile ? 0 : visualScrollProgress;
@@ -956,37 +893,36 @@ export default function WeddingWebsiteStarter() {
   const copyFadeProgress = isHeroMobile ? mobileScrollProgress * 0.08 : visualScrollProgress * 0.15;
   const copyTranslateY = isHeroMobile ? -4 * mobileScrollProgress : -10 * visualScrollProgress;
   const backgroundWashOpacity = isHeroMobile ? mobileScrollProgress * 0.35 : visualScrollProgress;
+  const audioToggleRevealClass = isAudioToggleVisible ? "translate-y-0 opacity-100" : "translate-y-2.5 opacity-60";
+  const audioToggleMotionClass = shouldReduceMotion
+    ? ""
+    : "transition-[opacity,transform,box-shadow,border-color,background-color,color] duration-[400ms] ease-out hover:scale-[1.02]";
   const dressRevealMotion = (delay = 0, y = 16) => ({
     initial: shouldReduceMotion ? false : { opacity: 0, y },
     whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, amount: 0.18 },
-    transition: { duration: shouldReduceMotion ? 0 : 0.72, delay: shouldReduceMotion ? 0 : delay, ease: gateOpenEase },
+    transition: { duration: shouldReduceMotion ? 0 : 0.5, delay: shouldReduceMotion ? 0 : delay, ease: gateOpenEase },
   });
-  const swatchRevealContainer: MotionProps = shouldReduceMotion
-    ? {}
-    : {
-        initial: "hidden",
-        whileInView: "show",
-        viewport: { once: true, amount: 0.46 },
-        transition: { staggerChildren: 0.08 },
-      };
-  const swatchRevealItem: Variants = {
-    hidden: { opacity: 0, y: 12 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.62, ease: "easeOut" },
-    },
-  };
-
   return (
     <main className="min-h-screen bg-[#fbf7f2] text-stone-800">
+      <audio ref={ambientAudioRef} src={ambientAudioSrc} preload="none" loop />
+      <button
+        type="button"
+        aria-pressed={isAmbientAudioOn}
+        aria-label={isAmbientAudioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
+        onClick={handleAmbientAudioToggle}
+        className={`ambient-audio-toggle fixed bottom-6 right-6 z-50 inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#d9b8aa]/78 bg-[#fffaf7]/76 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#a57569] shadow-[0_8px_24px_rgba(90,65,50,0.08)] backdrop-blur-[6px] hover:border-[#c79a8f] hover:bg-[#fffdf9]/88 hover:text-[#8f635b] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c79a8f]/45 ${audioToggleRevealClass} ${audioToggleMotionClass}`}
+      >
+        {isAmbientAudioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+        <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
+      </button>
+
       <section ref={heroRef} className="relative isolate h-[160vh] overflow-visible bg-[#fbf7f2] text-[#34231e] md:h-[170vh]">
         <div className="hero-inner sticky top-0 h-screen overflow-hidden [perspective:1500px]">
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#f4ebe4_0%,#fff9f4_38%,#f8eee6_70%,#fbf7f2_100%)]" />
         <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(74,48,39,0.075)_0%,rgba(255,250,246,0.02)_36%,rgba(255,255,255,0.44)_100%)]" />
         <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_at_center,transparent_44%,rgba(52,35,30,0.07)_100%)]" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-[-1px] z-[3] h-[42vh] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.08)_0%,rgba(251,247,242,0.58)_52%,#fbf7f2_86%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-[-1px] z-[3] h-[40vh] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.06)_0%,rgba(251,247,242,0.50)_54%,#fbf7f2_90%)]" />
         <div
           className="hero-scroll-layer pointer-events-none absolute inset-x-0 bottom-[-3vh] z-[4] mx-auto h-[55vh] min-h-[330px] max-w-[1240px] translate-y-[11%] px-4 sm:h-[58vh] md:min-h-[390px] lg:h-[61vh]"
           style={{ opacity: 1 - houseFadeProgress, transform: `translateY(calc(11% + ${houseTranslateY}px))` }}
@@ -998,7 +934,7 @@ export default function WeddingWebsiteStarter() {
               fill
               priority
               sizes="(min-width: 1024px) 1180px, 100vw"
-              className="hero-estate-image object-contain object-bottom opacity-[0.46] mix-blend-multiply"
+              className="hero-estate-image object-contain object-bottom opacity-[0.52] mix-blend-multiply"
             />
           </div>
         </div>
@@ -1020,13 +956,14 @@ export default function WeddingWebsiteStarter() {
               className="mobile-header-monogram absolute top-5 inline-flex shrink-0 -translate-x-1/2 items-center justify-center md:static md:col-start-2 md:translate-x-0 md:justify-self-center"
             >
               <Image
-                src="/images/sa-monogram.png"
+                src="/images/sa-monogram-ornate.png"
                 alt="Sumaya and Aditya monogram"
                 width={1254}
                 height={1254}
-                sizes="(min-width: 768px) 36px, 48px"
+                sizes="(min-width: 768px) 76px, 58px"
                 priority
-                className="sa-monogram h-12 w-auto object-contain md:h-9"
+                className="sa-monogram h-auto object-contain"
+                style={{ width: "clamp(58px, 5vw, 76px)" }}
               />
             </a>
 
@@ -1099,18 +1036,6 @@ export default function WeddingWebsiteStarter() {
           )}
         </nav>
 
-        <audio ref={ambientAudioRef} src={ambientAudioSrc} preload="none" loop />
-        <button
-          type="button"
-          aria-pressed={isAmbientAudioOn}
-          aria-label={isAmbientAudioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
-          onClick={handleAmbientAudioToggle}
-          className="ambient-audio-toggle absolute bottom-6 z-40 inline-flex items-center justify-center gap-2 rounded-full border border-[#d9b8aa]/80 bg-[#fffaf7]/78 px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.22em] text-[#a57569] shadow-[0_10px_24px_rgba(106,73,58,0.06)] backdrop-blur-md transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[#c79a8f] hover:bg-[#fffdf9] hover:text-[#8f635b] hover:shadow-[0_14px_28px_rgba(106,73,58,0.10)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#c79a8f]/45 sm:bottom-7"
-        >
-          {isAmbientAudioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-          <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
-        </button>
-
         <motion.div
           aria-hidden="true"
           initial={shouldReduceMotion ? false : { opacity: 0.58, x: 26, rotateY: -60, scale: 1.08 }}
@@ -1159,7 +1084,7 @@ export default function WeddingWebsiteStarter() {
           />
         </motion.div>
 
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[40vh] bg-[linear-gradient(to_bottom,transparent_0%,rgba(251,247,242,0.68)_62%,#fbf7f2_100%)]" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[36vh] bg-[linear-gradient(to_bottom,transparent_0%,rgba(251,247,242,0.56)_64%,#fbf7f2_100%)]" />
         <div
           className="hero-scroll-layer pointer-events-none absolute inset-0 z-[22] bg-[linear-gradient(to_bottom,rgba(255,255,255,0)_40%,rgba(251,247,242,1)_100%)]"
           style={{ opacity: backgroundWashOpacity }}
@@ -1173,7 +1098,7 @@ export default function WeddingWebsiteStarter() {
             className="hero-copy max-w-4xl"
             style={{ opacity: 1 - copyFadeProgress, transform: `translateY(${copyTranslateY}px)` }}
           >
-            <p className="text-[11px] font-semibold uppercase tracking-[0.36em] text-[#46342f] sm:text-xs">
+            <p className="heading-micro text-[#46342f] sm:text-xs">
               WE&rsquo;RE GETTING MARRIED
             </p>
             <h1 className="rose-gold-foil hero-title mt-7 font-serif text-[42px] leading-[1.04] sm:text-[72px] md:text-[92px] lg:text-[104px]">
@@ -1200,14 +1125,25 @@ export default function WeddingWebsiteStarter() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Add Sumaya and Aditya's wedding to Google Calendar"
-              className="mt-7 inline-flex items-center gap-2 rounded-full border border-[#d9b8aa] bg-[#fffaf7]/84 px-6 py-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#4f3029]/92 shadow-[0_12px_30px_rgba(106,73,58,0.08)] backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[#c79a8f] hover:bg-[#fffdf9] hover:shadow-[0_16px_36px_rgba(106,73,58,0.14)]"
+              className="mt-9 inline-flex items-center gap-2 rounded-full border border-[#d9b8aa] bg-[#fffaf7]/84 px-6 py-3 text-xs font-semibold uppercase tracking-[0.25em] text-[#4f3029]/92 shadow-[0_12px_30px_rgba(106,73,58,0.08)] backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[#c79a8f] hover:bg-[#fffdf9] hover:shadow-[0_16px_36px_rgba(106,73,58,0.14)]"
             >
               <CalendarPlus className="h-4 w-4 text-[#b98278]" />
               Save the date
             </a>
           </motion.div>
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-28 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-24 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
+        </div>
+      </section>
+
+      <section className="bg-[#fbf7f2] px-6 py-16 sm:py-20 md:py-24">
+        <div className="mx-auto max-w-[600px] text-center">
+          <blockquote className="font-serif text-[24px] italic leading-[1.6] text-[#8f6b62]/76 sm:text-[28px] md:text-[32px]">
+            &ldquo;Whatever our souls are made of, his and mine are the same.&rdquo;
+          </blockquote>
+          <p className="mt-6 text-[11px] font-medium uppercase tracking-[0.24em] text-[#7d6b62]/58">
+            &mdash; Emily Bront&euml;
+          </p>
         </div>
       </section>
 
@@ -1216,7 +1152,7 @@ export default function WeddingWebsiteStarter() {
         style={{ opacity: noteRevealProgress, transform: `translateY(${40 * (1 - noteRevealProgress)}px)` }}
       >
         <div className="mx-auto max-w-[760px] text-center">
-          <p className="mb-5 text-[11px] font-medium uppercase tracking-[0.42em] text-[#6e5b54]">A NOTE FROM US</p>
+          <p className="heading-micro mb-5">A NOTE FROM US</p>
           <div className="space-y-5 font-serif text-[22px] font-normal leading-[1.55] text-[#3f302b] sm:text-[26px] md:text-[30px] md:leading-[1.5]">
             <p>We are so grateful to be celebrating this day with the people who have been part of our story.</p>
             <p>
@@ -1229,11 +1165,11 @@ export default function WeddingWebsiteStarter() {
 
       <SoftSection id="details">
         <div className="mx-auto mb-10 max-w-3xl text-center">
-          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-stone-500">The celebration</p>
-          <h2 className="font-serif text-4xl text-[#b58b84] md:text-5xl">
+          <p className="heading-micro mb-3">The celebration</p>
+          <h2 className="heading-primary">
             A garden ceremony, an intimate dinner, and an evening to remember
           </h2>
-          <p className="mt-4 text-base leading-7 text-[#4f4641] md:text-lg">
+          <p className="heading-copy mt-4 text-base md:text-lg">
             Our day has been designed to feel romantic, relaxed, and full of warmth — with garden moments, beautiful
             food, music, and time to celebrate with the people we love most.
           </p>
@@ -1268,12 +1204,16 @@ export default function WeddingWebsiteStarter() {
         </div>
       </SoftSection>
 
-      <SoftSection id="dress-code" contentClassName="mx-auto max-w-6xl">
-        <motion.div {...dressRevealMotion(0, 18)} className="mx-auto max-w-3xl text-center">
-          <p className="mb-4 text-[11px] font-medium uppercase tracking-[0.42em] text-[#6e5b54]">
+      <SoftSection
+        id="dress-code"
+        className="bg-[linear-gradient(180deg,_#fbf7f2_0%,_rgba(248,235,230,0.36)_50%,_#fbf7f2_100%)]"
+        contentClassName="mx-auto max-w-6xl"
+      >
+        <motion.div {...dressRevealMotion(0, 10)} className="mx-auto max-w-3xl text-center">
+          <p className="heading-micro mb-4">
             {dressCode.eyebrow}
           </p>
-          <h2 className="font-serif text-[42px] leading-[1.08] text-[#b58b84] sm:text-[56px] md:text-[68px]">
+          <h2 className="heading-primary">
             {dressCode.title}
           </h2>
           <div className="mx-auto mt-7 flex w-full max-w-[280px] items-center justify-center gap-3">
@@ -1281,82 +1221,52 @@ export default function WeddingWebsiteStarter() {
             <span className="h-1.5 w-1.5 rotate-45 bg-[#c79a8f]/78" />
             <span className="h-px flex-1 bg-[#b98278]/42" />
           </div>
-          <p className="mx-auto mt-8 max-w-2xl text-[16px] leading-8 text-[#4f4641]/82 sm:text-[17px]">
+          <p className="heading-copy mx-auto mt-8 max-w-[600px] text-[16px] sm:text-[17px]">
             {dressCode.description}
           </p>
         </motion.div>
 
         <motion.article
-          {...dressRevealMotion(0.05, 18)}
-          className="mt-20"
+          {...dressRevealMotion(0.04, 10)}
+          className="mt-20 pb-2"
         >
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-[11px] font-medium uppercase tracking-[0.36em] text-[#8c7a72]">Style Direction</p>
-            <h3 className="mt-3 font-serif text-[38px] leading-tight text-[#a67c6b] sm:text-[48px]">Pastel Formal</h3>
-            <div className="mx-auto mt-5 max-w-2xl space-y-4 text-[15px] leading-7 text-[#4f4641]/78 sm:text-[16px] sm:leading-8">
+            <h3 className="heading-secondary">Pastel Formal</h3>
+            <div className="mx-auto mt-6 max-w-[600px] space-y-3 text-[15px] leading-[1.76] text-[#4f4641]/76 sm:text-[16px]">
               {dressCode.pastelFormalCopy.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
 
-            <motion.div
-              {...swatchRevealContainer}
-              className="mx-auto mt-9 grid max-w-4xl grid-cols-2 gap-x-5 gap-y-7 min-[480px]:grid-cols-3 md:grid-cols-6 md:gap-x-6"
-            >
+            <div className="swatchRow mx-auto mt-10" style={swatchRowStyle}>
               {dressCodePastelPalette.map((swatch) => (
-                <motion.div
-                  key={swatch.name}
-                  variants={shouldReduceMotion ? undefined : swatchRevealItem}
-                  className="group text-center"
-                >
-                  <div
-                    className="mx-auto h-16 w-16 rounded-full shadow-[inset_0_0_0_1px_rgba(255,255,255,0.38),0_10px_26px_rgba(101,75,62,0.08)] transition duration-500 ease-out group-hover:scale-[1.04] group-hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.44),0_14px_34px_var(--swatch-glow)] sm:h-[4.5rem] sm:w-[4.5rem]"
-                    style={{ backgroundColor: swatch.color, "--swatch-glow": swatch.glow } as React.CSSProperties}
-                    aria-label={`${swatch.name} colour swatch`}
-                    role="img"
-                  />
-                  <p className="mx-auto mt-4 max-w-[112px] text-[10px] font-medium uppercase leading-5 tracking-[0.2em] text-[#6e5b54] transition duration-300 ease-out group-hover:text-[#4f4641] sm:text-[11px]">
-                    {swatch.name}
-                  </p>
-                </motion.div>
+                <Swatch key={swatch.label} swatch={swatch} />
               ))}
-            </motion.div>
+            </div>
           </div>
 
         </motion.article>
 
-        <motion.article {...dressRevealMotion(0.08, 18)} className="mt-24">
+        <motion.div {...dressRevealMotion(0.04, 8)} className="mx-auto mt-12 flex w-full max-w-[86px] items-center justify-center gap-2">
+          <span className="h-px flex-1 bg-[#b98278]/20" />
+          <span className="h-1 w-1 rotate-45 bg-[#c79a8f]/38" />
+          <span className="h-px flex-1 bg-[#b98278]/20" />
+        </motion.div>
+
+        <motion.article {...dressRevealMotion(0.05, 8)} className="mt-8">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="text-[11px] font-medium uppercase tracking-[0.36em] text-[#8c7a72]">Style Direction</p>
-            <h3 className="mt-3 font-serif text-[38px] leading-tight text-[#a67c6b] sm:text-[48px]">Classic Formal</h3>
-            <div className="mx-auto mt-5 max-w-2xl space-y-4 text-[15px] leading-7 text-[#4f4641]/78 sm:text-[16px] sm:leading-8">
+            <h3 className="heading-secondary">Classic Formal</h3>
+            <div className="mx-auto mt-5 max-w-[600px] space-y-2 text-[15px] leading-[1.74] text-[#4f4641]/76 sm:text-[16px]">
               {dressCode.classicFormalCopy.map((paragraph) => (
                 <p key={paragraph}>{paragraph}</p>
               ))}
             </div>
 
-            <motion.div
-              {...swatchRevealContainer}
-              className="mx-auto mt-8 grid max-w-2xl grid-cols-5 gap-x-3 gap-y-6 sm:gap-x-5"
-            >
+            <div className="swatchRow mx-auto mt-7" style={swatchRowStyle}>
               {dressCodeClassicPalette.map((swatch) => (
-                <motion.div
-                  key={swatch.name}
-                  variants={shouldReduceMotion ? undefined : swatchRevealItem}
-                  className="group text-center"
-                >
-                  <div
-                    className="mx-auto h-11 w-11 rounded-full shadow-[inset_0_0_0_1px_rgba(255,255,255,0.30),0_9px_22px_rgba(101,75,62,0.075)] transition duration-500 ease-out group-hover:scale-[1.04] group-hover:shadow-[inset_0_0_0_1px_rgba(255,255,255,0.36),0_12px_28px_var(--swatch-glow)] sm:h-14 sm:w-14"
-                    style={{ backgroundColor: swatch.color, "--swatch-glow": swatch.glow } as React.CSSProperties}
-                    aria-label={`${swatch.name} colour swatch`}
-                    role="img"
-                  />
-                  <p className="mx-auto mt-3 max-w-[92px] text-[9px] font-medium uppercase leading-4 tracking-[0.18em] text-[#6e5b54] transition duration-300 ease-out group-hover:text-[#4f4641] sm:text-[10px]">
-                    {swatch.name}
-                  </p>
-                </motion.div>
+                <Swatch key={swatch.label} swatch={swatch} />
               ))}
-            </motion.div>
+            </div>
             <p className="mt-5 text-[11px] font-medium uppercase tracking-[0.22em] text-[#8c7a72]/82">
               Structured tones to ground the palette
             </p>
@@ -1365,72 +1275,128 @@ export default function WeddingWebsiteStarter() {
         </motion.article>
 
         <motion.div
-          {...dressRevealMotion(0.1, 12)}
-          className="mx-auto mt-16 max-w-2xl text-center"
+          {...dressRevealMotion(0.08, 8)}
+          className="mx-auto mt-12 max-w-2xl text-center"
         >
-          <h3 className="font-serif text-[26px] leading-tight text-[#8c7a72] sm:text-[30px]">A small note</h3>
-          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-8 text-[#4f4641]/68 sm:text-[16px]">
+          <h3 className="font-serif text-[23px] font-medium leading-tight tracking-[0.006em] text-[#9a817b] sm:text-[26px]">A small note</h3>
+          <p className="mx-auto mt-3 max-w-[600px] text-[14px] leading-[1.76] text-[#4f4641]/62 sm:text-[15px]">
             We kindly ask guests to avoid white, ivory, cream, or anything bridal in tone.
           </p>
 
-          <div className="mx-auto my-9 h-px w-20 bg-[#b98278]/28" />
-
-          <h3 className="font-serif text-[26px] leading-tight text-[#8c7a72] sm:text-[30px]">Garden shoes</h3>
-          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-8 text-[#4f4641]/68 sm:text-[16px]">
+          <h3 className="mt-7 font-serif text-[23px] font-medium leading-tight tracking-[0.006em] text-[#9a817b] sm:text-[26px]">Garden shoes</h3>
+          <p className="mx-auto mt-3 max-w-[600px] text-[14px] leading-[1.76] text-[#4f4641]/62 sm:text-[15px]">
             The ceremony will take place within the venue gardens, so block heels, wedges, flats, or comfortable dress
             shoes are recommended.
           </p>
         </motion.div>
       </SoftSection>
 
-      <SoftSection id="itinerary" contentClassName="mx-auto max-w-4xl">
-        <SectionHeading
-          eyebrow="Our day"
-          title="Wedding itinerary"
-          subtitle="The final schedule may be refined closer to the day, but this is the planned flow for guests."
-        />
-        <div>
-          {itinerary.map((item) => (
-            <div key={item.title} className="grid grid-cols-[90px_1fr] gap-5 md:grid-cols-[120px_1fr]">
-              <div className="pt-1 text-right text-sm font-semibold text-stone-500">{item.time}</div>
-              <div className="relative border-l border-stone-300 pb-10 pl-7 last:pb-0">
-                <div className="absolute -left-[7px] top-1 h-3.5 w-3.5 rounded-full bg-[#b98d83] ring-4 ring-[#fbf7f2]" />
-                <div className="rounded-2xl border border-white/70 bg-white/60 p-5 shadow-sm backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]">
-                  <div className="flex items-center gap-3">
-                    <ItineraryIcon title={item.title} />
-                    <h3 className="font-serif text-2xl text-stone-900">{item.title}</h3>
-                  </div>
-                  <p className="mt-3 leading-7 text-stone-600">{item.detail}</p>
+      <SoftSection id="itinerary" contentClassName="mx-auto max-w-5xl">
+        <div className="mx-auto mb-12 max-w-3xl text-center">
+          <h2 className="font-serif text-[50px] font-medium leading-none tracking-[0.012em] text-[#9a6f66] sm:text-[68px] md:text-[82px]">
+            Wedding itinerary
+          </h2>
+          <div className="mx-auto my-6 flex w-full max-w-[128px] items-center justify-center gap-2.5">
+            <span className="h-px flex-1 bg-[#b98278]/30" />
+            <span className="font-serif text-[20px] leading-none text-[#c9a79e]/82">❦</span>
+            <span className="h-px flex-1 bg-[#b98278]/30" />
+          </div>
+          <p className="mx-auto max-w-[560px] text-[15px] leading-7 text-[#4f4641]/72 md:text-base">
+            The final schedule may be refined closer to the day, but this is the planned flow for guests.
+          </p>
+          <p className="mt-7 font-serif text-[15px] italic leading-relaxed tracking-[0.01em] text-[#4f4641]/72 md:text-[16px]">
+            A gentle unfolding of our day
+          </p>
+        </div>
+        <div className="relative mx-auto grid max-w-[900px] gap-0">
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute bottom-6 left-[calc(68px+0.75rem+12px)] top-4 w-px md:left-[calc(130px+1.5rem+20px)]"
+            style={{ background: "rgba(150,120,110,0.25)" }}
+          />
+          {itinerary.map((item, index) => (
+            <motion.div
+              key={item.title}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.56, delay: shouldReduceMotion ? 0 : index * 0.08, ease: "easeOut" }}
+              className="grid grid-cols-[68px_24px_1fr] gap-x-3 md:grid-cols-[130px_40px_1fr] md:gap-x-6"
+            >
+              <div className="pt-4 text-right text-[11px] font-medium uppercase tracking-[0.2em] text-[#7d4f48]/78 md:text-[12px]">
+                {item.time}
+              </div>
+              <div className="relative flex justify-center pt-[1.05rem]">
+                <div className="relative z-10 flex h-[18px] w-[18px] items-center justify-center rounded-full border border-[#c9a79e] bg-[#fbf7f2] shadow-[0_0_0_5px_rgba(200,170,160,0.10)]">
+                  <span className="h-[7px] w-[7px] rounded-full bg-[#c9a79e]" />
                 </div>
               </div>
-            </div>
+              <div className="pb-7">
+                <div className="pb-5">
+                  <div className="flex items-center gap-4">
+                    <ItineraryIcon title={item.title} />
+                    <h3 className="font-serif text-[1.58rem] leading-tight tracking-[0.014em] text-[#9a6f66] md:text-[1.82rem]">
+                      {item.title}
+                    </h3>
+                  </div>
+                  <p className="mt-4 max-w-2xl text-[15px] leading-7 text-[rgba(80,70,65,0.76)] md:text-base">
+                    {item.detail}
+                  </p>
+                </div>
+                {index < itinerary.length - 1 && (
+                  <div className="pt-1">
+                    <div
+                      className="h-px w-full"
+                      style={{ background: "rgba(120,100,90,0.075)" }}
+                    />
+                  </div>
+                )}
+              </div>
+            </motion.div>
           ))}
+        </div>
+        <div className="mx-auto mt-10 flex w-full max-w-[260px] items-center justify-center gap-3">
+          <span className="h-px flex-1 bg-[#b98278]/22" />
+          <span className="h-2 w-2 rotate-45 rounded-[1px] bg-[#c9a79e]/68" />
+          <span className="h-px flex-1 bg-[#b98278]/22" />
         </div>
       </SoftSection>
 
-      <SoftSection id="venue" className="mb-20 mt-24 md:mb-24 md:mt-28">
+      <SoftSection
+        id="venue"
+        className="mb-20 mt-24 bg-[linear-gradient(180deg,_#fbf7f2_0%,_rgba(248,235,230,0.46)_48%,_#fbf7f2_100%)] md:mb-24 md:mt-28"
+      >
         <div className="mx-auto mb-14 max-w-3xl text-center md:mb-16">
-          <p className="mb-3 text-[12px] font-medium uppercase tracking-[0.25em] text-[#8c7a72]">VENUE</p>
-          <h2 className="font-serif text-[42px] leading-[1.2] text-[#a67c6b]">Caversham House</h2>
-          <p className="mx-auto mt-4 max-w-[560px] text-[16px] leading-[1.6] text-[#5f524b]">
+          <p className="heading-micro mb-3">VENUE</p>
+          <h2 className="heading-primary">Caversham House</h2>
+          <div className="mx-auto my-4 flex w-full max-w-[104px] items-center justify-center gap-2">
+            <span className="h-px flex-1 bg-[#b98278]/32" />
+            <span className="h-1.5 w-1.5 rotate-45 bg-[#c79a8f]/72" />
+            <span className="h-px flex-1 bg-[#b98278]/32" />
+          </div>
+          <p className="heading-copy mx-auto max-w-[560px] text-[16px]">
             A Swan Valley garden setting with a romantic ceremony at Garden House and a reception at Main House.
+          </p>
+          <p className="mx-auto mt-3 max-w-[520px] text-sm leading-6 text-[#6a5d55]/72">
+            A soft garden setting for the day to unfold slowly, warmly, and beautifully.
           </p>
         </div>
 
-        <div className="grid items-center gap-8 md:grid-cols-[1.05fr_0.95fr] md:gap-10">
-          <div className="relative isolate">
+        <div className="grid gap-8 md:grid-cols-[1.05fr_0.95fr] md:items-stretch md:gap-10">
+          <div className="relative isolate h-full">
             <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-[radial-gradient(circle_at_center,_rgba(218,192,138,0.34),_rgba(244,226,190,0.18)_44%,_transparent_72%)] blur-3xl" />
             <VenueCarousel />
           </div>
-          <div className="mx-auto w-full max-w-[480px]">
-            <div className="rounded-3xl border border-[#eaded6] bg-[#fffaf7]/76 p-6 shadow-[0_12px_34px_rgba(90,65,50,0.055)] backdrop-blur transition duration-300 ease-out hover:-translate-y-[1px] hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]">
+          <div className="mx-auto flex h-full w-full max-w-[480px] md:max-w-none">
+            <div className="flex h-full w-full flex-col justify-center rounded-3xl border border-[#e7ddd5] bg-[#fffaf7]/72 p-8 shadow-[0_8px_24px_rgba(90,65,50,0.035)] backdrop-blur-sm md:p-9">
               <h3 className="font-serif text-2xl text-[#4f4641]">Getting There &amp; Parking</h3>
-              <div className="mt-4 space-y-3 text-[15px] leading-[1.65] text-[#6a5d55]">
+              <div className="mt-5 space-y-4 text-[15px] leading-[1.7] text-[#6a5d55]">
                 <p>
                   Caversham House
                   <br />
                   Swan Valley, Perth
                 </p>
+                <div className="h-px w-full bg-[#e7ddd5]" />
                 <p>
                   Parking is available at the Main House car park. Please follow signage upon arrival.
                 </p>
@@ -1443,11 +1409,13 @@ export default function WeddingWebsiteStarter() {
           </div>
         </div>
 
-        <div className="mt-12 overflow-hidden rounded-[2rem] border border-stone-200 shadow-xl shadow-stone-300/30 transition duration-300 ease-out hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]">
+        <div className="relative mt-12 overflow-hidden rounded-[2rem] border border-stone-200 shadow-xl shadow-stone-300/30 transition duration-300 ease-out hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]">
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
           <iframe
             src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3384.9999!2d115.9905802!3d-31.8777983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2a32b77920209d99%3A0xeb200b707ad3d95d!2sCaversham%20House%2C%20141%20Caversham%20Ave%2C%20Caversham%20WA%206055!5e0!3m2!1sen!2sau!4v1620000000000"
             width="100%"
             height="450"
+            className="block saturate-[0.72] contrast-[0.96] blur-[0.15px]"
             style={{ border: 0 }}
             allowFullScreen
             loading="lazy"
@@ -1459,17 +1427,27 @@ export default function WeddingWebsiteStarter() {
       <SoftSection id="rsvp" contentClassName="mx-auto max-w-4xl">
         <div className="rounded-[2.25rem] border border-[#eaded6]/20 bg-[#2A1D19] px-5 py-10 text-white shadow-[0_24px_70px_rgba(90,65,50,0.16)] md:px-10 md:py-12">
           <div className="mx-auto max-w-3xl text-center">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.35em] text-[#d8c7bf]">RSVP</p>
-            <h2 className="rose-gold-foil font-serif text-4xl md:text-5xl">We hope you can celebrate with us</h2>
+            <p className="heading-micro heading-micro-light mb-3">RSVP</p>
+            <h2 className="heading-primary">We hope you can celebrate with us</h2>
             <p className="mt-5 text-lg leading-8 text-[#e6d9d2]">
-              We would be so grateful if you could let us know which parts of the day you will be joining and whether
-              you will be bringing a +1.
+              Your formal invitation will include a private RSVP link created just for you. Please use that link so we
+              can recognise your invitation and save your response to the right guest record.
             </p>
           </div>
 
-          <form
-            onSubmit={handleRsvpSubmit}
-            className="mt-10 rounded-[2rem] border border-[#eaded6]/25 bg-[#fffaf7] p-6 text-[#4f4641] shadow-2xl shadow-black/20 md:p-8"
+          <div className="mt-10 rounded-[2rem] border border-[#eaded6]/25 bg-[#fffaf7] p-6 text-center text-[#4f4641] shadow-2xl shadow-black/20 md:p-8">
+            <p className="mx-auto max-w-2xl text-[15px] leading-7 text-[#6a5d55]">
+              There is no public name-search RSVP form, so your private link is the most reliable way for us to prefill
+              your invitation details and ask only the questions relevant to you.
+            </p>
+            <div className="mx-auto mt-6 h-px w-24 bg-[#b98278]/24" />
+            <p className="mx-auto mt-6 max-w-xl text-sm leading-7 text-[#7b6760]">
+              If you cannot find your link, please message Sumaya or Aditya and we can send it again.
+            </p>
+          </div>
+
+          <div
+            className="hidden"
           >
             <div className="grid gap-6">
               <label className="grid gap-2">
@@ -1619,7 +1597,7 @@ export default function WeddingWebsiteStarter() {
                 </button>
               </div>
             </div>
-          </form>
+          </div>
         </div>
       </SoftSection>
 
