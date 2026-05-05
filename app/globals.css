@@ -635,6 +635,12 @@ a[class*="uppercase"] {
   gap: 0.85rem;
 }
 
+.hero-cta-reveal {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+}
+
 .hero-primary-cta {
   min-height: 50px;
   gap: 0.55rem;
