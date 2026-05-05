@@ -5,10 +5,12 @@ import Image from "next/image";
 import { motion, type Transition, useReducedMotion } from "framer-motion";
 import {
   CalendarPlus,
+  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
+  Copy,
   Flower2,
   Mail,
   MapPin,
@@ -34,7 +36,12 @@ type Faq = {
 type DressCodeSwatch = {
   label: string;
   color: string;
+  description: string;
 };
+
+type MobileActionId = "save" | "venue" | "rsvp";
+
+type JourneySectionId = "cover" | "note" | "details" | "dress-code" | "itinerary" | "venue" | "rsvp";
 
 type FadeInSectionProps = {
   children: ReactNode;
@@ -54,6 +61,8 @@ const googleCalendarUrl =
 const googleDirectionsUrl =
   "https://www.google.com/maps/dir/?api=1&destination=Caversham%20House%2C%20141%20Caversham%20Avenue%2C%20Caversham%20WA%206055%2C%20Australia";
 
+const venueAddress = "Caversham House, 141 Caversham Avenue, Caversham WA 6055";
+
 const venueImages = [
   { src: "/images/venue.jpg", alt: "Caversham House Gardens" },
   { src: "/images/venue2.jpg", alt: "Caversham House Main Building" },
@@ -67,6 +76,49 @@ const gateOpenEase = [0.16, 1, 0.3, 1] as const;
 const ambientAudioSrc = "/audio/romantic-garden-instrumental.mp3";
 const ambientAudioTargetVolume = 0.22;
 const ambientAudioFadeDuration = 1800;
+
+const mobileJourneySections: { id: JourneySectionId; label: string; href: string }[] = [
+  { id: "cover", label: "Cover", href: "#cover" },
+  { id: "note", label: "Note", href: "#note" },
+  { id: "details", label: "Details", href: "#details" },
+  { id: "dress-code", label: "Dress", href: "#dress-code" },
+  { id: "itinerary", label: "Program", href: "#itinerary" },
+  { id: "venue", label: "Venue", href: "#venue" },
+  { id: "rsvp", label: "RSVP", href: "#rsvp" },
+];
+
+const mobileBottomActions: {
+  id: MobileActionId;
+  label: string;
+  href: string;
+  ariaLabel: string;
+  external?: boolean;
+  Icon: typeof CalendarPlus;
+}[] = [
+  {
+    id: "save",
+    label: "Save Date",
+    href: googleCalendarUrl,
+    ariaLabel: "Save the wedding date",
+    external: true,
+    Icon: CalendarPlus,
+  },
+  {
+    id: "venue",
+    label: "Venue",
+    href: googleDirectionsUrl,
+    ariaLabel: "Open venue directions",
+    external: true,
+    Icon: MapPin,
+  },
+  {
+    id: "rsvp",
+    label: "RSVP",
+    href: "#rsvp",
+    ariaLabel: "Jump to RSVP details",
+    Icon: Mail,
+  },
+];
 
 const clampProgress = (value: number) => Math.max(0, Math.min(1, value));
 
@@ -129,20 +181,20 @@ const dressCode = {
 };
 
 const dressCodePastelPalette: DressCodeSwatch[] = [
-  { label: "Blush Pink", color: "#e8c4bf" },
-  { label: "Soft Sage", color: "#c8d0be" },
-  { label: "Dusty Lavender", color: "#cfc5d6" },
-  { label: "Powder Blue", color: "#c9d5e5" },
-  { label: "Nude", color: "#e4d4c9" },
-  { label: "Champagne", color: "#e8d7bd" },
+  { label: "Blush Pink", color: "#e8c4bf", description: "Soft, romantic, and closest to the floral blush palette." },
+  { label: "Soft Sage", color: "#c8d0be", description: "A garden green that feels fresh without becoming too bold." },
+  { label: "Dusty Lavender", color: "#cfc5d6", description: "Muted and gentle, ideal for a refined pastel formal look." },
+  { label: "Powder Blue", color: "#c9d5e5", description: "Cooler, airy, and best kept soft rather than bright." },
+  { label: "Nude", color: "#e4d4c9", description: "A warm neutral that pairs beautifully with garden pastels." },
+  { label: "Champagne", color: "#e8d7bd", description: "Lightly golden and elegant, without reading bridal white." },
 ];
 
 const dressCodeClassicPalette: DressCodeSwatch[] = [
-  { label: "Navy", color: "#2f3e55" },
-  { label: "Charcoal", color: "#4a4a4a" },
-  { label: "Beige", color: "#d9cbbf" },
-  { label: "Black", color: "#1f1f1f" },
-  { label: "Champagne", color: "#e6d3b3" },
+  { label: "Navy", color: "#2f3e55", description: "A polished groom-inspired accent that keeps the palette grounded." },
+  { label: "Charcoal", color: "#4a4a4a", description: "A softer formal alternative to black, especially for tailoring." },
+  { label: "Beige", color: "#d9cbbf", description: "Warm, understated, and easy to pair with blush or champagne accents." },
+  { label: "Black", color: "#1f1f1f", description: "Classic formal black is welcome when styled cleanly and elegantly." },
+  { label: "Champagne", color: "#e6d3b3", description: "A refined light accent for ties, pocket squares, or accessories." },
 ];
 
 const swatchRowStyle: React.CSSProperties = {
@@ -501,14 +553,29 @@ function SectionHeading({ eyebrow, title, subtitle }: SectionHeadingProps) {
   );
 }
 
-function Swatch({ swatch }: { swatch: DressCodeSwatch }) {
+function Swatch({
+  swatch,
+  isActive = false,
+  onSelect,
+}: {
+  swatch: DressCodeSwatch;
+  isActive?: boolean;
+  onSelect?: () => void;
+}) {
   return (
-    <div className="swatchItem" style={swatchItemStyle}>
+    <button
+      type="button"
+      className={`swatchItem ${isActive ? "swatchItemActive" : ""}`}
+      style={swatchItemStyle}
+      onClick={onSelect}
+      aria-pressed={isActive}
+      aria-label={`Show ${swatch.label} dress code note`}
+    >
       <div className="swatchCircle" style={{ ...swatchCircleStyle, backgroundColor: swatch.color }} />
       <span className="type-swatch-label swatchLabel" style={swatchLabelStyle}>
         {swatch.label}
       </span>
-    </div>
+    </button>
   );
 }
 
@@ -649,6 +716,8 @@ function VenueCarousel() {
     touchStartXRef.current = null;
   };
 
+  const currentVenueImage = venueImages[currentIndex];
+
   return (
     <div
       className="card-luxe-image card-luxe-hover relative h-full"
@@ -669,6 +738,7 @@ function VenueCarousel() {
             src={image.src}
             alt={image.alt}
             fill
+            loading="lazy"
             sizes="(min-width: 768px) 50vw, 100vw"
             className={`object-cover contrast-[1.04] saturate-[0.88] transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
               index === currentIndex ? "opacity-100" : "opacity-0"
@@ -678,6 +748,21 @@ function VenueCarousel() {
         <div className="pointer-events-none absolute inset-0 bg-[rgba(230,210,190,0.08)]" />
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,0,0,0)_58%,_rgba(143,106,99,0.05)_100%)]" />
       </div>
+
+      <button
+        type="button"
+        onClick={() => goToPrevious()}
+        aria-hidden="true"
+        tabIndex={-1}
+        className="venue-carousel-tap-zone venue-carousel-tap-zone-left md:hidden"
+      />
+      <button
+        type="button"
+        onClick={() => goToNext()}
+        aria-hidden="true"
+        tabIndex={-1}
+        className="venue-carousel-tap-zone venue-carousel-tap-zone-right md:hidden"
+      />
 
       <button
         type="button"
@@ -709,6 +794,12 @@ function VenueCarousel() {
           />
         ))}
       </div>
+      <div className="venue-carousel-count type-meta" aria-live="polite">
+        <span>{currentIndex + 1}</span>
+        <span aria-hidden="true">/</span>
+        <span>{venueImages.length}</span>
+        <span className="sr-only">{currentVenueImage.alt}</span>
+      </div>
     </div>
   );
 }
@@ -718,6 +809,7 @@ export default function WeddingWebsiteStarter() {
   const heroRef = useRef<HTMLElement | null>(null);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
   const ambientAudioFadeRef = useRef<number | null>(null);
+  const copiedVenueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [guestInviteToken] = useState("");
   const [guestName, setGuestName] = useState("");
   const [guestLookupMessage] = useState("");
@@ -735,6 +827,9 @@ export default function WeddingWebsiteStarter() {
   const [isAmbientAudioOn, setIsAmbientAudioOn] = useState(false);
   const [isAudioToggleVisible, setIsAudioToggleVisible] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+  const [activeJourneySection, setActiveJourneySection] = useState<JourneySectionId>("cover");
+  const [selectedSwatchLabel, setSelectedSwatchLabel] = useState(dressCodePastelPalette[0].label);
+  const [hasCopiedVenueAddress, setHasCopiedVenueAddress] = useState(false);
 
   const fadeAmbientAudio = useCallback((targetVolume: number, pauseWhenDone = false) => {
     const audio = ambientAudioRef.current;
@@ -848,6 +943,38 @@ export default function WeddingWebsiteStarter() {
   }, [fadeAmbientAudio]);
 
   useEffect(() => {
+    const sectionElements = mobileJourneySections
+      .map((section) => document.getElementById(section.id))
+      .filter((section): section is HTMLElement => Boolean(section));
+
+    if (!sectionElements.length || !("IntersectionObserver" in window)) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const mostVisibleEntry = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+
+        const nextSectionId = mostVisibleEntry?.target.id;
+
+        if (mobileJourneySections.some((section) => section.id === nextSectionId)) {
+          setActiveJourneySection(nextSectionId as JourneySectionId);
+        }
+      },
+      {
+        rootMargin: "-34% 0px -48% 0px",
+        threshold: [0.08, 0.18, 0.32, 0.5],
+      },
+    );
+
+    sectionElements.forEach((section) => observer.observe(section));
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
     let animationFrame = 0;
 
     const updateHeroProgress = () => {
@@ -959,6 +1086,32 @@ export default function WeddingWebsiteStarter() {
     }
   };
 
+  const handleCopyVenueAddress = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(venueAddress);
+      setHasCopiedVenueAddress(true);
+
+      if (copiedVenueTimerRef.current) {
+        clearTimeout(copiedVenueTimerRef.current);
+      }
+
+      copiedVenueTimerRef.current = setTimeout(() => {
+        setHasCopiedVenueAddress(false);
+        copiedVenueTimerRef.current = null;
+      }, 2400);
+    } catch {
+      setHasCopiedVenueAddress(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (copiedVenueTimerRef.current) {
+        clearTimeout(copiedVenueTimerRef.current);
+      }
+    };
+  }, []);
+
   const visualScrollProgress = shouldReduceMotion ? 0 : smoothProgress(heroScrollProgress);
   const heavyScrollProgress = shouldReduceMotion || isHeroMobile ? 0 : visualScrollProgress;
   const mobileScrollProgress = shouldReduceMotion || !isHeroMobile ? 0 : visualScrollProgress;
@@ -1013,6 +1166,11 @@ export default function WeddingWebsiteStarter() {
   const audioToggleMotionClass = shouldReduceMotion
     ? ""
     : "transition-[opacity,transform,box-shadow,border-color,background-color,color] duration-[400ms] ease-out hover:scale-[1.02]";
+  const activeMobileAction: MobileActionId =
+    activeJourneySection === "venue" ? "venue" : activeJourneySection === "rsvp" ? "rsvp" : "save";
+  const selectedDressSwatch =
+    [...dressCodePastelPalette, ...dressCodeClassicPalette].find((swatch) => swatch.label === selectedSwatchLabel) ??
+    dressCodePastelPalette[0];
   const dressRevealMotion = (delay = 0, y = 16) => ({
     initial: shouldReduceMotion ? false : { opacity: 0, y },
     whileInView: { opacity: 1, y: 0 },
@@ -1027,31 +1185,41 @@ export default function WeddingWebsiteStarter() {
         aria-label="Quick wedding actions"
         aria-hidden={!isMobileStickyActionsVisible}
       >
-        <a
-          href={googleCalendarUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Save the wedding date"
-          tabIndex={mobileStickyActionTabIndex}
-        >
-          <CalendarPlus className="h-4 w-4" />
-          <span>Save Date</span>
-        </a>
-        <a
-          href={googleDirectionsUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Open venue directions"
-          tabIndex={mobileStickyActionTabIndex}
-        >
-          <MapPin className="h-4 w-4" />
-          <span>Venue</span>
-        </a>
-        <a href="#rsvp" aria-label="Jump to RSVP details" tabIndex={mobileStickyActionTabIndex}>
-          <Mail className="h-4 w-4" />
-          <span>RSVP</span>
-        </a>
+        {mobileBottomActions.map(({ id, label, href, ariaLabel, external, Icon }) => {
+          const isActive = activeMobileAction === id;
+
+          return (
+            <a
+              key={id}
+              href={href}
+              target={external ? "_blank" : undefined}
+              rel={external ? "noopener noreferrer" : undefined}
+              aria-label={ariaLabel}
+              aria-current={isActive ? "true" : undefined}
+              tabIndex={mobileStickyActionTabIndex}
+              className={isActive ? "mobile-sticky-action-active" : undefined}
+            >
+              <Icon className="h-4 w-4" />
+              <span>{label}</span>
+            </a>
+          );
+        })}
       </nav>
+      <div
+        className={`mobile-journey-cue md:hidden ${isMobileStickyActionsVisible ? "mobile-journey-cue-visible" : ""}`}
+        aria-hidden="true"
+      >
+        {mobileJourneySections.map((section) => (
+          <a
+            key={section.id}
+            href={section.href}
+            tabIndex={-1}
+            className={activeJourneySection === section.id ? "mobile-journey-dot-active" : undefined}
+          >
+            <span>{section.label}</span>
+          </a>
+        ))}
+      </div>
       <button
         type="button"
         aria-pressed={isAmbientAudioOn}
@@ -1063,7 +1231,11 @@ export default function WeddingWebsiteStarter() {
         <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
       </button>
 
-      <section ref={heroRef} className="hero-section relative isolate overflow-visible bg-[#fbf7f2] text-[var(--color-body)]">
+      <section
+        id="cover"
+        ref={heroRef}
+        className="hero-section relative isolate overflow-visible bg-[#fbf7f2] text-[var(--color-body)]"
+      >
         <div className="hero-inner sticky top-0 h-screen overflow-hidden [perspective:1500px]">
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#f4ebe4_0%,#fff9f4_38%,#f8eee6_70%,#fbf7f2_100%)]" />
         <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(143,106,99,0.07)_0%,rgba(255,250,246,0.02)_36%,rgba(255,255,255,0.44)_100%)]" />
@@ -1082,6 +1254,7 @@ export default function WeddingWebsiteStarter() {
               alt=""
               fill
               loading="eager"
+              fetchPriority="high"
               sizes="(max-width: 767px) 132vw, (min-width: 1024px) 1180px, 100vw"
               className="hero-estate-image"
             />
@@ -1111,6 +1284,7 @@ export default function WeddingWebsiteStarter() {
                 height={1254}
                 sizes="(min-width: 768px) 76px, 58px"
                 loading="eager"
+                fetchPriority="high"
                 className="sa-monogram h-auto object-contain"
                 style={{ width: "clamp(58px, 5vw, 76px)" }}
               />
@@ -1284,6 +1458,27 @@ export default function WeddingWebsiteStarter() {
         </div>
       </section>
 
+      <section className="mobile-invite-summary bg-[#fbf7f2] px-6 pb-8 pt-4 md:hidden">
+        <FadeInSection className="mx-auto max-w-[420px]">
+          <div className="mobile-summary-card card-luxe card-luxe-text">
+            <p className="heading-micro">At a glance</p>
+            <div className="mt-5 grid gap-4">
+              {[
+                ["Date", "01 November 2026"],
+                ["Time", "4:00 PM Ceremony"],
+                ["Venue", "Caversham House, Swan Valley"],
+                ["Location", "Garden House"],
+              ].map(([label, value]) => (
+                <div key={label} className="mobile-summary-row">
+                  <span>{label}</span>
+                  <strong>{value}</strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        </FadeInSection>
+      </section>
+
       <section className="mobile-invite-quote bg-[#fbf7f2] px-6 py-16 sm:py-20 md:py-24">
         <div className="mx-auto max-w-[600px] text-center">
           <blockquote className="type-quote">
@@ -1296,6 +1491,7 @@ export default function WeddingWebsiteStarter() {
       </section>
 
       <section
+        id="note"
         className="mobile-invite-note hero-scroll-layer relative bg-[#fbf7f2] px-6 py-20 md:py-28"
         style={{ opacity: noteRevealProgress, transform: `translateY(${40 * (1 - noteRevealProgress)}px)` }}
       >
@@ -1392,7 +1588,12 @@ export default function WeddingWebsiteStarter() {
 
             <div className="swatchRow mx-auto mt-10" style={swatchRowStyle}>
               {dressCodePastelPalette.map((swatch) => (
-                <Swatch key={swatch.label} swatch={swatch} />
+                <Swatch
+                  key={swatch.label}
+                  swatch={swatch}
+                  isActive={selectedSwatchLabel === swatch.label}
+                  onSelect={() => setSelectedSwatchLabel(swatch.label)}
+                />
               ))}
             </div>
           </div>
@@ -1416,7 +1617,12 @@ export default function WeddingWebsiteStarter() {
 
             <div className="swatchRow mx-auto mt-7" style={swatchRowStyle}>
               {dressCodeClassicPalette.map((swatch) => (
-                <Swatch key={swatch.label} swatch={swatch} />
+                <Swatch
+                  key={swatch.label}
+                  swatch={swatch}
+                  isActive={selectedSwatchLabel === swatch.label}
+                  onSelect={() => setSelectedSwatchLabel(swatch.label)}
+                />
               ))}
             </div>
             <p className="type-meta mt-5">
@@ -1425,6 +1631,19 @@ export default function WeddingWebsiteStarter() {
           </div>
 
         </motion.article>
+
+        <motion.div
+          {...dressRevealMotion(0.06, 8)}
+          className="swatch-detail-card card-luxe card-luxe-text mx-auto mt-10 max-w-xl text-center"
+        >
+          <span
+            className="swatch-detail-dot"
+            style={{ backgroundColor: selectedDressSwatch.color }}
+            aria-hidden="true"
+          />
+          <p className="type-swatch-label mt-4">{selectedDressSwatch.label}</p>
+          <p className="type-card-body mx-auto mt-3 max-w-[30ch]">{selectedDressSwatch.description}</p>
+        </motion.div>
 
         <motion.div
           {...dressRevealMotion(0.08, 8)}
@@ -1560,9 +1779,16 @@ export default function WeddingWebsiteStarter() {
               <div className="mobile-venue-actions mt-6 md:hidden">
                 <a href={googleDirectionsUrl} target="_blank" rel="noopener noreferrer">
                   <MapPin className="h-4 w-4" />
-                  Get Directions
+                  Open Maps
                 </a>
-                <a href="#venue-map">View Map</a>
+                <a href="#venue-map">
+                  <MapPin className="h-4 w-4" />
+                  View Map
+                </a>
+                <button type="button" onClick={handleCopyVenueAddress}>
+                  {hasCopiedVenueAddress ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  {hasCopiedVenueAddress ? "Copied" : "Copy Address"}
+                </button>
               </div>
             </div>
           </div>
@@ -1599,6 +1825,16 @@ export default function WeddingWebsiteStarter() {
               There is no public name-search RSVP form, so your private link is the most reliable way for us to prefill
               your invitation details and ask only the questions relevant to you.
             </p>
+            <div className="rsvp-mobile-steps mt-6 md:hidden">
+              <div>
+                <span>1</span>
+                <strong>Open private link</strong>
+              </div>
+              <div>
+                <span>2</span>
+                <strong>Confirm details</strong>
+              </div>
+            </div>
             <div className="mx-auto mt-6 h-px w-24 bg-[var(--color-divider)] opacity-90" />
             <p className="type-card-body mx-auto mt-6 max-w-xl">
               If you cannot find your link, please message Sumaya or Aditya and we can send it again.
