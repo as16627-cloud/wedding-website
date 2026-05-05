@@ -1072,7 +1072,7 @@ export default function WeddingWebsiteStarter() {
         <div
           className="hero-estate-layer hero-scroll-layer pointer-events-none absolute inset-x-0 bottom-[-3vh] z-[4] mx-auto h-[55vh] min-h-[330px] max-w-[1240px] translate-y-[11%] px-4 sm:h-[58vh] md:min-h-[390px] lg:h-[61vh]"
           style={{
-            opacity: isHeroMobile ? 0.72 - houseFadeProgress : 1 - houseFadeProgress,
+            opacity: isHeroMobile ? 0.8 - houseFadeProgress : 1 - houseFadeProgress,
             transform: isHeroMobile ? `translateY(${-4 * mobileScrollProgress}px)` : `translateY(calc(11% + ${houseTranslateY}px))`,
           }}
         >
@@ -1083,7 +1083,7 @@ export default function WeddingWebsiteStarter() {
               fill
               loading="eager"
               sizes="(max-width: 767px) 132vw, (min-width: 1024px) 1180px, 100vw"
-              className="hero-estate-image object-contain object-bottom opacity-[0.52] mix-blend-multiply"
+              className="hero-estate-image object-contain object-bottom opacity-[0.58] mix-blend-multiply"
             />
           </div>
         </div>
@@ -1249,18 +1249,18 @@ export default function WeddingWebsiteStarter() {
               <span className="hero-name">Aditya</span>
             </h1>
             <div className="mx-auto mt-10 flex w-full max-w-[260px] items-center justify-center gap-3">
-              <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
-              <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-80" />
-              <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
+              <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+              <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90" />
+              <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
             </div>
             <p className="type-meta mx-auto mt-9 max-w-[330px] sm:max-w-none">
               <span className="block sm:inline">01 November 2026</span>
-              <span className="mx-2 hidden text-[var(--color-divider)] opacity-80 sm:inline">&middot;</span>
+              <span className="mx-2 hidden text-[var(--color-divider)] opacity-90 sm:inline">&middot;</span>
               <span className="mt-3 block sm:mt-0 sm:inline">Caversham House, Swan Valley</span>
             </p>
             <p className="type-meta mt-7">
               <span className="block sm:inline">4:00 PM Ceremony</span>
-              <span className="mx-2 hidden text-[var(--color-divider)] opacity-80 sm:inline">&middot;</span>
+              <span className="mx-2 hidden text-[var(--color-divider)] opacity-90 sm:inline">&middot;</span>
               <span className="mt-2 block sm:mt-0 sm:inline">Garden House</span>
             </p>
             <div className="hero-cta-group">
@@ -1369,9 +1369,9 @@ export default function WeddingWebsiteStarter() {
             {dressCode.title}
           </h2>
           <div className="mx-auto mt-7 flex w-full max-w-[280px] items-center justify-center gap-3">
-            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
-            <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-80" />
-            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
+            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+            <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90" />
+            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
           </div>
           <p className="heading-copy mx-auto mt-8 max-w-[600px]">
             {dressCode.description}
@@ -1400,9 +1400,9 @@ export default function WeddingWebsiteStarter() {
         </motion.article>
 
         <motion.div {...dressRevealMotion(0.04, 8)} className="mx-auto mt-12 flex w-full max-w-[86px] items-center justify-center gap-2">
-          <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
-          <span className="h-1 w-1 rotate-45 bg-[var(--color-divider)] opacity-80" />
-          <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
+          <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+          <span className="h-1 w-1 rotate-45 bg-[var(--color-divider)] opacity-90" />
+          <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
         </motion.div>
 
         <motion.article {...dressRevealMotion(0.05, 8)} className="mt-8">
@@ -1449,9 +1449,9 @@ export default function WeddingWebsiteStarter() {
             Wedding itinerary
           </h2>
           <div className="mx-auto my-6 flex w-full max-w-[128px] items-center justify-center gap-2.5">
-            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
-            <span className="font-serif text-[20px] leading-none text-[var(--color-divider)] opacity-80">❦</span>
-            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
+            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+            <span className="font-serif text-[20px] leading-none text-[var(--color-divider)] opacity-90">❦</span>
+            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
           </div>
           <p className="heading-copy mx-auto max-w-[560px]">
             The final schedule may be refined closer to the day, but this is the planned flow for guests.
@@ -1508,9 +1508,9 @@ export default function WeddingWebsiteStarter() {
           ))}
         </div>
         <div className="mx-auto mt-10 flex w-full max-w-[260px] items-center justify-center gap-3">
-          <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
-          <span className="h-2 w-2 rotate-45 rounded-[1px] bg-[var(--color-divider)] opacity-80" />
-          <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
+          <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+          <span className="h-2 w-2 rotate-45 rounded-[1px] bg-[var(--color-divider)] opacity-90" />
+          <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
         </div>
       </SoftSection>
 
@@ -1522,9 +1522,9 @@ export default function WeddingWebsiteStarter() {
           <p className="heading-micro mb-3">VENUE</p>
           <h2 className="heading-primary">Caversham House</h2>
           <div className="mx-auto my-4 flex w-full max-w-[104px] items-center justify-center gap-2">
-            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
-            <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-80" />
-            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-80" />
+            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+            <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90" />
+            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
           </div>
           <p className="heading-copy mx-auto max-w-[560px]">
             A Swan Valley garden setting with a romantic ceremony at Garden House and a reception at Main House.
@@ -1548,7 +1548,7 @@ export default function WeddingWebsiteStarter() {
                   <br />
                   Swan Valley, Perth
                 </p>
-                <div className="h-px w-full bg-[var(--color-divider)] opacity-80" />
+                <div className="h-px w-full bg-[var(--color-divider)] opacity-90" />
                 <p>
                   Parking is available at the Main House car park. Please follow signage upon arrival.
                 </p>
@@ -1599,7 +1599,7 @@ export default function WeddingWebsiteStarter() {
               There is no public name-search RSVP form, so your private link is the most reliable way for us to prefill
               your invitation details and ask only the questions relevant to you.
             </p>
-            <div className="mx-auto mt-6 h-px w-24 bg-[var(--color-divider)] opacity-80" />
+            <div className="mx-auto mt-6 h-px w-24 bg-[var(--color-divider)] opacity-90" />
             <p className="type-card-body mx-auto mt-6 max-w-xl">
               If you cannot find your link, please message Sumaya or Aditya and we can send it again.
             </p>

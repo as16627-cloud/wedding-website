@@ -2,7 +2,7 @@
 
 :root {
   --background: #fbf7f2;
-  --foreground: #6e625e;
+  --foreground: #7a6b66;
   /*
    * Diagnosis: rendered styles were split between old aliases, arbitrary Tailwind
    * colours, and legacy warm dark-card rules. These tokens are the palette
@@ -20,11 +20,11 @@
   --text-detail-desktop: 1.125rem;
   --tracking-eyebrow: 0.18em;
   --tracking-button: 0.08em;
-  --color-navy: #1c1f30;
-  --color-navy-dark: #171a29;
-  --color-navy-hover: #30355a;
-  --color-heading: #8f6a63;
-  --color-body: #6e625e;
+  --color-navy: #202338;
+  --color-navy-dark: #1b1e2e;
+  --color-navy-hover: #2d314d;
+  --color-heading: #9c7a73;
+  --color-body: #7a6b66;
   --color-label: #a89a95;
   --color-divider: #cbb6af;
   --color-cta-text: #f3e8e4;
@@ -39,7 +39,7 @@
   --color-deep-cocoa: #4b3a35;
   --color-muted: var(--color-label);
   --color-divider-soft: var(--color-divider);
-  --color-divider-line: rgba(203, 182, 175, 0.8);
+  --color-divider-line: rgba(203, 182, 175, 0.9);
   --color-warm-ivory: var(--color-ivory);
   --card-luxe-bg: var(--color-ivory);
   --card-luxe-bg-soft: #faf4f1;
@@ -438,32 +438,35 @@ a[class*="uppercase"] {
   padding-bottom: 0.08em;
   background-image: linear-gradient(
     110deg,
-    #7f5d57 0%,
-    #8f6a63 22%,
-    #d7bbb4 38%,
-    #9f766e 55%,
-    #ead5cf 72%,
-    #85615b 100%
+    #8d6d66 0%,
+    #9c7a73 22%,
+    #dec7c1 38%,
+    #a98780 55%,
+    #ead8d3 72%,
+    #8f6f68 100%
   );
   background-size: 180% 100%;
   background-position: 20% center;
   background-clip: text;
   -webkit-background-clip: text;
   color: transparent;
-  text-shadow: 0 1px 12px rgba(143, 106, 99, 0.16);
+  text-shadow: 0 1px 12px rgba(156, 122, 115, 0.14);
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 8px 14px rgba(143, 106, 99, 0.14));
+  filter: drop-shadow(0 8px 14px rgba(156, 122, 115, 0.12));
 }
 
 .hero-title {
   display: block;
-  background-image: linear-gradient(112deg, #7f5d57 0%, #8f6a63 36%, #d8bdb6 58%, #9c746d 100%);
+  overflow: visible;
+  padding-bottom: 0.1em;
+  background-image: linear-gradient(112deg, #8d6d66 0%, #9c7a73 36%, #d9c1bb 58%, #a5827b 100%);
   color: var(--color-heading);
-  filter: drop-shadow(0 10px 18px rgba(143, 106, 99, 0.11));
+  filter: drop-shadow(0 10px 18px rgba(156, 122, 115, 0.1));
 }
 
 .hero-title .hero-name {
   display: block;
+  overflow: visible;
 }
 
 .hero-title .luxe-ampersand {
@@ -581,14 +584,14 @@ a[class*="uppercase"] {
   padding: 14px 32px;
   border: 1px solid rgba(255, 220, 210, 0.25);
   border-radius: 999px;
-  background: linear-gradient(180deg, #2b2f47 0%, #1c1f30 100%);
+  background: linear-gradient(180deg, #2a2e45 0%, #202338 100%);
   color: var(--color-cta-text);
   font-weight: 600 !important;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 12px 30px rgba(35, 38, 58, 0.35),
+    0 12px 30px rgba(35, 38, 58, 0.28),
     0 4px 10px rgba(180, 140, 120, 0.15);
 }
 
@@ -599,16 +602,16 @@ a[class*="uppercase"] {
 
 .primary-cta:hover {
   transform: translateY(-1px);
-  background: linear-gradient(180deg, #30355a 0%, #23263a 100%);
+  background: linear-gradient(180deg, #2d314d 0%, #24283f 100%);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 14px 34px rgba(35, 38, 58, 0.38),
+    0 14px 34px rgba(35, 38, 58, 0.32),
     0 4px 12px rgba(180, 140, 120, 0.16);
 }
 
 .primary-cta:active {
   transform: translateY(0);
-  background: linear-gradient(180deg, #30355a 0%, #23263a 100%);
+  background: linear-gradient(180deg, #2d314d 0%, #24283f 100%);
 }
 
 .primary-cta:focus-visible,
@@ -733,7 +736,7 @@ a[class*="uppercase"] {
 #venue .h-px,
 #rsvp .h-px {
   background: var(--color-divider-line) !important;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .hero-copy .rotate-45,
@@ -741,19 +744,19 @@ a[class*="uppercase"] {
 #itinerary .rotate-45,
 #venue .rotate-45 {
   background: var(--color-divider-soft) !important;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 #itinerary .font-serif,
 footer span {
   color: var(--color-divider-soft) !important;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .itinerary-line,
 .itinerary-content .h-px {
   background: var(--color-divider-line) !important;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .itinerary-marker > div {
@@ -763,7 +766,7 @@ footer span {
 
 .itinerary-marker span {
   background: var(--color-divider-soft) !important;
-  opacity: 0.8;
+  opacity: 0.9;
 }
 
 .mobile-invite-card svg,
@@ -841,6 +844,20 @@ footer span {
   display: none;
 }
 
+.mobile-invite-note .type-feature-copy {
+  color: #8f6f69;
+  line-height: 1.6;
+}
+
+.mobile-invite-note .type-feature-copy p {
+  max-width: 30ch;
+  margin-inline: auto;
+}
+
+.mobile-invite-note .type-feature-copy p + p {
+  margin-top: 1.5em;
+}
+
 @keyframes invitation-scroll-cue {
   0%,
   100% {
@@ -871,12 +888,12 @@ footer span {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 0.5rem;
-    padding: 0.65rem max(1rem, env(safe-area-inset-right)) calc(0.65rem + env(safe-area-inset-bottom))
+    padding: 0.62rem max(1rem, env(safe-area-inset-right)) calc(0.62rem + env(safe-area-inset-bottom))
       max(1rem, env(safe-area-inset-left));
-    border-top: 1px solid rgba(203, 182, 175, 0.52);
-    background: rgba(252, 248, 245, 0.88);
-    box-shadow: 0 -10px 28px rgba(101, 75, 62, 0.055);
-    backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(203, 182, 175, 0.25);
+    background: rgba(248, 240, 236, 0.78);
+    box-shadow: 0 -8px 22px rgba(80, 60, 55, 0.045);
+    backdrop-filter: blur(14px);
     opacity: 0;
     pointer-events: none;
     transform: translateY(calc(100% + 1rem));
@@ -889,7 +906,25 @@ footer span {
     transform: translateY(0);
   }
 
-  .mobile-sticky-actions a,
+  .mobile-sticky-actions a {
+    min-height: 42px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.38rem;
+    border: 1px solid rgba(203, 182, 175, 0.45);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.72);
+    color: #8f6a63;
+    font-family: var(--font-sans);
+    font-size: 0.78rem;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    box-shadow: 0 6px 18px rgba(80, 60, 55, 0.08);
+  }
+
   .mobile-hero-actions a,
   .mobile-venue-actions a {
     min-height: 46px;
@@ -911,32 +946,33 @@ footer span {
   }
 
   .mobile-sticky-actions a:first-child {
-    border-color: rgba(200, 170, 160, 0.4);
-    color: var(--color-heading);
-    box-shadow: 0 7px 18px rgba(101, 75, 62, 0.045), inset 0 0 0 1px rgba(255, 248, 244, 0.22);
+    border-color: rgba(143, 106, 99, 0.35);
+    background: rgba(255, 245, 242, 0.9);
+    color: #8f6a63;
+    box-shadow: 0 6px 18px rgba(80, 60, 55, 0.08);
   }
 
-  .mobile-sticky-actions svg,
   .mobile-hero-actions svg,
   .mobile-venue-actions svg {
     color: var(--color-divider);
   }
 
+  .mobile-sticky-actions svg,
   .mobile-sticky-actions a:first-child svg {
-    color: var(--color-divider);
+    color: #8f6a63;
   }
 
   .mobile-hero-actions a.primary-cta {
     width: 100%;
     min-height: 54px;
     border-color: rgba(255, 220, 210, 0.25);
-    background: linear-gradient(180deg, #2b2f47 0%, #1c1f30 100%);
+    background: linear-gradient(180deg, #2a2e45 0%, #202338 100%);
     color: var(--color-cta-text);
     font-weight: 600 !important;
     letter-spacing: 0.08em;
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      0 12px 30px rgba(35, 38, 58, 0.35),
+      0 12px 30px rgba(35, 38, 58, 0.28),
       0 4px 10px rgba(180, 140, 120, 0.15);
   }
 
@@ -1154,7 +1190,7 @@ footer span {
 
   .type-hero-title {
     font-size: var(--text-display-mobile);
-    line-height: 0.94;
+    line-height: 1.08;
   }
 
   .hero-title .hero-name,
@@ -1163,13 +1199,13 @@ footer span {
   }
 
   .hero-title .hero-name {
-    line-height: 0.9;
+    line-height: 1.08;
   }
 
   .hero-title .luxe-ampersand {
-    margin-block: -0.04em 0;
+    margin-block: -0.1em -0.06em;
     font-size: 0.58em;
-    line-height: 0.9;
+    line-height: 1;
     opacity: 0.82;
     color: var(--color-heading);
     -webkit-text-fill-color: var(--color-heading);
@@ -1256,12 +1292,12 @@ footer span {
   }
 
   .mobile-invite-note {
-    padding: 3.5rem 1.35rem 3.4rem;
+    padding: 3.5rem 1.35rem 6.25rem;
   }
 
   .mobile-invite-note .type-feature-copy {
     font-size: 1.55rem;
-    line-height: 1.44;
+    line-height: 1.6;
   }
 
   .mobile-invite-card {
