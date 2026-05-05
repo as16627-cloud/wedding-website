@@ -1226,20 +1226,21 @@ export default function WeddingWebsiteStarter() {
               We&rsquo;re Getting Married
             </p>
             <h1 className="rose-gold-foil hero-title type-hero-title mt-8">
-              <span className="block sm:inline">Sumaya</span>{" "}
-              <span className="block sm:inline">&amp; Aditya</span>
+              <span className="block sm:inline">Sumaya</span>
+              <span className="luxe-ampersand">&amp;</span>
+              <span className="block sm:inline">Aditya</span>
             </h1>
             <div className="mx-auto mt-10 flex w-full max-w-[260px] items-center justify-center gap-3">
               <span className="h-px flex-1 bg-[rgba(31,42,68,0.22)]" />
               <span className="h-1.5 w-1.5 rotate-45 bg-[rgba(31,42,68,0.72)]" />
               <span className="h-px flex-1 bg-[rgba(31,42,68,0.22)]" />
             </div>
-            <p className="type-meta mx-auto mt-9 max-w-[330px] text-[var(--color-deep-cocoa)] sm:max-w-none">
+            <p className="type-meta mx-auto mt-9 max-w-[330px] sm:max-w-none">
               <span className="block sm:inline">01 November 2026</span>
               <span className="mx-2 hidden text-[rgba(31,42,68,0.65)] sm:inline">&middot;</span>
               <span className="mt-3 block sm:mt-0 sm:inline">Caversham House, Swan Valley</span>
             </p>
-            <p className="type-meta mt-7 text-[var(--color-body)]">
+            <p className="type-meta mt-7">
               <span className="block sm:inline">4:00 PM Ceremony</span>
               <span className="mx-2 hidden text-[rgba(31,42,68,0.58)] sm:inline">&middot;</span>
               <span className="mt-2 block sm:mt-0 sm:inline">Garden House</span>

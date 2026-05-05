@@ -124,11 +124,11 @@ function InnerCircleContent() {
         <div className="mx-auto max-w-4xl">
           <p className="heading-micro mb-5">INNER CIRCLE</p>
           <h1 className="heading-primary">Our Closest People</h1>
-          <p className="mx-auto mt-8 max-w-2xl font-serif text-[22px] leading-[1.6] text-[#3f302b] md:text-[28px]">
+          <p className="luxe-serif-detail mx-auto mt-8 max-w-2xl text-[1.35rem] md:text-[1.65rem]">
             You are not just guests on this day &mdash; you are part of it. This page holds everything you need to move
             through the day with us, calmly and beautifully.
           </p>
-          <p className="mt-8 text-[12px] font-medium uppercase tracking-[0.26em] text-[#8c7a72]">
+          <p className="type-section-eyebrow mt-8">
             Private page for our bridal party and closest family.
           </p>
         </div>
@@ -137,7 +137,7 @@ function InnerCircleContent() {
       <PrivateSection className="pt-12 md:pt-16" contentClassName="mx-auto max-w-[760px] text-center">
         <p className="heading-micro mb-4">A NOTE FROM US</p>
         <h2 className="heading-primary">A Note From Us</h2>
-        <div className="mt-7 space-y-5 font-serif text-[22px] leading-[1.55] text-[#3f302b] md:text-[27px]">
+        <div className="luxe-serif-detail mt-7 space-y-5 text-[1.35rem] md:text-[1.6rem]">
           <p>We couldn&rsquo;t imagine this day without you.</p>
           <p>
             Each of you holds a special place in our lives, and having you by our side means more than we can put into
@@ -153,8 +153,8 @@ function InnerCircleContent() {
           {roles.map((role) => (
             <SoftCard key={role.title}>
               <div className="mb-5 h-px w-12 bg-[#d8bd96]" />
-              <h3 className="font-serif text-[26px] leading-tight text-[#3f302b]">{role.title}</h3>
-              <p className="mt-4 text-[15px] leading-[1.75] text-[#5f524b]">{role.copy}</p>
+              <h3 className="type-card-title">{role.title}</h3>
+              <p className="type-card-body mt-4">{role.copy}</p>
             </SoftCard>
           ))}
         </div>
@@ -164,7 +164,7 @@ function InnerCircleContent() {
         <SoftCard>
           <p className="heading-micro mb-3">TIMING</p>
           <h2 className="heading-secondary">Getting Ready &amp; Arrival</h2>
-          <div className="mt-5 space-y-4 text-[15px] leading-[1.7] text-[#5f524b]">
+          <div className="type-card-body mt-5 space-y-4">
             <p>
               Please arrive at your designated location at your allocated time. We recommend allowing extra time to
               settle in before photos begin.
@@ -176,18 +176,18 @@ function InnerCircleContent() {
         <SoftCard>
           <p className="heading-micro mb-3">FLOW</p>
           <h2 className="heading-secondary">Photos &amp; Flow</h2>
-          <p className="mt-5 text-[15px] leading-[1.7] text-[#5f524b]">
+          <p className="type-card-body mt-5">
             We&rsquo;ll guide you through photos so everything feels natural and relaxed.
           </p>
           <div className="mt-6 space-y-3">
             {photoFlow.map((item) => (
-              <div key={item} className="flex items-center gap-3 text-[15px] text-[#4f4641]">
+              <div key={item} className="type-card-body flex items-center gap-3">
                 <span className="h-1.5 w-1.5 rounded-full bg-[#b98278]" />
                 <span>{item}</span>
               </div>
             ))}
           </div>
-          <p className="mt-6 text-[15px] leading-[1.7] text-[#5f524b]">
+          <p className="type-card-body mt-6">
             No need to remember everything &mdash; just follow along and enjoy it.
           </p>
         </SoftCard>
@@ -198,7 +198,7 @@ function InnerCircleContent() {
         <SoftCard className="mx-auto max-w-3xl">
           <div className="grid gap-4 sm:grid-cols-2">
             {bringItems.map((item) => (
-              <div key={item} className="flex items-start gap-3 text-[15px] leading-[1.65] text-[#4f4641]">
+              <div key={item} className="type-card-body flex items-start gap-3">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b98278]" />
                 <span>{item}</span>
               </div>
@@ -212,7 +212,7 @@ function InnerCircleContent() {
         <div className="grid gap-4 md:grid-cols-2">
           {notes.map((note) => (
             <SoftCard key={note} className="p-5">
-              <p className="text-[15px] leading-[1.7] text-[#5f524b]">{note}</p>
+              <p className="type-card-body">{note}</p>
             </SoftCard>
           ))}
         </div>
@@ -222,7 +222,7 @@ function InnerCircleContent() {
         <SoftCard className="text-center">
           <p className="heading-micro mb-3">ON THE DAY</p>
           <h2 className="heading-secondary">On the Day</h2>
-          <p className="mx-auto mt-5 max-w-2xl text-[15px] leading-[1.75] text-[#5f524b]">
+          <p className="type-card-body mx-auto mt-5 max-w-2xl">
             If you need anything on the day, please contact the nominated point person. We&rsquo;ll share their details
             closer to the wedding so everything can run smoothly while we stay present.
           </p>
@@ -263,7 +263,7 @@ export default function InnerCircleGate() {
       <section className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl flex-col items-center justify-center text-center">
         <p className="heading-micro mb-5">Sumaya & Aditya</p>
         <h1 className="heading-primary">Inner Circle</h1>
-        <p className="mt-6 text-base leading-8 text-[#6a5d55]">
+        <p className="heading-copy mx-auto mt-6 max-w-lg">
           A private page for the bridal party and closest family. Please enter the passcode to continue.
         </p>
 
@@ -272,7 +272,7 @@ export default function InnerCircleGate() {
           className="mt-9 w-full rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/82 p-6 shadow-[0_18px_45px_rgba(90,65,50,0.07)] backdrop-blur md:p-8"
         >
           <label className="grid gap-3 text-left">
-            <span className="text-[11px] font-medium uppercase tracking-[0.32em] text-[#6e5b54]">Passcode</span>
+            <span className="type-section-eyebrow">Passcode</span>
             <input
               type="password"
               value={password}
@@ -286,7 +286,7 @@ export default function InnerCircleGate() {
 
           <button
             type="submit"
-            className="mt-6 w-full rounded-full bg-[#241815] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-[0_12px_30px_rgba(36,24,21,0.18)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#382722]"
+            className="primary-cta type-button mt-6 w-full"
           >
             Enter
           </button>

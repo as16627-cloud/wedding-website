@@ -52,7 +52,7 @@ function booleanToYesNo(value: boolean | null): YesNo {
 }
 
 function FieldLabel({ children }: { children: ReactNode }) {
-  return <span className="text-xs font-semibold uppercase tracking-[0.24em] text-[#7b6760]">{children}</span>;
+  return <span className="type-section-eyebrow text-[0.75rem]">{children}</span>;
 }
 
 function RadioGroup({
@@ -71,7 +71,7 @@ function RadioGroup({
       <legend className="px-1">
         <FieldLabel>{legend}</FieldLabel>
       </legend>
-      <div className="mt-4 grid gap-3 text-sm text-[#4f4641]">
+      <div className="type-card-body mt-4 grid gap-3">
         {(["yes", "no"] as const).map((option) => (
           <label key={option} className="flex items-center gap-3">
             <input
@@ -258,11 +258,11 @@ export default function TokenRsvpForm({ token }: { token: string }) {
     <main className="min-h-screen bg-[#fbf7f2] px-5 py-10 text-[#4f4641] md:px-8 md:py-14">
       <section className="mx-auto max-w-4xl">
         <div className="mb-9 text-center">
-          <Link href="/" className="text-[11px] font-medium uppercase tracking-[0.28em] text-[#8c7a72]">
+          <Link href="/" className="type-nav text-[var(--color-muted-taupe)]">
             Sumaya &amp; Aditya
           </Link>
-          <h1 className="mt-4 font-serif text-[48px] leading-none text-[#b58b84] md:text-[68px]">RSVP</h1>
-          <p className="mx-auto mt-5 max-w-xl text-[15px] leading-7 text-[#6a5d55]">
+          <h1 className="heading-primary mt-4">RSVP</h1>
+          <p className="heading-copy mx-auto mt-5 max-w-xl">
             A private RSVP page for your invitation.
           </p>
         </div>
@@ -271,28 +271,28 @@ export default function TokenRsvpForm({ token }: { token: string }) {
           {status === "loading" && (
             <div className="flex min-h-[320px] flex-col items-center justify-center text-center">
               <Loader2 aria-hidden="true" className="h-7 w-7 animate-spin text-[#b98278]" />
-              <p className="mt-5 text-sm uppercase tracking-[0.22em] text-[#7d6b62]">Opening your invitation</p>
+              <p className="type-section-eyebrow mt-5">Opening your invitation</p>
             </div>
           )}
 
           {status === "error" && !guest && (
             <div className="mx-auto max-w-xl py-12 text-center">
               <Heart aria-hidden="true" className="mx-auto h-8 w-8 text-[#b98278]" />
-              <h2 className="mt-5 font-serif text-3xl text-[#3f302b]">We could not find this RSVP</h2>
-              <p className="mt-4 leading-7 text-[#6a5d55]">{message}</p>
+              <h2 className="type-card-title mt-5">We could not find this RSVP</h2>
+              <p className="type-card-body mt-4">{message}</p>
             </div>
           )}
 
           {guest && status === "success" && (
             <div className="mx-auto max-w-2xl py-8 text-center">
               <CheckCircle2 aria-hidden="true" className="mx-auto h-10 w-10 text-[#6f7d5b]" />
-              <p className="mt-6 text-[11px] font-semibold uppercase tracking-[0.28em] text-[#8c7a72]">
+              <p className="type-section-eyebrow mt-6">
                 RSVP received
               </p>
-              <h2 className="mt-3 font-serif text-4xl text-[#3f302b]">Thank you, {guest.fullName}</h2>
-              <p className="mx-auto mt-4 max-w-xl leading-7 text-[#6a5d55]">{message}</p>
+              <h2 className="type-card-title mt-3">Thank you, {guest.fullName}</h2>
+              <p className="type-card-body mx-auto mt-4 max-w-xl">{message}</p>
 
-              <div className="mt-8 grid gap-3 rounded-2xl border border-[#eaded6] bg-[#fbf7f2]/80 p-5 text-left text-sm leading-6 text-[#5f524b]">
+              <div className="type-card-body mt-8 grid gap-3 rounded-2xl border border-[#eaded6] bg-[#fbf7f2]/80 p-5 text-left">
                 {guest.invitedToCeremony && <p>Ceremony: {answerLabel(guest.ceremonyResponse)}</p>}
                 {guest.invitedToReception && <p>Reception: {answerLabel(guest.receptionResponse)}</p>}
                 {guest.plusOneAllowed && (
@@ -311,10 +311,10 @@ export default function TokenRsvpForm({ token }: { token: string }) {
           {guest && status !== "loading" && status !== "success" && (
             <form onSubmit={handleSubmit} className="grid gap-7">
               <div className="text-center">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#8c7a72]">Welcome</p>
-                <h2 className="mt-3 font-serif text-4xl text-[#3f302b]">Welcome, {guest.fullName}</h2>
+                <p className="type-section-eyebrow">Welcome</p>
+                <h2 className="type-card-title mt-3">Welcome, {guest.fullName}</h2>
                 {invitationSummary && (
-                  <p className="mt-4 text-sm uppercase tracking-[0.18em] text-[#9b6f68]">{invitationSummary}</p>
+                  <p className="type-section-eyebrow mt-4 text-[#9b6f68]">{invitationSummary}</p>
                 )}
               </div>
 
@@ -343,7 +343,7 @@ export default function TokenRsvpForm({ token }: { token: string }) {
                   <legend className="px-1">
                     <FieldLabel>Will you be bringing a plus one?</FieldLabel>
                   </legend>
-                  <div className="mt-4 grid gap-3 text-sm text-[#4f4641]">
+                  <div className="type-card-body mt-4 grid gap-3">
                     {(["yes", "no"] as const).map((option) => (
                       <label key={option} className="flex items-center gap-3">
                         <input
@@ -423,13 +423,13 @@ export default function TokenRsvpForm({ token }: { token: string }) {
               )}
 
               <div className="flex flex-col gap-3 border-t border-[#eaded6] pt-6 sm:flex-row sm:items-center sm:justify-between">
-                <p className="text-sm leading-6 text-[#7b6760]">
+                <p className="type-card-body">
                   Your response will update your invitation in our wedding guest list.
                 </p>
                 <button
                   type="submit"
                   disabled={status === "submitting"}
-                  className="rounded-full bg-[#241815] px-7 py-3 text-sm font-semibold uppercase tracking-[0.18em] text-white shadow-[0_12px_30px_rgba(36,24,21,0.18)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#382722] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="primary-cta type-button disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {status === "submitting" ? "Saving..." : "Submit RSVP"}
                 </button>
