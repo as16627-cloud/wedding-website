@@ -982,6 +982,8 @@ export default function WeddingWebsiteStarter() {
     ? 14 * (1 - mobileHeroCopyRevealProgress) - 4 * mobileScrollProgress
     : -10 * visualScrollProgress;
   const backgroundWashOpacity = isHeroMobile ? mobileScrollProgress * 0.35 : visualScrollProgress;
+  const isMobileStickyActionsVisible = isHeroMobile && heroScrollProgress > 0.78;
+  const mobileStickyActionTabIndex = isMobileStickyActionsVisible ? undefined : -1;
   const leftGateInitial = shouldReduceMotion
     ? false
     : isHeroMobile
@@ -1020,16 +1022,32 @@ export default function WeddingWebsiteStarter() {
   return (
     <main className="invite-page min-h-screen bg-[#fbf7f2] text-[var(--color-body)]">
       <audio ref={ambientAudioRef} src={ambientAudioSrc} preload="none" loop />
-      <nav className="mobile-sticky-actions md:hidden" aria-label="Quick wedding actions">
-        <a href={googleCalendarUrl} target="_blank" rel="noopener noreferrer" aria-label="Save the wedding date">
+      <nav
+        className={`mobile-sticky-actions md:hidden ${isMobileStickyActionsVisible ? "mobile-sticky-actions-visible" : ""}`}
+        aria-label="Quick wedding actions"
+        aria-hidden={!isMobileStickyActionsVisible}
+      >
+        <a
+          href={googleCalendarUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Save the wedding date"
+          tabIndex={mobileStickyActionTabIndex}
+        >
           <CalendarPlus className="h-4 w-4" />
           <span>Save Date</span>
         </a>
-        <a href={googleDirectionsUrl} target="_blank" rel="noopener noreferrer" aria-label="Open venue directions">
+        <a
+          href={googleDirectionsUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Open venue directions"
+          tabIndex={mobileStickyActionTabIndex}
+        >
           <MapPin className="h-4 w-4" />
           <span>Venue</span>
         </a>
-        <a href="#rsvp" aria-label="Jump to RSVP details">
+        <a href="#rsvp" aria-label="Jump to RSVP details" tabIndex={mobileStickyActionTabIndex}>
           <Mail className="h-4 w-4" />
           <span>RSVP</span>
         </a>
@@ -1039,7 +1057,7 @@ export default function WeddingWebsiteStarter() {
         aria-pressed={isAmbientAudioOn}
         aria-label={isAmbientAudioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
         onClick={handleAmbientAudioToggle}
-        className={`ambient-audio-toggle type-button fixed bottom-4 right-4 z-50 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[rgba(232,207,200,0.78)] bg-[#fffaf7]/76 px-3 py-1.5 text-[var(--color-navy)] shadow-[0_8px_24px_rgba(90,65,50,0.08)] backdrop-blur-[6px] hover:border-[rgba(31,42,68,0.22)] hover:bg-[#fffdf9]/88 hover:text-[var(--color-navy-dark)] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.45)] sm:bottom-6 sm:right-6 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 ${audioToggleRevealClass} ${audioToggleMotionClass}`}
+        className={`ambient-audio-toggle type-button fixed bottom-4 right-4 z-50 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[rgba(232,207,200,0.78)] bg-[#fffaf7]/76 px-3 py-1.5 text-[var(--color-navy)] shadow-[0_8px_24px_rgba(90,65,50,0.08)] backdrop-blur-[6px] hover:border-[rgba(31,42,68,0.22)] hover:bg-[#fffdf9]/88 hover:text-[var(--color-navy-dark)] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.45)] sm:bottom-6 sm:right-6 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 ${isMobileStickyActionsVisible ? "mobile-audio-above-actions" : ""} ${audioToggleRevealClass} ${audioToggleMotionClass}`}
       >
         {isAmbientAudioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
         <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
@@ -1226,9 +1244,9 @@ export default function WeddingWebsiteStarter() {
               We&rsquo;re Getting Married
             </p>
             <h1 className="rose-gold-foil hero-title type-hero-title mt-8">
-              <span className="block sm:inline">Sumaya</span>
+              <span className="hero-name">Sumaya</span>
               <span className="luxe-ampersand">&amp;</span>
-              <span className="block sm:inline">Aditya</span>
+              <span className="hero-name">Aditya</span>
             </h1>
             <div className="mx-auto mt-10 flex w-full max-w-[260px] items-center justify-center gap-3">
               <span className="h-px flex-1 bg-[rgba(31,42,68,0.22)]" />
@@ -1245,26 +1263,24 @@ export default function WeddingWebsiteStarter() {
               <span className="mx-2 hidden text-[rgba(31,42,68,0.58)] sm:inline">&middot;</span>
               <span className="mt-2 block sm:mt-0 sm:inline">Garden House</span>
             </p>
-            <a
-              href={googleCalendarUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="Add Sumaya and Aditya's wedding to Google Calendar"
-              className="primary-cta type-button mx-auto mt-6 hidden w-fit items-center justify-center gap-2 px-5 py-2.5 sm:mt-9 sm:inline-flex sm:px-7 sm:py-3"
-            >
-              <CalendarPlus className="h-4 w-4" />
-              Save the date
-            </a>
-            <div className="mobile-hero-actions sm:hidden">
+            <div className="hero-cta-group">
+              <a
+                href="#rsvp"
+                aria-label="Jump to RSVP details"
+                className="hero-primary-cta primary-cta type-button"
+              >
+                <Mail className="h-4 w-4" />
+                RSVP
+              </a>
               <a
                 href={googleCalendarUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Add Sumaya and Aditya's wedding to Google Calendar"
-                className="primary-cta type-button"
+                className="hero-save-date-link secondary-cta type-button"
               >
-                <CalendarPlus className="h-4 w-4" />
-                Save Date
+                <CalendarPlus className="h-3.5 w-3.5" />
+                Save to calendar
               </a>
             </div>
             <a href="#details" className="mobile-scroll-cue sm:hidden" aria-label="Scroll to wedding details">
