@@ -39,10 +39,6 @@ type DressCodeSwatch = {
   description: string;
 };
 
-type MobileActionId = "save" | "venue" | "rsvp";
-
-type JourneySectionId = "cover" | "note" | "details" | "dress-code" | "itinerary" | "venue" | "rsvp";
-
 type FadeInSectionProps = {
   children: ReactNode;
   className?: string;
@@ -76,49 +72,6 @@ const gateOpenEase = [0.16, 1, 0.3, 1] as const;
 const ambientAudioSrc = "/audio/romantic-garden-instrumental.mp3";
 const ambientAudioTargetVolume = 0.22;
 const ambientAudioFadeDuration = 1800;
-
-const mobileJourneySections: { id: JourneySectionId; label: string; href: string }[] = [
-  { id: "cover", label: "Cover", href: "#cover" },
-  { id: "note", label: "Note", href: "#note" },
-  { id: "details", label: "Details", href: "#details" },
-  { id: "dress-code", label: "Dress", href: "#dress-code" },
-  { id: "itinerary", label: "Program", href: "#itinerary" },
-  { id: "venue", label: "Venue", href: "#venue" },
-  { id: "rsvp", label: "RSVP", href: "#rsvp" },
-];
-
-const mobileBottomActions: {
-  id: MobileActionId;
-  label: string;
-  href: string;
-  ariaLabel: string;
-  external?: boolean;
-  Icon: typeof CalendarPlus;
-}[] = [
-  {
-    id: "save",
-    label: "Save Date",
-    href: googleCalendarUrl,
-    ariaLabel: "Save the wedding date",
-    external: true,
-    Icon: CalendarPlus,
-  },
-  {
-    id: "venue",
-    label: "Venue",
-    href: googleDirectionsUrl,
-    ariaLabel: "Open venue directions",
-    external: true,
-    Icon: MapPin,
-  },
-  {
-    id: "rsvp",
-    label: "RSVP",
-    href: "#rsvp",
-    ariaLabel: "Jump to RSVP details",
-    Icon: Mail,
-  },
-];
 
 const clampProgress = (value: number) => Math.max(0, Math.min(1, value));
 
@@ -827,7 +780,6 @@ export default function WeddingWebsiteStarter() {
   const [isAmbientAudioOn, setIsAmbientAudioOn] = useState(false);
   const [isAudioToggleVisible, setIsAudioToggleVisible] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const [activeJourneySection, setActiveJourneySection] = useState<JourneySectionId>("cover");
   const [selectedSwatchLabel, setSelectedSwatchLabel] = useState(dressCodePastelPalette[0].label);
   const [hasCopiedVenueAddress, setHasCopiedVenueAddress] = useState(false);
 
@@ -941,38 +893,6 @@ export default function WeddingWebsiteStarter() {
       window.removeEventListener("scroll", onGesture);
     };
   }, [fadeAmbientAudio]);
-
-  useEffect(() => {
-    const sectionElements = mobileJourneySections
-      .map((section) => document.getElementById(section.id))
-      .filter((section): section is HTMLElement => Boolean(section));
-
-    if (!sectionElements.length || !("IntersectionObserver" in window)) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const mostVisibleEntry = entries
-          .filter((entry) => entry.isIntersecting)
-          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
-
-        const nextSectionId = mostVisibleEntry?.target.id;
-
-        if (mobileJourneySections.some((section) => section.id === nextSectionId)) {
-          setActiveJourneySection(nextSectionId as JourneySectionId);
-        }
-      },
-      {
-        rootMargin: "-34% 0px -48% 0px",
-        threshold: [0.08, 0.18, 0.32, 0.5],
-      },
-    );
-
-    sectionElements.forEach((section) => observer.observe(section));
-
-    return () => observer.disconnect();
-  }, []);
 
   useEffect(() => {
     let animationFrame = 0;
@@ -1135,8 +1055,6 @@ export default function WeddingWebsiteStarter() {
     ? 14 * (1 - mobileHeroCopyRevealProgress) - 4 * mobileScrollProgress
     : -10 * visualScrollProgress;
   const backgroundWashOpacity = isHeroMobile ? mobileScrollProgress * 0.35 : visualScrollProgress;
-  const isMobileStickyActionsVisible = isHeroMobile && heroScrollProgress > 0.78;
-  const mobileStickyActionTabIndex = isMobileStickyActionsVisible ? undefined : -1;
   const leftGateInitial = shouldReduceMotion
     ? false
     : isHeroMobile
@@ -1166,8 +1084,6 @@ export default function WeddingWebsiteStarter() {
   const audioToggleMotionClass = shouldReduceMotion
     ? ""
     : "transition-[opacity,transform,box-shadow,border-color,background-color,color] duration-[400ms] ease-out hover:scale-[1.02]";
-  const activeMobileAction: MobileActionId =
-    activeJourneySection === "venue" ? "venue" : activeJourneySection === "rsvp" ? "rsvp" : "save";
   const selectedDressSwatch =
     [...dressCodePastelPalette, ...dressCodeClassicPalette].find((swatch) => swatch.label === selectedSwatchLabel) ??
     dressCodePastelPalette[0];
@@ -1180,52 +1096,12 @@ export default function WeddingWebsiteStarter() {
   return (
     <main className="invite-page min-h-screen bg-[#fbf7f2] text-[var(--color-body)]">
       <audio ref={ambientAudioRef} src={ambientAudioSrc} preload="none" loop />
-      <nav
-        className={`mobile-sticky-actions md:hidden ${isMobileStickyActionsVisible ? "mobile-sticky-actions-visible" : ""}`}
-        aria-label="Quick wedding actions"
-        aria-hidden={!isMobileStickyActionsVisible}
-      >
-        {mobileBottomActions.map(({ id, label, href, ariaLabel, external, Icon }) => {
-          const isActive = activeMobileAction === id;
-
-          return (
-            <a
-              key={id}
-              href={href}
-              target={external ? "_blank" : undefined}
-              rel={external ? "noopener noreferrer" : undefined}
-              aria-label={ariaLabel}
-              aria-current={isActive ? "true" : undefined}
-              tabIndex={mobileStickyActionTabIndex}
-              className={isActive ? "mobile-sticky-action-active" : undefined}
-            >
-              <Icon className="h-4 w-4" />
-              <span>{label}</span>
-            </a>
-          );
-        })}
-      </nav>
-      <div
-        className={`mobile-journey-cue md:hidden ${isMobileStickyActionsVisible ? "mobile-journey-cue-visible" : ""}`}
-        aria-hidden="true"
-      >
-        {mobileJourneySections.map((section) => (
-          <a
-            key={section.id}
-            href={section.href}
-            tabIndex={-1}
-            className={activeJourneySection === section.id ? "mobile-journey-dot-active" : undefined}
-          >
-            <span>{section.label}</span>
-          </a>
-        ))}
-      </div>
       <button
         type="button"
         aria-pressed={isAmbientAudioOn}
         aria-label={isAmbientAudioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
         onClick={handleAmbientAudioToggle}
-        className={`ambient-audio-toggle type-button fixed bottom-4 right-4 z-50 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[rgba(232,207,200,0.78)] bg-[#fffaf7]/76 px-3 py-1.5 text-[var(--color-navy)] shadow-[0_8px_24px_rgba(90,65,50,0.08)] backdrop-blur-[6px] hover:border-[rgba(31,42,68,0.22)] hover:bg-[#fffdf9]/88 hover:text-[var(--color-navy-dark)] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.45)] sm:bottom-6 sm:right-6 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 ${isMobileStickyActionsVisible ? "mobile-audio-above-actions" : ""} ${audioToggleRevealClass} ${audioToggleMotionClass}`}
+        className={`ambient-audio-toggle type-button fixed bottom-4 right-4 z-50 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[rgba(232,207,200,0.78)] bg-[#fffaf7]/76 px-3 py-1.5 text-[var(--color-navy)] shadow-[0_8px_24px_rgba(90,65,50,0.08)] backdrop-blur-[6px] hover:border-[rgba(31,42,68,0.22)] hover:bg-[#fffdf9]/88 hover:text-[var(--color-navy-dark)] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.45)] sm:bottom-6 sm:right-6 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 ${audioToggleRevealClass} ${audioToggleMotionClass}`}
       >
         {isAmbientAudioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
         <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
@@ -1458,28 +1334,7 @@ export default function WeddingWebsiteStarter() {
         </div>
       </section>
 
-      <section className="mobile-invite-summary bg-[#fbf7f2] px-6 pb-8 pt-4 md:hidden">
-        <FadeInSection className="mx-auto max-w-[420px]">
-          <div className="mobile-summary-card card-luxe card-luxe-text">
-            <p className="heading-micro">At a glance</p>
-            <div className="mt-5 grid gap-4">
-              {[
-                ["Date", "01 November 2026"],
-                ["Time", "4:00 PM Ceremony"],
-                ["Venue", "Caversham House, Swan Valley"],
-                ["Location", "Garden House"],
-              ].map(([label, value]) => (
-                <div key={label} className="mobile-summary-row">
-                  <span>{label}</span>
-                  <strong>{value}</strong>
-                </div>
-              ))}
-            </div>
-          </div>
-        </FadeInSection>
-      </section>
-
-      <section className="mobile-invite-quote bg-[#fbf7f2] px-6 py-16 sm:py-20 md:py-24">
+      <section className="mobile-invite-quote bg-[#fbf7f2] md:px-6 md:py-24">
         <div className="mx-auto max-w-[600px] text-center">
           <blockquote className="type-quote">
             &ldquo;Whatever our souls are made of, his and mine are the same.&rdquo;
