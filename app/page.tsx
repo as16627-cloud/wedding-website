@@ -676,14 +676,14 @@ function VenueCarousel() {
           />
         ))}
         <div className="pointer-events-none absolute inset-0 bg-[rgba(230,210,190,0.08)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,0,0,0)_58%,_rgba(55,38,31,0.055)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,0,0,0)_58%,_rgba(143,106,99,0.05)_100%)]" />
       </div>
 
       <button
         type="button"
         onClick={() => goToPrevious()}
         aria-label="Previous venue image"
-        className="venue-carousel-control absolute left-5 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md transition duration-300 ease-out hover:bg-white hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
+        className="venue-carousel-control absolute left-5 top-1/2 -translate-y-1/2 rounded-full transition duration-300 ease-out"
       >
         <ChevronLeft className="h-5 w-5 text-[var(--color-heading)]" />
       </button>
@@ -691,7 +691,7 @@ function VenueCarousel() {
         type="button"
         onClick={() => goToNext()}
         aria-label="Next venue image"
-        className="venue-carousel-control absolute right-5 top-1/2 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-md transition duration-300 ease-out hover:bg-white hover:shadow-[0_12px_30px_rgba(90,65,50,0.10)]"
+        className="venue-carousel-control absolute right-5 top-1/2 -translate-y-1/2 rounded-full transition duration-300 ease-out"
       >
         <ChevronRight className="h-5 w-5 text-[var(--color-heading)]" />
       </button>
@@ -704,7 +704,7 @@ function VenueCarousel() {
             onClick={() => goToImage(index)}
             aria-label={`Show ${image.alt}`}
             className={`h-2 rounded-full transition duration-300 ease-out ${
-              index === currentIndex ? "w-6 bg-[var(--color-divider)]" : "w-2 bg-white/50"
+              index === currentIndex ? "w-6 bg-[var(--color-divider)]" : "w-2 bg-[rgba(255,248,244,0.62)]"
             }`}
           />
         ))}
@@ -1066,8 +1066,8 @@ export default function WeddingWebsiteStarter() {
       <section ref={heroRef} className="hero-section relative isolate overflow-visible bg-[#fbf7f2] text-[var(--color-body)]">
         <div className="hero-inner sticky top-0 h-screen overflow-hidden [perspective:1500px]">
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#f4ebe4_0%,#fff9f4_38%,#f8eee6_70%,#fbf7f2_100%)]" />
-        <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(74,48,39,0.075)_0%,rgba(255,250,246,0.02)_36%,rgba(255,255,255,0.44)_100%)]" />
-        <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_at_center,transparent_44%,rgba(52,35,30,0.07)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(143,106,99,0.07)_0%,rgba(255,250,246,0.02)_36%,rgba(255,255,255,0.44)_100%)]" />
+        <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_at_center,transparent_44%,rgba(143,106,99,0.06)_100%)]" />
         <div className="pointer-events-none absolute inset-x-0 bottom-[-1px] z-[3] h-[40vh] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.06)_0%,rgba(251,247,242,0.50)_54%,#fbf7f2_90%)]" />
         <div
           className="hero-estate-layer hero-scroll-layer pointer-events-none absolute inset-x-0 bottom-[-3vh] z-[4] mx-auto h-[55vh] min-h-[330px] max-w-[1240px] translate-y-[11%] px-4 sm:h-[58vh] md:min-h-[390px] lg:h-[61vh]"
@@ -1083,7 +1083,7 @@ export default function WeddingWebsiteStarter() {
               fill
               loading="eager"
               sizes="(max-width: 767px) 132vw, (min-width: 1024px) 1180px, 100vw"
-              className="hero-estate-image object-contain object-bottom opacity-[0.58] mix-blend-multiply"
+              className="hero-estate-image"
             />
           </div>
         </div>
@@ -1735,8 +1735,8 @@ export default function WeddingWebsiteStarter() {
                 <div
                   className={`type-card-body rounded-2xl border px-5 py-4 ${
                     rsvpSubmitStatus === "success"
-                      ? "border-[#d8bd96] bg-[#fbf7f2] text-[#5f524b]"
-                      : "border-[#e6c8c2] bg-[#fff4f2] text-[#8b5f58]"
+                      ? "border-[rgba(203,182,175,0.5)] bg-[var(--color-ivory)] text-[var(--color-body)]"
+                      : "border-[var(--color-border-blush)] bg-[rgba(255,245,242,0.9)] text-[var(--color-heading)]"
                   }`}
                 >
                   {rsvpSubmitMessage}
