@@ -1072,7 +1072,7 @@ export default function WeddingWebsiteStarter() {
         <div
           className="hero-estate-layer hero-scroll-layer pointer-events-none absolute inset-x-0 bottom-[-3vh] z-[4] mx-auto h-[55vh] min-h-[330px] max-w-[1240px] translate-y-[11%] px-4 sm:h-[58vh] md:min-h-[390px] lg:h-[61vh]"
           style={{
-            opacity: isHeroMobile ? 0.8 - houseFadeProgress : 1 - houseFadeProgress,
+            opacity: isHeroMobile ? 0.92 - houseFadeProgress : 1 - houseFadeProgress,
             transform: isHeroMobile ? `translateY(${-4 * mobileScrollProgress}px)` : `translateY(calc(11% + ${houseTranslateY}px))`,
           }}
         >

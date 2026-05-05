@@ -12,9 +12,9 @@
   --font-serif: var(--font-cormorant-garamond), "Cormorant Garamond", "EB Garamond", Georgia, serif;
   --font-sans: var(--font-inter), "Inter", "Helvetica Neue", Arial, sans-serif;
   --font-body: var(--font-sans);
-  --text-display-mobile: clamp(2.75rem, 11vw, 3rem);
+  --text-display-mobile: clamp(2.55rem, 10.2vw, 2.8rem);
   --text-display-desktop: clamp(4.5rem, 7vw, 5.75rem);
-  --text-section-mobile: clamp(2.125rem, 8vw, 2.5rem);
+  --text-section-mobile: clamp(1.875rem, 7vw, 2.15rem);
   --text-section-desktop: clamp(3rem, 5vw, 4rem);
   --text-detail-mobile: 1rem;
   --text-detail-desktop: 1.125rem;
@@ -689,13 +689,14 @@ a[class*="uppercase"] {
   z-index: 2;
   display: none;
   pointer-events: none;
+  /* Mobile venue detail was being washed out by compounded image/layer opacity plus this blush veil. */
   background: linear-gradient(
     to bottom,
     rgba(248, 240, 236, 0.95) 0%,
-    rgba(248, 240, 236, 0.75) 40%,
-    rgba(248, 240, 236, 0.4) 65%,
-    rgba(248, 240, 236, 0.1) 85%,
-    rgba(248, 240, 236, 0) 100%
+    rgba(248, 240, 236, 0.78) 35%,
+    rgba(248, 240, 236, 0.52) 55%,
+    rgba(248, 240, 236, 0.28) 72%,
+    rgba(248, 240, 236, 0.12) 100%
   );
 }
 
@@ -1113,10 +1114,10 @@ footer span {
   }
 
   .hero-estate-image {
-    opacity: 0.72;
+    opacity: 0.78;
     object-fit: cover;
     object-position: center center;
-    filter: saturate(0.92) contrast(1.04) brightness(1.04);
+    filter: contrast(1.08) saturate(1.03) brightness(1.02);
     mix-blend-mode: normal;
     -webkit-mask-image:
       linear-gradient(to top, #000 0%, #000 82%, rgba(0, 0, 0, 0.8) 91%, transparent 100%),
@@ -1146,7 +1147,7 @@ footer span {
 
   .hero-mobile-depth-overlay {
     display: block;
-    opacity: 0.46;
+    opacity: 0.34;
     background: linear-gradient(
       to bottom,
       rgba(255, 251, 247, 0.18) 0%,
@@ -1159,7 +1160,7 @@ footer span {
 
   .hero-bottom-fade {
     height: 27svh;
-    background: linear-gradient(to bottom, transparent 0%, rgba(251, 247, 242, 0.28) 70%, #fbf7f2 100%);
+    background: linear-gradient(to bottom, transparent 0%, rgba(251, 247, 242, 0.18) 74%, #fbf7f2 100%);
   }
 
   .hero-content {
