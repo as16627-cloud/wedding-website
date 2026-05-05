@@ -888,13 +888,15 @@ footer span {
     z-index: 48;
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.5rem;
-    padding: 0.62rem max(1rem, env(safe-area-inset-right)) calc(0.62rem + env(safe-area-inset-bottom))
+    gap: 0.75rem;
+    padding: 0.625rem max(1rem, env(safe-area-inset-right)) calc(0.625rem + env(safe-area-inset-bottom))
       max(1rem, env(safe-area-inset-left));
-    border-top: 1px solid rgba(203, 182, 175, 0.25);
-    background: rgba(248, 240, 236, 0.78);
-    box-shadow: 0 -8px 22px rgba(80, 60, 55, 0.045);
-    backdrop-filter: blur(14px);
+    /* This rendered nav is styled by these anchor rules; the button feel came from old pill backgrounds, borders, and shadows here. */
+    border-top: 1px solid rgba(203, 182, 175, 0.2);
+    background: rgba(248, 240, 236, 0.7);
+    box-shadow: 0 -8px 24px rgba(80, 60, 55, 0.05);
+    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(16px);
     opacity: 0;
     pointer-events: none;
     transform: translateY(calc(100% + 1rem));
@@ -909,21 +911,26 @@ footer span {
 
   .mobile-sticky-actions a {
     min-height: 42px;
+    width: min(100%, 6.25rem);
+    padding-inline: 0.35rem;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.38rem;
-    border: 1px solid rgba(203, 182, 175, 0.45);
+    justify-self: center;
+    gap: 0.34rem;
+    border: 0;
     border-radius: 999px;
-    background: rgba(255, 255, 255, 0.72);
+    background: transparent;
     color: #8f6a63;
     font-family: var(--font-sans);
-    font-size: 0.78rem;
+    font-size: 0.705rem;
     font-weight: 500;
     letter-spacing: 0.08em;
     line-height: 1.2;
+    opacity: 0.68;
     text-transform: uppercase;
-    box-shadow: 0 6px 18px rgba(80, 60, 55, 0.08);
+    box-shadow: none;
+    transition: opacity 220ms ease, background-color 220ms ease, box-shadow 220ms ease;
   }
 
   .mobile-hero-actions a,
@@ -947,10 +954,11 @@ footer span {
   }
 
   .mobile-sticky-actions a:first-child {
-    border-color: rgba(143, 106, 99, 0.35);
-    background: rgba(255, 245, 242, 0.9);
+    background: rgba(255, 245, 242, 0.72);
     color: #8f6a63;
-    box-shadow: 0 6px 18px rgba(80, 60, 55, 0.08);
+    font-weight: 600;
+    opacity: 1;
+    box-shadow: 0 4px 12px rgba(80, 60, 55, 0.06);
   }
 
   .mobile-hero-actions svg,
@@ -961,6 +969,11 @@ footer span {
   .mobile-sticky-actions svg,
   .mobile-sticky-actions a:first-child svg {
     color: #8f6a63;
+    width: 1.125rem;
+    height: 1.125rem;
+    min-width: 1.125rem;
+    flex: 0 0 1.125rem;
+    stroke-width: 1.75;
   }
 
   .mobile-hero-actions a.primary-cta {
