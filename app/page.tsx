@@ -1036,8 +1036,6 @@ export default function WeddingWebsiteStarter() {
   const heavyScrollProgress = shouldReduceMotion || isHeroMobile ? 0 : visualScrollProgress;
   const mobileScrollProgress = shouldReduceMotion || !isHeroMobile ? 0 : visualScrollProgress;
   const mobileGateRevealProgress = isHeroMobile && !shouldReduceMotion ? (isMobileGateOpened ? 1 : 0) : 1;
-  const mobileHeroCopyRevealProgress =
-    isHeroMobile && !shouldReduceMotion ? (isMobileHeroCopyVisible ? 1 : 0) : 1;
   const gateOpacity = isHeroMobile
     ? 0.86 - 0.14 * mobileGateRevealProgress - 0.06 * mobileScrollProgress
     : 0.84 * (1 - heavyScrollProgress);
@@ -1048,12 +1046,9 @@ export default function WeddingWebsiteStarter() {
   const rightGateRotateY = isHeroMobile ? 5 + 16 * mobileGateRevealProgress : 18;
   const houseFadeProgress = isHeroMobile ? mobileScrollProgress * 0.14 : heavyScrollProgress;
   const houseTranslateY = isHeroMobile ? 0 : -20 * 0.6 * heavyScrollProgress;
-  const copyFadeProgress = isHeroMobile ? mobileScrollProgress * 0.08 : visualScrollProgress * 0.15;
-  const copyOpacity = hasMeasuredHeroViewport ? mobileHeroCopyRevealProgress * (1 - copyFadeProgress) : 0;
-  const copyTranslateY = isHeroMobile
-    ? 14 * (1 - mobileHeroCopyRevealProgress) - 4 * mobileScrollProgress
-    : -10 * visualScrollProgress;
   const backgroundWashOpacity = isHeroMobile ? mobileScrollProgress * 0.35 : visualScrollProgress;
+  const heroCopyRevealReady =
+    shouldReduceMotion || (hasMeasuredHeroViewport && (!isHeroMobile || isMobileHeroCopyVisible));
   const leftGateInitial = shouldReduceMotion
     ? false
     : isHeroMobile
@@ -1083,6 +1078,35 @@ export default function WeddingWebsiteStarter() {
   const audioToggleMotionClass = shouldReduceMotion
     ? ""
     : "transition-[opacity,transform,box-shadow,border-color,background-color,color] duration-[400ms] ease-out hover:scale-[1.02]";
+  const heroRevealTransition = (delay = 0, duration = 0.82): Transition => ({
+    duration: shouldReduceMotion ? 0 : duration,
+    delay: shouldReduceMotion || !heroCopyRevealReady ? 0 : delay,
+    ease: gateOpenEase,
+  });
+  const heroTextRevealMotion = (delay = 0, y = 6, duration = 0.82) => ({
+    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(5px)" },
+    animate: heroCopyRevealReady
+      ? { opacity: 1, y: 0, filter: "blur(0px)" }
+      : { opacity: 0, y, filter: "blur(5px)" },
+    transition: heroRevealTransition(delay, duration),
+  });
+  const heroNamesRevealMotion = {
+    initial: shouldReduceMotion ? false : { opacity: 0, clipPath: "inset(-18% 50% -28% 50%)" },
+    animate: heroCopyRevealReady
+      ? { opacity: 1, clipPath: "inset(-18% 0% -28% 0%)" }
+      : { opacity: 0, clipPath: "inset(-18% 50% -28% 50%)" },
+    transition: heroRevealTransition(0.16, 0.94),
+  };
+  const heroDividerLineMotion = {
+    initial: shouldReduceMotion ? false : { opacity: 0, scaleX: 0 },
+    animate: heroCopyRevealReady ? { opacity: 0.9, scaleX: 1 } : { opacity: 0, scaleX: 0 },
+    transition: heroRevealTransition(0.34, 0.88),
+  };
+  const heroDividerMarkMotion = {
+    initial: shouldReduceMotion ? false : { opacity: 0 },
+    animate: heroCopyRevealReady ? { opacity: 0.9 } : { opacity: 0 },
+    transition: heroRevealTransition(0.44, 0.72),
+  };
   const selectedDressSwatch =
     [...dressCodePastelPalette, ...dressCodeClassicPalette].find((swatch) => swatch.label === selectedSwatchLabel) ??
     dressCodePastelPalette[0];
@@ -1284,50 +1308,63 @@ export default function WeddingWebsiteStarter() {
         <div className="hero-mobile-depth-overlay pointer-events-none absolute inset-0 z-[23]" />
 
         <div className="hero-content relative z-30 mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-6 pb-[25vh] pt-[22vh] text-center sm:px-8 sm:pb-[25vh] md:pt-[21vh] lg:pb-[26vh]">
-          <motion.div
-            initial={false}
-            className="hero-copy max-w-4xl"
-            style={{ opacity: copyOpacity, transform: `translateY(${copyTranslateY}px)` }}
-          >
-            <p className="type-section-eyebrow">
+          <div className="hero-copy max-w-4xl">
+            <motion.p className="type-section-eyebrow" {...heroTextRevealMotion(0, 4, 0.76)}>
               We&rsquo;re Getting Married
-            </p>
-            <h1 className="rose-gold-foil hero-title type-hero-title mt-8">
+            </motion.p>
+            <motion.h1 className="rose-gold-foil hero-title type-hero-title mt-8" {...heroNamesRevealMotion}>
               <span className="hero-name">Sumaya</span>
               <span className="luxe-ampersand">&amp;</span>
               <span className="hero-name">Aditya</span>
-            </h1>
+            </motion.h1>
             <div className="mx-auto mt-10 flex w-full max-w-[260px] items-center justify-center gap-3">
-              <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
-              <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90" />
-              <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+              <motion.span
+                className="h-px flex-1 bg-[var(--color-divider)] opacity-90"
+                style={{ transformOrigin: "right center" }}
+                {...heroDividerLineMotion}
+              />
+              <motion.span
+                className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90"
+                {...heroDividerMarkMotion}
+              />
+              <motion.span
+                className="h-px flex-1 bg-[var(--color-divider)] opacity-90"
+                style={{ transformOrigin: "left center" }}
+                {...heroDividerLineMotion}
+              />
             </div>
-            <p className="type-meta mx-auto mt-9 max-w-[330px] sm:max-w-none">
+            <motion.p className="type-meta mx-auto mt-9 max-w-[330px] sm:max-w-none" {...heroTextRevealMotion(0.5, 5, 0.82)}>
               <span className="block sm:inline">01 November 2026</span>
               <span className="mx-2 hidden text-[var(--color-divider)] opacity-90 sm:inline">&middot;</span>
               <span className="mt-3 block sm:mt-0 sm:inline">Caversham House, Swan Valley</span>
-            </p>
-            <p className="type-meta mt-7">
+            </motion.p>
+            <motion.p className="type-meta mt-7" {...heroTextRevealMotion(0.66, 5, 0.82)}>
               <span className="block sm:inline">4:00 PM Ceremony</span>
               <span className="mx-2 hidden text-[var(--color-divider)] opacity-90 sm:inline">&middot;</span>
               <span className="mt-2 block sm:mt-0 sm:inline">Garden House</span>
-            </p>
+            </motion.p>
             <div className="hero-cta-group">
-              <a
+              <motion.a
                 href={googleCalendarUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Add Sumaya and Aditya's wedding to Google Calendar"
                 className="hero-primary-cta primary-cta type-button"
+                {...heroTextRevealMotion(0.84, 6, 0.78)}
               >
                 <CalendarPlus className="h-4 w-4" />
                 SAVE THE DATE
-              </a>
+              </motion.a>
             </div>
-            <a href="#details" className="mobile-scroll-cue sm:hidden" aria-label="Scroll to wedding details">
+            <motion.a
+              href="#details"
+              className="mobile-scroll-cue sm:hidden"
+              aria-label="Scroll to wedding details"
+              {...heroTextRevealMotion(1, 4, 0.68)}
+            >
               <span />
-            </a>
-          </motion.div>
+            </motion.a>
+          </div>
         </div>
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-24 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
         </div>

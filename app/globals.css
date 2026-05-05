@@ -479,8 +479,7 @@ a[class*="uppercase"] {
   isolation: isolate;
 }
 
-.hero-scroll-layer,
-.hero-copy {
+.hero-scroll-layer {
   transition: opacity 0.4s ease-out, transform 0.4s ease-out;
   will-change: opacity, transform;
 }
@@ -1250,8 +1249,6 @@ footer span {
   .hero-copy {
     max-width: min(350px, 100%);
     padding-block: 0.55rem 0.95rem;
-    transition-duration: 0.95s;
-    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .hero-copy::before {
@@ -1676,7 +1673,6 @@ footer span {
 
 @media (prefers-reduced-motion: reduce) {
   .hero-scroll-layer,
-  .hero-copy,
   .hero-gate-art {
     transition: none;
     will-change: auto;
