@@ -366,7 +366,7 @@ export default function GuestAdmin() {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="mt-6 w-full rounded-full bg-[#241815] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-[0_12px_30px_rgba(36,24,21,0.18)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#382722] disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-6 w-full rounded-full bg-[var(--color-navy)] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.22)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               {status === "loading" ? "Opening..." : "Enter"}
             </button>
@@ -413,7 +413,7 @@ export default function GuestAdmin() {
             <button
               type="submit"
               disabled={status === "loading"}
-              className="rounded-full bg-[#241815] px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-[0_12px_30px_rgba(36,24,21,0.18)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#382722] disabled:cursor-not-allowed disabled:opacity-60"
+              className="rounded-full bg-[var(--color-navy)] px-6 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.22)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               Add guest
             </button>
@@ -467,7 +467,7 @@ export default function GuestAdmin() {
               onClick={() => setActiveFilter(filter)}
               className={`rounded-full px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] transition ${
                 activeFilter === filter
-                  ? "bg-[#241815] text-white"
+                  ? "bg-[var(--color-navy)] text-[var(--color-cta-text)]"
                   : "bg-white/72 text-[#5f524b] hover:bg-[#fbf7f2]"
               }`}
             >

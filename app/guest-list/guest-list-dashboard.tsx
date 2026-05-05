@@ -439,7 +439,7 @@ function GuestEditor({
           <button
             type="submit"
             disabled={busy}
-            className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#241815] px-4 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#382722] disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[var(--color-navy)] px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-cta-text)] transition hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitLabel === "Save" ? <Save aria-hidden="true" className="h-4 w-4" /> : <Plus aria-hidden="true" className="h-4 w-4" />}
             {busy ? "Saving..." : submitLabel}
@@ -847,7 +847,7 @@ export default function GuestListDashboard() {
             <button
               type="submit"
               disabled={busy}
-              className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[#241815] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-[0_12px_30px_rgba(36,24,21,0.18)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#382722] disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.22)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60"
             >
               <LockKeyhole aria-hidden="true" className="h-4 w-4" />
               {busy ? "Opening..." : "Enter guest list"}
@@ -883,7 +883,7 @@ export default function GuestListDashboard() {
             <button
               type="button"
               onClick={downloadCsv}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#241815] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-white shadow-[0_12px_30px_rgba(36,24,21,0.14)] transition hover:bg-[#382722]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition hover:bg-[var(--color-navy-hover)]"
             >
               <Download aria-hidden="true" className="h-4 w-4" />
               CSV
@@ -936,7 +936,7 @@ export default function GuestListDashboard() {
                   type="button"
                   onClick={() => setStatusFilter(filter)}
                   className={`min-h-9 rounded-full px-4 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-                    statusFilter === filter ? "bg-[#241815] text-white" : "text-[#5f524b] hover:bg-[#fbf7f2]"
+                    statusFilter === filter ? "bg-[var(--color-navy)] text-[var(--color-cta-text)]" : "text-[#5f524b] hover:bg-[#fbf7f2]"
                   }`}
                 >
                   {filter}
@@ -950,7 +950,7 @@ export default function GuestListDashboard() {
                   type="button"
                   onClick={() => setQuickFilter(filter)}
                   className={`min-h-9 rounded-full px-4 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-                    quickFilter === filter ? "bg-[#241815] text-white" : "border border-[#eaded6] bg-white/75 text-[#5f524b] hover:bg-[#fbf7f2]"
+                    quickFilter === filter ? "bg-[var(--color-navy)] text-[var(--color-cta-text)]" : "border border-[#eaded6] bg-white/75 text-[#5f524b] hover:bg-[#fbf7f2]"
                   }`}
                 >
                   {filter}

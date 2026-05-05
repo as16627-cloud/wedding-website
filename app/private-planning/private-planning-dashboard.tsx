@@ -774,7 +774,7 @@ function PlanningCard({ children, className = "" }: { children: ReactNode; class
   );
 }
 
-function Chip({ children, tone = "neutral" }: { children: ReactNode; tone?: "neutral" | "rose" | "sage" | "champagne" | "espresso" }) {
+function Chip({ children, tone = "neutral" }: { children: ReactNode; tone?: "neutral" | "rose" | "sage" | "champagne" | "navy" }) {
   const toneClass =
     tone === "rose"
       ? "bg-[#f8e8e4] text-[#9b6f68]"
@@ -782,8 +782,8 @@ function Chip({ children, tone = "neutral" }: { children: ReactNode; tone?: "neu
         ? "bg-[#eef5e9] text-[#52634a]"
         : tone === "champagne"
           ? "bg-[#f5ead7] text-[#8a6c45]"
-          : tone === "espresso"
-            ? "bg-[#3b231a] text-white"
+          : tone === "navy"
+            ? "bg-[var(--color-navy)] text-[var(--color-cta-text)]"
             : "bg-[#f4ebe4] text-[#6a5d55]";
 
   return <span className={`rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${toneClass}`}>{children}</span>;
@@ -840,7 +840,7 @@ function PlanningGate() {
           {error && <p className="mt-4 text-left text-sm leading-6 text-[#9b6f68]">{error}</p>}
           <button
             type="submit"
-            className="mt-6 w-full rounded-full bg-[#3b231a] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-white shadow-[0_12px_30px_rgba(59,35,26,0.18)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#4a2d22]"
+            className="mt-6 w-full rounded-full bg-[var(--color-navy)] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.22)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)]"
           >
             Enter Dashboard
           </button>
@@ -1051,7 +1051,7 @@ function TasksPanel({ vendors, tasks, setTasks }: { vendors: Vendor[]; tasks: Pl
             className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm outline-none focus:border-[#b98278]"
           />
         </label>
-        <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#3b231a] px-5 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+        <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)]">
           <Plus className="h-4 w-4" />
           Add Task
         </button>
@@ -1079,7 +1079,7 @@ function TasksPanel({ vendors, tasks, setTasks }: { vendors: Vendor[]; tasks: Pl
                     type="button"
                     onClick={() => updateTask(task.id, { status })}
                     className={`rounded-full px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${
-                      task.status === status ? "bg-[#3b231a] text-white" : "border border-[#eaded6] text-[#6a5d55]"
+                      task.status === status ? "bg-[var(--color-navy)] text-[var(--color-cta-text)]" : "border border-[#eaded6] text-[#6a5d55]"
                     }`}
                   >
                     {status}
@@ -1233,7 +1233,7 @@ function VendorsTab({
             setEditingVendorId(null);
             setForm(emptyVendorForm);
           }}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-[#3b231a] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white shadow-[0_12px_30px_rgba(59,35,26,0.16)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#4a2d22]"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)]"
         >
           <Plus className="h-4 w-4" />
           Add Vendor
@@ -1257,7 +1257,7 @@ function VendorsTab({
             type="button"
             onClick={() => setStatusFilter(status)}
             className={`rounded-full px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${
-              statusFilter === status ? "bg-[#3b231a] text-white" : "border border-[#eaded6] text-[#6a5d55]"
+              statusFilter === status ? "bg-[var(--color-navy)] text-[var(--color-cta-text)]" : "border border-[#eaded6] text-[#6a5d55]"
             }`}
           >
             {status}
@@ -1307,7 +1307,7 @@ function VendorsTab({
               />
             </label>
             <div className="flex gap-3 md:col-span-2 xl:col-span-4">
-              <button type="submit" className="inline-flex items-center gap-2 rounded-full bg-[#3b231a] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white shadow-[0_12px_30px_rgba(59,35,26,0.16)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#4a2d22]">
+              <button type="submit" className="inline-flex items-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)]">
                 <Save className="h-4 w-4" />
                 {editingVendorId ? "Update Vendor" : "Save Vendor"}
               </button>
@@ -1480,8 +1480,8 @@ function VendorDrawer({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#3b231a]/24 backdrop-blur-sm">
-      <div className="ml-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto border-l border-[#eaded6] bg-[#fbf7f2] p-5 shadow-[-20px_0_60px_rgba(59,35,26,0.14)] sm:p-7">
+    <div className="fixed inset-0 z-50 bg-[rgba(28,31,48,0.24)] backdrop-blur-sm">
+      <div className="ml-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto border-l border-[#eaded6] bg-[#fbf7f2] p-5 shadow-[-20px_0_60px_rgba(35,38,58,0.18)] sm:p-7">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="heading-micro">{vendor.category}</p>
@@ -1498,7 +1498,7 @@ function VendorDrawer({
         </div>
 
         <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" onClick={onEdit} className="inline-flex items-center gap-2 rounded-full bg-[#3b231a] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+          <button type="button" onClick={onEdit} className="inline-flex items-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)]">
             <Pencil className="h-4 w-4" />
             Edit Vendor
           </button>
@@ -1576,7 +1576,7 @@ function VendorDrawer({
               />
             </label>
             <TextField label="Next Follow-up" type="date" value={logForm.nextFollowUp} onChange={(nextFollowUp) => setLogForm({ ...logForm, nextFollowUp })} />
-            <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[#3b231a] px-5 text-xs font-semibold uppercase tracking-[0.16em] text-white">
+            <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)]">
               <Plus className="h-4 w-4" />
               Add Log
             </button>
@@ -1855,7 +1855,7 @@ function CalendarTab({
                 className="min-h-24 rounded-2xl border border-[#eaded6] bg-white/80 px-4 py-3 text-sm leading-6 outline-none focus:border-[#b98278]"
               />
             </label>
-            <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-full bg-[#3b231a] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-white shadow-[0_12px_30px_rgba(59,35,26,0.16)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[#4a2d22]">
+            <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)]">
               <Plus className="h-4 w-4" />
               Add Event
             </button>
@@ -2117,7 +2117,7 @@ function PlanningDashboardContent() {
                 <Download className="h-4 w-4" />
                 Export JSON
               </button>
-              <button type="button" onClick={() => importInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-full bg-[#3b231a] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-white shadow-[0_12px_30px_rgba(59,35,26,0.14)] transition hover:bg-[#4a2d22]">
+              <button type="button" onClick={() => importInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.18)] transition hover:bg-[var(--color-navy-hover)]">
                 <Upload className="h-4 w-4" />
                 Import JSON
               </button>
@@ -2134,7 +2134,7 @@ function PlanningDashboardContent() {
                 type="button"
                 onClick={() => setActiveTab(tab)}
                 className={`whitespace-nowrap rounded-full px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] transition duration-300 ease-out ${
-                  activeTab === tab ? "bg-[#3b231a] text-white shadow-[0_10px_24px_rgba(59,35,26,0.13)]" : "text-[#6a5d55] hover:bg-[#f4ebe4] hover:text-[#3f302b]"
+                  activeTab === tab ? "bg-[var(--color-navy)] text-[var(--color-cta-text)] shadow-[0_10px_24px_rgba(35,38,58,0.18)]" : "text-[#6a5d55] hover:bg-[#f4ebe4] hover:text-[#3f302b]"
                 }`}
               >
                 {tab}
