@@ -1038,7 +1038,6 @@ export default function WeddingWebsiteStarter() {
   const mobileGateRevealProgress = isHeroMobile && !shouldReduceMotion ? (isMobileGateOpened ? 1 : 0) : 1;
   const mobileHeroCopyRevealProgress =
     isHeroMobile && !shouldReduceMotion ? (isMobileHeroCopyVisible ? 1 : 0) : 1;
-  const noteRevealProgress = shouldReduceMotion ? 1 : smoothProgress((heroScrollProgress - 0.48) / 0.22);
   const gateOpacity = isHeroMobile
     ? 0.86 - 0.14 * mobileGateRevealProgress - 0.06 * mobileScrollProgress
     : 0.84 * (1 - heavyScrollProgress);
@@ -1345,19 +1344,19 @@ export default function WeddingWebsiteStarter() {
         </div>
       </section>
 
-      <section
-        id="note"
-        className="mobile-invite-note hero-scroll-layer relative bg-[#fbf7f2] px-6 py-20 md:py-28"
-        style={{ opacity: noteRevealProgress, transform: `translateY(${40 * (1 - noteRevealProgress)}px)` }}
-      >
-        <div className="mx-auto max-w-[760px] text-center">
-          <p className="heading-micro mb-5">A NOTE FROM US</p>
-          <div className="type-feature-copy space-y-5">
+      <section id="note" className="mobile-invite-note bg-[#fbf7f2]">
+        <div className="mobile-invite-note-inner">
+          <h2 className="mobile-note-title">A Note from Us</h2>
+          <div className="mobile-note-body">
             <p>We are so grateful to be celebrating this day with the people who have been part of our story.</p>
             <p>
               More details will be shared closer to the day, but for now, we would love for you to join us at Caversham
               House for a romantic garden celebration.
             </p>
+          </div>
+          <div className="mobile-note-signature" aria-label="With love, Sumaya and Aditya">
+            <p>With love,</p>
+            <p>Sumaya &amp; Aditya</p>
           </div>
         </div>
       </section>

@@ -293,15 +293,6 @@ a[class*="uppercase"] {
   color: var(--color-label);
 }
 
-.type-feature-copy {
-  font-family: var(--font-serif);
-  font-size: 1.35rem;
-  font-weight: 400;
-  line-height: 1.6;
-  letter-spacing: 0.015em;
-  color: var(--color-heading);
-}
-
 .type-editorial-note {
   font-family: var(--font-serif);
   font-size: 1.2rem;
@@ -389,10 +380,6 @@ a[class*="uppercase"] {
     font-size: 2rem;
   }
 
-  .type-feature-copy {
-    font-size: 1.62rem;
-  }
-
   .type-editorial-note {
     font-size: 1.35rem;
   }
@@ -411,11 +398,6 @@ a[class*="uppercase"] {
 
   .type-quote {
     font-size: 2.1rem;
-  }
-
-  .type-feature-copy {
-    font-size: 1.82rem;
-    line-height: 1.58;
   }
 
   .type-timeline-title {
@@ -962,18 +944,72 @@ footer span {
   display: none;
 }
 
-.mobile-invite-note .type-feature-copy {
-  color: #8f6f69;
-  line-height: 1.6;
+.mobile-invite-note {
+  height: auto;
+  min-height: 0;
+  display: block;
+  padding: 64px 0;
+  border: 0;
+  background: inherit;
+  box-shadow: none;
+  text-align: center;
 }
 
-.mobile-invite-note .type-feature-copy p {
-  max-width: 30ch;
+.mobile-invite-note-inner {
+  max-width: 520px;
   margin-inline: auto;
+  padding-inline: 24px;
 }
 
-.mobile-invite-note .type-feature-copy p + p {
-  margin-top: 1.5em;
+.mobile-note-title {
+  margin: 0 0 16px;
+  color: var(--color-heading);
+  font-family: var(--font-serif);
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1.35;
+  letter-spacing: 0.08em;
+}
+
+.mobile-note-body {
+  color: var(--color-body);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.66;
+}
+
+.mobile-note-body p {
+  margin: 0;
+}
+
+.mobile-note-body p + p {
+  margin-top: 12px;
+}
+
+.mobile-note-signature {
+  margin-top: 20px;
+  color: var(--color-heading);
+  font-family: var(--font-serif);
+}
+
+.mobile-note-signature p {
+  margin: 0;
+}
+
+.mobile-note-signature p:first-child {
+  font-size: 15px;
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.45;
+}
+
+.mobile-note-signature p:last-child {
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: 0.05em;
 }
 
 @keyframes invitation-scroll-cue {
@@ -1351,15 +1387,6 @@ footer span {
     width: 100%;
   }
 
-  .mobile-invite-note {
-    padding: 4.5rem 1.35rem 7rem;
-  }
-
-  .mobile-invite-note .type-feature-copy {
-    font-size: 1.38rem;
-    line-height: 1.6;
-  }
-
   .mobile-invite-card {
     padding: 1.35rem;
   }
@@ -1554,6 +1581,20 @@ footer span {
 
   footer {
     padding-bottom: calc(3rem + env(safe-area-inset-bottom));
+  }
+}
+
+@media (min-width: 768px) {
+  .mobile-invite-note {
+    padding-block: 96px;
+  }
+
+  .mobile-note-title {
+    font-size: 20px;
+  }
+
+  .mobile-note-body {
+    font-size: 16px;
   }
 }
 
