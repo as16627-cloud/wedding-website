@@ -2,6 +2,11 @@ import { type Prisma } from "@/app/generated/prisma/client";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import {
+  MAX_PRIVATE_PLANNING_PAYLOAD_BYTES,
+  PRIVATE_PLANNING_DATA_ID,
+  savePrivatePlanningDataPayload,
+} from "@/lib/private-planning-data";
+import {
   hasPrivatePlanningCsrfHeader,
   isPrivatePlanningAuthConfigured,
   isSameOriginRequest,
@@ -12,9 +17,6 @@ import { verifyPrivatePlanningSession } from "@/lib/private-planning-session";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const PRIVATE_PLANNING_DATA_ID = "sumaya-adi-private-planning";
-const MAX_PRIVATE_PLANNING_PAYLOAD_BYTES = 750_000;
 
 function privatePlanningJson(body: unknown, init?: ResponseInit) {
   return NextResponse.json(body, {
@@ -99,16 +101,7 @@ export async function PUT(request: NextRequest) {
       return privatePlanningJson({ ok: false, error: parsed.error }, { status: 400 });
     }
 
-    const record = await prisma.privatePlanningData.upsert({
-      where: { id: PRIVATE_PLANNING_DATA_ID },
-      create: {
-        id: PRIVATE_PLANNING_DATA_ID,
-        payload: parsed.payload,
-      },
-      update: {
-        payload: parsed.payload,
-      },
-    });
+    const record = await savePrivatePlanningDataPayload(parsed.payload);
 
     return privatePlanningJson({ ok: true, updatedAt: record.updatedAt.toISOString() });
   } catch (error) {

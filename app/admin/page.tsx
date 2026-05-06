@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import GuestAdmin from "./guest-admin";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Guest Admin | Sumaya & Aditya",
@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function AdminPage() {
-  return <GuestAdmin />;
+  redirect("/private-planning?tab=Guests");
 }

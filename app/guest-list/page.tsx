@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import GuestListDashboard from "./guest-list-dashboard";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   title: "Guest List | Sumaya & Aditya",
@@ -14,5 +14,5 @@ export const metadata: Metadata = {
 };
 
 export default function GuestListPage() {
-  return <GuestListDashboard />;
+  redirect("/private-planning?tab=Guests");
 }

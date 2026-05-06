@@ -98,6 +98,50 @@ model PrivatePlanningFile {
   @@index([uploadedAt])
 }
 
+model PrivatePlanningFileExtraction {
+  id               String    @id @default(cuid())
+  fileId           String    @unique
+  extractionStatus String    @default("not_extracted")
+  extractedVendor  Json?
+  extractedDocument Json?
+  confidence       Json?
+  warnings         Json?
+  errorMessage     String?
+  matchedVendorId  String?
+  sourceModel      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  reviewedAt       DateTime?
+  appliedAt        DateTime?
+  dismissedAt      DateTime?
+
+  @@index([extractionStatus])
+  @@index([matchedVendorId])
+}
+
+model PrivatePlanningVendorSuggestion {
+  id               String    @id @default(cuid())
+  fileId           String
+  extractionId     String?
+  suggestionStatus String    @default("review_needed")
+  suggestedVendor  Json
+  suggestedDocument Json?
+  confidence       Json?
+  warnings         Json?
+  possibleMatches  Json?
+  matchedVendorId  String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  reviewedAt       DateTime?
+  appliedAt        DateTime?
+  dismissedAt      DateTime?
+
+  @@index([fileId])
+  @@index([extractionId])
+  @@index([suggestionStatus])
+  @@index([matchedVendorId])
+}
+
 model PrivatePlanningFileAuditLog {
   id        String   @id @default(cuid())
   fileId    String?

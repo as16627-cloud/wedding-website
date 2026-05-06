@@ -70,6 +70,12 @@ export async function DELETE(request: NextRequest, context: RouteContext<"/api/p
     size: file.size,
     status: file.status,
   });
+  await prisma.privatePlanningVendorSuggestion.deleteMany({
+    where: { fileId: file.id },
+  });
+  await prisma.privatePlanningFileExtraction.deleteMany({
+    where: { fileId: file.id },
+  });
   await prisma.privatePlanningFile.delete({
     where: { id: file.id },
   });

@@ -1,13 +1,12 @@
 "use client";
 
-import { type FormEvent, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   CheckSquare,
   Copy,
   Download,
   ExternalLink,
-  LockKeyhole,
   MessageCircle,
   Pencil,
   Phone,
@@ -19,6 +18,9 @@ import {
   UsersRound,
   X,
 } from "lucide-react";
+
+const PRIVATE_PLANNING_GUESTS_ENDPOINT = "/api/private-planning/guests";
+const PRIVATE_PLANNING_CSRF_HEADER = "x-private-planning-csrf";
 
 type CoupleGuest = {
   id: string;
@@ -213,49 +215,6 @@ function buildInviteMessage(fullName: string, inviteLink: string) {
 function buildSmsHref(phoneNumber: string | null, message: string) {
   const phone = normalizePhone(phoneNumber);
   return `sms:${phone}?&body=${encodeURIComponent(message)}`;
-}
-
-function csvCell(value: string | number | boolean | null) {
-  const text = value === null ? "" : String(value);
-  return `"${text.replaceAll('"', '""')}"`;
-}
-
-function buildCsv(guests: CoupleGuest[]) {
-  const headers = [
-    "Name",
-    "Phone",
-    "Email",
-    "Side",
-    "RSVP",
-    "Ceremony",
-    "Reception",
-    "Plus one",
-    "Plus one name",
-    "Dietary requirements",
-    "Song request",
-    "Message",
-    "Notes",
-    "Responded at",
-  ];
-
-  const rows = guests.map((guest) => [
-    guest.fullName,
-    guest.phoneNumber,
-    guest.email,
-    guest.side,
-    getGuestStatus(guest),
-    formatAnswer(getCeremonyResponse(guest)),
-    formatAnswer(getReceptionResponse(guest)),
-    getPlusOneResponse(guest) ? "Yes" : "No",
-    guest.plusOneName,
-    getDietaryNotes(guest),
-    guest.songRequest,
-    guest.guestMessage ?? guest.message,
-    guest.notes,
-    guest.respondedAt,
-  ]);
-
-  return [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
 }
 
 function formFromGuest(guest: CoupleGuest): GuestForm {
@@ -502,9 +461,7 @@ function GuestEditor({
   );
 }
 
-export default function GuestListDashboard() {
-  const [passcode, setPasscode] = useState("");
-  const [activePasscode, setActivePasscode] = useState("");
+export default function PrivatePlanningGuestsTab() {
   const [copiedGuestId, setCopiedGuestId] = useState("");
   const [guests, setGuests] = useState<CoupleGuest[]>([]);
   const [summary, setSummary] = useState<GuestSummary>(emptySummary);
@@ -518,7 +475,6 @@ export default function GuestListDashboard() {
   const [editingGuestId, setEditingGuestId] = useState("");
   const [editForm, setEditForm] = useState<GuestForm>(emptyGuestForm);
 
-  const unlocked = Boolean(activePasscode);
   const busy = status === "loading";
 
   const filteredGuests = useMemo(() => {
@@ -563,14 +519,13 @@ export default function GuestListDashboard() {
   const allVisibleSelected =
     filteredGuests.length > 0 && filteredGuests.every((guest) => selectedGuestIds.has(guest.id));
 
-  async function loadGuests(passcodeToUse = activePasscode) {
+  async function loadGuests() {
     setStatus("loading");
     setMessage("");
 
-    const response = await fetch("/api/guest-list", {
-      headers: {
-        "x-guest-list-passcode": passcodeToUse,
-      },
+    const response = await fetch(PRIVATE_PLANNING_GUESTS_ENDPOINT, {
+      cache: "no-store",
+      credentials: "same-origin",
     });
 
     let result: GuestListResponse;
@@ -594,13 +549,15 @@ export default function GuestListDashboard() {
   }
 
   async function requestGuestChange(method: "POST" | "PATCH" | "DELETE", body: object) {
-    const response = await fetch("/api/guest-list", {
+    const response = await fetch(PRIVATE_PLANNING_GUESTS_ENDPOINT, {
       method,
       headers: {
         "Content-Type": "application/json",
-        "x-guest-list-passcode": activePasscode,
+        [PRIVATE_PLANNING_CSRF_HEADER]: "1",
       },
       body: JSON.stringify(body),
+      cache: "no-store",
+      credentials: "same-origin",
     });
 
     let result: GuestListResponse;
@@ -615,23 +572,6 @@ export default function GuestListDashboard() {
     }
 
     return result;
-  }
-
-  async function handleUnlock(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    try {
-      if (!passcode.trim()) {
-        throw new Error("Enter the couple passcode to open the guest list.");
-      }
-
-      await loadGuests(passcode);
-      setActivePasscode(passcode);
-      setPasscode("");
-    } catch (error) {
-      setStatus("error");
-      setMessage(error instanceof Error ? error.message : "Could not open the guest list.");
-    }
   }
 
   async function handleRefresh() {
@@ -801,72 +741,59 @@ export default function GuestListDashboard() {
     }
   }
 
-  function downloadCsv() {
-    const csv = buildCsv(filteredGuests);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "sumaya-aditya-guest-list.csv";
-    link.click();
-    URL.revokeObjectURL(url);
-  }
-
-  if (!unlocked) {
-    return (
-      <main className="min-h-screen bg-[#fbf7f2] px-6 py-16 text-[#4f4641]">
-        <section className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl flex-col items-center justify-center text-center">
-          <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full border border-[#eaded6] bg-[#fffaf7] text-[#9b6f68]">
-            <LockKeyhole aria-hidden="true" className="h-6 w-6" />
-          </div>
-          <p className="heading-micro mb-5">
-            Sumaya & Aditya
-          </p>
-          <h1 className="heading-primary">Guest List</h1>
-          <p className="mt-6 text-base leading-8 text-[#6a5d55]">
-            Private guest list and SMS composer for sending RSVP links from your phone.
-          </p>
-
-          <form
-            onSubmit={handleUnlock}
-            className="mt-9 w-full rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/82 p-6 shadow-[0_18px_45px_rgba(90,65,50,0.07)] backdrop-blur md:p-8"
-          >
-            <label className="grid gap-3 text-left">
-              <span className="text-[11px] font-medium uppercase tracking-[0.32em] text-[#6e5b54]">Passcode</span>
-              <input
-                type="password"
-                value={passcode}
-                onChange={(event) => setPasscode(event.target.value)}
-                className="min-h-12 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-[#3f302b] outline-none transition duration-300 ease-out placeholder:text-[#a99790] focus:border-[#b98278]"
-                placeholder="Enter passcode"
-              />
-            </label>
-
-            {message && <p className="mt-4 text-left text-sm leading-6 text-[#9b6f68]">{message}</p>}
-
-            <button
-              type="submit"
-              disabled={busy}
-              className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.22)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              <LockKeyhole aria-hidden="true" className="h-4 w-4" />
-              {busy ? "Opening..." : "Enter guest list"}
-            </button>
-          </form>
-        </section>
-      </main>
+  async function downloadCsv() {
+    const confirmed = window.confirm(
+      "Export includes sensitive guest data. Keep this file private and delete it when you no longer need it.",
     );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/private-planning/guests/export", {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+
+      if (!response.ok) {
+        throw new Error("Could not export the guest list.");
+      }
+
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "sumaya-aditya-guest-list.csv";
+      link.click();
+      URL.revokeObjectURL(url);
+      setStatus("success");
+      setMessage("Guest list CSV exported. Keep that file private.");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "Could not export the guest list.");
+    }
   }
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void loadGuests();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, []);
 
   return (
-    <main className="min-h-screen bg-[#fbf7f2] px-5 py-8 text-[#4f4641] md:px-8 md:py-10">
-      <section className="mx-auto max-w-7xl">
+    <div className="grid gap-6 text-[#4f4641]">
         <header className="mb-7 flex flex-col gap-5 border-b border-[#eaded6] pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="heading-micro">Sumaya & Aditya</p>
             <h1 className="heading-primary mt-3">Guest List</h1>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-[#6a5d55]">
-              Open each SMS from your phone to send the prepared RSVP message using your normal mobile plan.
+              Private guest list and SMS composer. Guest-facing RSVP links stay separate and only expose each guest&apos;s own invite.
+            </p>
+            <p className="mt-2 max-w-2xl text-xs leading-6 text-[#8c7a72]">
+              Exports include sensitive guest data. Keep downloaded files private.
             </p>
           </div>
 
@@ -1141,7 +1068,6 @@ export default function GuestListDashboard() {
             Selected {selectedGuests.length}; SMS-ready {selectedSmsGuests.length}.
           </span>
         </footer>
-      </section>
-    </main>
+    </div>
   );
 }

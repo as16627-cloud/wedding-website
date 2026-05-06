@@ -6,6 +6,7 @@ import {
   optionalString,
   parseOptionalBoolean,
 } from "@/lib/guest-rsvp";
+import { privatePlanningNoStoreHeaders } from "@/lib/private-planning-auth";
 
 export const runtime = "nodejs";
 
@@ -32,7 +33,7 @@ export async function POST(request: Request) {
     if (!token) {
       return NextResponse.json(
         { ok: false, error: "Please use your private RSVP link." },
-        { status: 400 },
+        { status: 400, headers: privatePlanningNoStoreHeaders },
       );
     }
 
@@ -46,7 +47,7 @@ export async function POST(request: Request) {
     if (!guest) {
       return NextResponse.json(
         { ok: false, error: "We could not find this RSVP link. Please message us to confirm." },
-        { status: 404 },
+        { status: 404, headers: privatePlanningNoStoreHeaders },
       );
     }
 
@@ -60,28 +61,28 @@ export async function POST(request: Request) {
     if (guest.invitedToCeremony && ceremonyResponse === null) {
       return NextResponse.json(
         { ok: false, error: "Please answer the ceremony attendance question." },
-        { status: 400 },
+        { status: 400, headers: privatePlanningNoStoreHeaders },
       );
     }
 
     if (guest.invitedToReception && receptionResponse === null) {
       return NextResponse.json(
         { ok: false, error: "Please answer the reception attendance question." },
-        { status: 400 },
+        { status: 400, headers: privatePlanningNoStoreHeaders },
       );
     }
 
     if (guest.plusOneAllowed && plusOneResponse === null) {
       return NextResponse.json(
         { ok: false, error: "Please answer the plus-one question." },
-        { status: 400 },
+        { status: 400, headers: privatePlanningNoStoreHeaders },
       );
     }
 
     if (plusOneResponse && !plusOneName) {
       return NextResponse.json(
         { ok: false, error: "Please enter your plus-one's full name." },
-        { status: 400 },
+        { status: 400, headers: privatePlanningNoStoreHeaders },
       );
     }
 
@@ -108,17 +109,20 @@ export async function POST(request: Request) {
       select: guestSelect,
     });
 
-    return NextResponse.json({
-      ok: true,
-      message: "Thank you. Your RSVP has been saved.",
-      guest: mapGuestForPublic(updatedGuest),
-    });
+    return NextResponse.json(
+      {
+        ok: true,
+        message: "Thank you. Your RSVP has been saved.",
+        guest: mapGuestForPublic(updatedGuest),
+      },
+      { headers: privatePlanningNoStoreHeaders },
+    );
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
       { ok: false, error: "Something went wrong while saving your RSVP." },
-      { status: 500 },
+      { status: 500, headers: privatePlanningNoStoreHeaders },
     );
   }
 }

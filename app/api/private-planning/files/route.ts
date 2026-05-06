@@ -16,6 +16,7 @@ import {
   validatePrivatePlanningFileTicket,
 } from "@/lib/private-planning-files";
 import { verifyPrivatePlanningSession } from "@/lib/private-planning-session";
+import { toPrivatePlanningFileExtractionDto } from "@/lib/private-planning-vendor-extraction";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -65,10 +66,32 @@ export async function GET(request: NextRequest) {
       createdAt: true,
     },
   });
+  const fileIds = files.map((file) => file.id);
+  const extractions = await prisma.privatePlanningFileExtraction.findMany({
+    where: { fileId: { in: fileIds } },
+  });
+  const suggestions = await prisma.privatePlanningVendorSuggestion.findMany({
+    where: { fileId: { in: fileIds } },
+    orderBy: { createdAt: "desc" },
+  });
+  const extractionByFileId = new Map(extractions.map((extraction) => [extraction.fileId, extraction]));
+  const latestSuggestionByFileId = new Map<string, (typeof suggestions)[number]>();
+
+  for (const suggestion of suggestions) {
+    if (!latestSuggestionByFileId.has(suggestion.fileId)) {
+      latestSuggestionByFileId.set(suggestion.fileId, suggestion);
+    }
+  }
 
   return privatePlanningJson({
     ok: true,
-    files: files.map(toPrivatePlanningFileDto),
+    files: files.map((file) => {
+      const extraction = extractionByFileId.get(file.id);
+
+      return toPrivatePlanningFileDto(file, {
+        extraction: extraction ? toPrivatePlanningFileExtractionDto(extraction, latestSuggestionByFileId.get(file.id) ?? null) : null,
+      });
+    }),
     storageConfigured: isPrivatePlanningBlobConfigured(),
   });
 }

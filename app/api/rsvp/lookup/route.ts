@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { guestSelect, mapGuestForPublic, optionalString } from "@/lib/guest-rsvp";
+import { privatePlanningNoStoreHeaders } from "@/lib/private-planning-auth";
 
 export const runtime = "nodejs";
 
@@ -12,7 +13,7 @@ export async function POST(request: Request) {
     if (!token) {
       return NextResponse.json(
         { ok: false, error: "RSVP token is required." },
-        { status: 400 },
+        { status: 400, headers: privatePlanningNoStoreHeaders },
       );
     }
 
@@ -26,20 +27,23 @@ export async function POST(request: Request) {
     if (!guest) {
       return NextResponse.json(
         { ok: false, error: "Invite not found." },
-        { status: 404 },
+        { status: 404, headers: privatePlanningNoStoreHeaders },
       );
     }
 
-    return NextResponse.json({
-      ok: true,
-      guest: mapGuestForPublic(guest),
-    });
+    return NextResponse.json(
+      {
+        ok: true,
+        guest: mapGuestForPublic(guest),
+      },
+      { headers: privatePlanningNoStoreHeaders },
+    );
   } catch (error) {
     console.error(error);
 
     return NextResponse.json(
       { ok: false, error: "Something went wrong." },
-      { status: 500 },
+      { status: 500, headers: privatePlanningNoStoreHeaders },
     );
   }
 }

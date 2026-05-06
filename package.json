@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "test:private-planning": "node scripts/private-planning-security-smoke.mjs",
+    "test:private-planning-extraction": "tsx scripts/private-planning-extraction-test.ts",
     "test:private-planning-rate-limit": "tsx scripts/private-planning-rate-limit-persistence.ts",
     "postinstall": "prisma generate"
   },
@@ -20,6 +21,7 @@
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.14.0",
     "next": "16.2.4",
+    "openai": "^6.36.0",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },

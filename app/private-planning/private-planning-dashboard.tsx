@@ -41,6 +41,7 @@ import {
   PRIVATE_PLANNING_MAX_FILE_BYTES,
   privatePlanningAllowedMimeTypes,
 } from "@/lib/private-planning-file-rules";
+import PrivatePlanningGuestsTab from "./private-planning-guests-tab";
 
 const VENDORS_KEY = "private-planning-vendors";
 const EVENTS_KEY = "private-planning-calendar-events";
@@ -62,7 +63,7 @@ const LEGACY_PLANNING_STORAGE_KEYS = [
 ];
 
 const revealEase = [0.22, 1, 0.36, 1] as const;
-const tabs = ["Overview", "Vendors", "Calendar", "Timeline", "Files", "Notes"] as const;
+const tabs = ["Overview", "Vendors", "Calendar", "Timeline", "Guests", "Files", "Notes"] as const;
 const vendorCategories = [
   "Venue",
   "Celebrant",
@@ -1937,6 +1938,88 @@ type PrivatePlanningFileDto = {
   scanStatus: string;
   uploadedAt: string | null;
   createdAt: string;
+  extraction?: PrivatePlanningFileExtractionDto | null;
+};
+
+type PrivatePlanningExtractedVendor = {
+  name: string | null;
+  category: string | null;
+  contactName: string | null;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  address: string | null;
+};
+
+type PrivatePlanningExtractedDocument = {
+  documentType: "invoice" | "receipt" | "quote" | "contract" | "unknown";
+  invoiceNumber: string | null;
+  receiptNumber: string | null;
+  invoiceDate: string | null;
+  dueDate: string | null;
+  subtotal: number | null;
+  tax: number | null;
+  total: number | null;
+  currency: string | null;
+};
+
+type PrivatePlanningExtractionConfidence = {
+  vendor: number;
+  contact: number;
+  amounts: number;
+  dates: number;
+};
+
+type PrivatePlanningVendorMatch = {
+  id: string;
+  vendorName: string;
+  category: string;
+  email: string;
+  phone: string;
+  website: string;
+  score: number;
+  reasons: string[];
+};
+
+type PrivatePlanningVendorSuggestionDto = {
+  id: string;
+  fileId: string;
+  suggestionStatus: string;
+  suggestedVendor: PrivatePlanningExtractedVendor;
+  suggestedDocument: PrivatePlanningExtractedDocument;
+  confidence: PrivatePlanningExtractionConfidence;
+  warnings: string[];
+  possibleMatches: PrivatePlanningVendorMatch[];
+  matchedVendorId: string | null;
+  reviewedAt: string | null;
+  appliedAt: string | null;
+  dismissedAt: string | null;
+};
+
+type PrivatePlanningFileExtractionDto = {
+  id: string;
+  fileId: string;
+  extractionStatus: string;
+  extractedVendor: PrivatePlanningExtractedVendor | null;
+  extractedDocument: PrivatePlanningExtractedDocument | null;
+  confidence: PrivatePlanningExtractionConfidence | null;
+  warnings: string[];
+  errorMessage: string | null;
+  matchedVendorId: string | null;
+  reviewedAt: string | null;
+  appliedAt: string | null;
+  dismissedAt: string | null;
+  suggestion: PrivatePlanningVendorSuggestionDto | null;
+};
+
+type VendorSuggestionForm = {
+  name: string;
+  category: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  website: string;
+  address: string;
 };
 
 type PrivatePlanningFilesResponse = {
@@ -1957,13 +2040,84 @@ type PrivatePlanningUploadTicketResponse = {
   error?: string;
 };
 
-function FilesTab({ vendors }: { vendors: Vendor[] }) {
+type PrivatePlanningExtractionResponse = {
+  ok: boolean;
+  extraction?: PrivatePlanningFileExtractionDto | null;
+  error?: string;
+};
+
+type PrivatePlanningSuggestionApplyResponse = {
+  ok: boolean;
+  action?: "create" | "link";
+  vendor?: Vendor;
+  vendorId?: string;
+  error?: string;
+};
+
+function suggestionFormFromVendor(vendor?: PrivatePlanningExtractedVendor | null): VendorSuggestionForm {
+  return {
+    name: vendor?.name ?? "",
+    category: vendor?.category ?? "",
+    contactName: vendor?.contactName ?? "",
+    email: vendor?.email ?? "",
+    phone: vendor?.phone ?? "",
+    website: vendor?.website ?? "",
+    address: vendor?.address ?? "",
+  };
+}
+
+function getFileExtractionStatus(file: PrivatePlanningFileDto) {
+  const suggestionStatus = file.extraction?.suggestion?.suggestionStatus;
+  const extractionStatus = file.extraction?.extractionStatus;
+
+  if (suggestionStatus === "applied" || suggestionStatus === "linked" || extractionStatus === "applied" || extractionStatus === "linked") {
+    return "linked";
+  }
+
+  if (suggestionStatus === "review_needed" || extractionStatus === "review_needed") {
+    return "review_needed";
+  }
+
+  if (suggestionStatus === "dismissed" || extractionStatus === "dismissed") {
+    return "dismissed";
+  }
+
+  if (extractionStatus === "extracting") {
+    return "extracting";
+  }
+
+  if (extractionStatus === "failed") {
+    return "failed";
+  }
+
+  return "not_extracted";
+}
+
+function getFileExtractionStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    not_extracted: "Not extracted",
+    extracting: "Extracting",
+    review_needed: "Review needed",
+    linked: "Linked to vendor",
+    failed: "Failed",
+    dismissed: "Dismissed",
+  };
+
+  return labels[status] ?? status;
+}
+
+function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (vendors: Vendor[]) => void }) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [files, setFiles] = useState<PrivatePlanningFileDto[]>([]);
   const [selectedVendorId, setSelectedVendorId] = useState("");
   const [isStorageConfigured, setIsStorageConfigured] = useState(true);
   const [isLoadingFiles, setIsLoadingFiles] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
+  const [autoExtractAfterUpload, setAutoExtractAfterUpload] = useState(true);
+  const [extractingFileId, setExtractingFileId] = useState<string | null>(null);
+  const [applyingSuggestionId, setApplyingSuggestionId] = useState<string | null>(null);
+  const [reviewForms, setReviewForms] = useState<Record<string, VendorSuggestionForm>>({});
+  const [linkSelections, setLinkSelections] = useState<Record<string, string>>({});
   const [uploadProgress, setUploadProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState("");
   const vendorNameById = useMemo(() => new Map(vendors.map((vendor) => [vendor.id, vendor.vendorName])), [vendors]);
@@ -1983,12 +2137,42 @@ function FilesTab({ vendors }: { vendors: Vendor[] }) {
         throw new Error(result?.error ?? "Could not load private files.");
       }
 
-      setFiles(result.files ?? []);
+      const nextFiles = result.files ?? [];
+      setFiles(nextFiles);
+      setReviewForms((current) => {
+        const next = { ...current };
+
+        for (const file of nextFiles) {
+          const suggestion = file.extraction?.suggestion;
+
+          if (suggestion && suggestion.suggestionStatus === "review_needed" && !next[suggestion.id]) {
+            next[suggestion.id] = suggestionFormFromVendor(suggestion.suggestedVendor);
+          }
+        }
+
+        return next;
+      });
+      setLinkSelections((current) => {
+        const next = { ...current };
+
+        for (const file of nextFiles) {
+          const suggestion = file.extraction?.suggestion;
+          const matchId = suggestion?.matchedVendorId ?? suggestion?.possibleMatches[0]?.id ?? "";
+
+          if (suggestion && matchId && !next[suggestion.id]) {
+            next[suggestion.id] = matchId;
+          }
+        }
+
+        return next;
+      });
       setIsStorageConfigured(Boolean(result.storageConfigured));
       setStatusMessage(result.storageConfigured ? "" : "Private Blob storage is not configured yet.");
+      return nextFiles;
     } catch (error) {
       console.error("Private planning file list failed.", error);
       setStatusMessage("Private files could not be loaded.");
+      return [];
     } finally {
       setIsLoadingFiles(false);
     }
@@ -2019,6 +2203,121 @@ function FilesTab({ vendors }: { vendors: Vendor[] }) {
     }
 
     return "";
+  }
+
+  async function extractFile(fileId: string, force = false) {
+    setExtractingFileId(fileId);
+    setStatusMessage(force ? "Re-running private extraction..." : "Extracting vendor details privately...");
+
+    try {
+      const response = await fetch(`/api/private-planning/files/${fileId}/extract`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          [PRIVATE_PLANNING_CSRF_HEADER]: "1",
+        },
+        body: JSON.stringify({ force }),
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const result = (await response.json().catch(() => null)) as PrivatePlanningExtractionResponse | null;
+
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error ?? "Could not extract details from this file.");
+      }
+
+      setStatusMessage("Vendor details detected. Review before applying.");
+      await loadFiles();
+    } catch (error) {
+      console.error("Private planning extraction failed.", error);
+      setStatusMessage(error instanceof Error ? error.message : "Extraction failed.");
+      await loadFiles();
+    } finally {
+      setExtractingFileId(null);
+    }
+  }
+
+  function updateReviewForm(suggestionId: string, patch: Partial<VendorSuggestionForm>) {
+    setReviewForms((current) => ({
+      ...current,
+      [suggestionId]: {
+        ...suggestionFormFromVendor(),
+        ...(current[suggestionId] ?? {}),
+        ...patch,
+      },
+    }));
+  }
+
+  async function applySuggestion(suggestion: PrivatePlanningVendorSuggestionDto, action: "create" | "link") {
+    setApplyingSuggestionId(suggestion.id);
+
+    try {
+      const response = await fetch(`/api/private-planning/vendor-suggestions/${suggestion.id}/apply`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          [PRIVATE_PLANNING_CSRF_HEADER]: "1",
+        },
+        body: JSON.stringify(
+          action === "link"
+            ? {
+                action,
+                vendorId: linkSelections[suggestion.id] ?? suggestion.matchedVendorId ?? suggestion.possibleMatches[0]?.id,
+              }
+            : {
+                action,
+                vendor: reviewForms[suggestion.id] ?? suggestionFormFromVendor(suggestion.suggestedVendor),
+              },
+        ),
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const result = (await response.json().catch(() => null)) as PrivatePlanningSuggestionApplyResponse | null;
+
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error ?? "Could not apply this suggestion.");
+      }
+
+      if (action === "create" && result.vendor) {
+        setVendors([result.vendor, ...vendors.filter((vendor) => vendor.id !== result.vendor?.id)]);
+      }
+
+      setStatusMessage(action === "link" ? "File linked to an existing vendor." : "Vendor created from the document suggestion.");
+      await loadFiles();
+    } catch (error) {
+      console.error("Private planning suggestion apply failed.", error);
+      setStatusMessage(error instanceof Error ? error.message : "Could not apply that suggestion.");
+    } finally {
+      setApplyingSuggestionId(null);
+    }
+  }
+
+  async function dismissSuggestion(suggestion: PrivatePlanningVendorSuggestionDto) {
+    setApplyingSuggestionId(suggestion.id);
+
+    try {
+      const response = await fetch(`/api/private-planning/vendor-suggestions/${suggestion.id}/dismiss`, {
+        method: "POST",
+        headers: {
+          [PRIVATE_PLANNING_CSRF_HEADER]: "1",
+        },
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const result = (await response.json().catch(() => null)) as { ok?: boolean; error?: string } | null;
+
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error ?? "Could not dismiss this suggestion.");
+      }
+
+      setStatusMessage("Suggestion dismissed. You can re-run extraction manually.");
+      await loadFiles();
+    } catch (error) {
+      console.error("Private planning suggestion dismiss failed.", error);
+      setStatusMessage(error instanceof Error ? error.message : "Could not dismiss that suggestion.");
+    } finally {
+      setApplyingSuggestionId(null);
+    }
   }
 
   async function uploadSelectedFile(event: ChangeEvent<HTMLInputElement>) {
@@ -2082,7 +2381,22 @@ function FilesTab({ vendors }: { vendors: Vendor[] }) {
       await new Promise((resolve) => {
         window.setTimeout(resolve, 1200);
       });
-      await loadFiles();
+      let loadedFiles = await loadFiles();
+
+      if (autoExtractAfterUpload) {
+        for (let attempt = 0; attempt < 3 && !loadedFiles.some((item) => item.id === ticketResult.ticket?.id && item.uploadedAt); attempt += 1) {
+          await new Promise((resolve) => {
+            window.setTimeout(resolve, 1000);
+          });
+          loadedFiles = await loadFiles();
+        }
+
+        if (loadedFiles.some((item) => item.id === ticketResult.ticket?.id && item.uploadedAt)) {
+          await extractFile(ticketResult.ticket.id);
+        } else {
+          setStatusMessage("Upload is still validating. Use Extract Details once the file appears as ready.");
+        }
+      }
     } catch (error) {
       console.error("Private planning file upload failed.", error);
       setStatusMessage(error instanceof Error ? error.message : "Upload failed.");
@@ -2123,6 +2437,143 @@ function FilesTab({ vendors }: { vendors: Vendor[] }) {
     }
   }
 
+  function renderExtractionReview(file: PrivatePlanningFileDto) {
+    const suggestion = file.extraction?.suggestion;
+
+    if (!suggestion || suggestion.suggestionStatus !== "review_needed") {
+      return null;
+    }
+
+    const form = reviewForms[suggestion.id] ?? suggestionFormFromVendor(suggestion.suggestedVendor);
+    const selectedLinkId = linkSelections[suggestion.id] ?? suggestion.matchedVendorId ?? suggestion.possibleMatches[0]?.id ?? "";
+    const isApplying = applyingSuggestionId === suggestion.id;
+
+    return (
+      <div className="mt-5 rounded-[1.15rem] border border-[#eaded6] bg-white/54 p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="heading-micro">Vendor details detected</p>
+            <h4 className="mt-2 font-serif text-2xl text-[#3f302b]">{form.name || "Unnamed vendor"}</h4>
+            <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
+              Review these fields before creating a vendor. Bank, card, tax, and identity numbers are intentionally ignored.
+            </p>
+          </div>
+          <Chip tone="rose">Needs review</Chip>
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <TextField label="Vendor name" value={form.name} onChange={(name) => updateReviewForm(suggestion.id, { name })} />
+          <label className="grid gap-2">
+            <FieldLabel>Category</FieldLabel>
+            <select
+              value={form.category}
+              onChange={(event) => updateReviewForm(suggestion.id, { category: event.target.value })}
+              className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
+            >
+              <option value="">Choose category</option>
+              {vendorCategories.map((category) => (
+                <option key={category}>{category}</option>
+              ))}
+            </select>
+          </label>
+          <TextField label="Contact person" value={form.contactName} onChange={(contactName) => updateReviewForm(suggestion.id, { contactName })} />
+          <TextField label="Email" value={form.email} onChange={(email) => updateReviewForm(suggestion.id, { email })} />
+          <TextField label="Phone" value={form.phone} onChange={(phone) => updateReviewForm(suggestion.id, { phone })} />
+          <TextField label="Website" value={form.website} onChange={(website) => updateReviewForm(suggestion.id, { website })} />
+          <label className="grid gap-2 md:col-span-2">
+            <FieldLabel>Address</FieldLabel>
+            <textarea
+              value={form.address}
+              onChange={(event) => updateReviewForm(suggestion.id, { address: event.target.value })}
+              rows={3}
+              className="rounded-2xl border border-[#eaded6] bg-white/80 px-4 py-3 text-sm leading-6 text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
+            />
+          </label>
+        </div>
+
+        <div className="mt-4 grid gap-3 text-sm leading-6 text-[#6a5d55] md:grid-cols-2">
+          <div className="rounded-2xl bg-[#fffaf7]/74 p-4">
+            <FieldLabel>Document</FieldLabel>
+            <p className="mt-2 capitalize">{suggestion.suggestedDocument.documentType}</p>
+            <p>{suggestion.suggestedDocument.invoiceNumber ? `Invoice ${suggestion.suggestedDocument.invoiceNumber}` : "No invoice number detected"}</p>
+            <p>
+              {suggestion.suggestedDocument.total !== null
+                ? `${suggestion.suggestedDocument.currency ?? ""} ${suggestion.suggestedDocument.total}`
+                : "No total detected"}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-[#fffaf7]/74 p-4">
+            <FieldLabel>Confidence</FieldLabel>
+            <p className="mt-2">Vendor {Math.round(suggestion.confidence.vendor * 100)}%</p>
+            <p>Contact {Math.round(suggestion.confidence.contact * 100)}%</p>
+            <p>Amounts {Math.round(suggestion.confidence.amounts * 100)}%</p>
+          </div>
+        </div>
+
+        {(suggestion.possibleMatches.length > 0 || vendors.length > 0) && (
+          <div className="mt-4 rounded-2xl border border-[#eaded6] bg-[#fffaf7]/64 p-4">
+            <FieldLabel>Link existing vendor</FieldLabel>
+            {suggestion.possibleMatches.length > 0 && (
+              <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
+                Possible match: {suggestion.possibleMatches.map((match) => `${match.vendorName} (${Math.round(match.score * 100)}%)`).join(", ")}
+              </p>
+            )}
+            <select
+              value={selectedLinkId}
+              onChange={(event) => setLinkSelections((current) => ({ ...current, [suggestion.id]: event.target.value }))}
+              className="mt-3 min-h-11 w-full rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
+            >
+              <option value="">Choose existing vendor</option>
+              {vendors.map((vendor) => (
+                <option key={vendor.id} value={vendor.id}>
+                  {vendor.vendorName}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
+        {suggestion.warnings.length > 0 && (
+          <div className="mt-4 rounded-2xl bg-[#f8e8e4]/70 px-4 py-3 text-sm leading-6 text-[#7d6b62]">
+            {suggestion.warnings.map((warning) => (
+              <p key={warning}>{warning}</p>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => applySuggestion(suggestion, "create")}
+            disabled={isApplying}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.18)] transition hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-55"
+          >
+            <Plus className="h-4 w-4" />
+            Create Vendor
+          </button>
+          <button
+            type="button"
+            onClick={() => applySuggestion(suggestion, "link")}
+            disabled={isApplying || !selectedLinkId}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#b98278] disabled:cursor-not-allowed disabled:opacity-55"
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            Link Existing
+          </button>
+          <button
+            type="button"
+            onClick={() => dismissSuggestion(suggestion)}
+            disabled={isApplying}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/40 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6f68] transition hover:border-[#b98278] disabled:cursor-not-allowed disabled:opacity-55"
+          >
+            <X className="h-4 w-4" />
+            Dismiss
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid gap-6">
       <PlanningCard>
@@ -2132,7 +2583,7 @@ function FilesTab({ vendors }: { vendors: Vendor[] }) {
             <h2 className="heading-secondary heading-secondary-compact mt-2">Invoices & Receipts</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6a5d55]">
               Files are uploaded to private storage, validated after upload, and served only through authenticated downloads.
-              Scanning is marked as unscanned, so downloads open as attachments rather than inline previews.
+              AI extraction runs server-side and creates review-only vendor suggestions that you can edit, link, create, or dismiss.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:min-w-[320px]">
@@ -2150,6 +2601,15 @@ function FilesTab({ vendors }: { vendors: Vendor[] }) {
                   </option>
                 ))}
               </select>
+            </label>
+            <label className="flex items-start gap-3 rounded-2xl border border-[#eaded6] bg-white/50 px-4 py-3 text-sm leading-6 text-[#6a5d55]">
+              <input
+                type="checkbox"
+                checked={autoExtractAfterUpload}
+                onChange={(event) => setAutoExtractAfterUpload(event.target.checked)}
+                className="mt-1 h-4 w-4 accent-[var(--color-navy)]"
+              />
+              <span>Auto-extract vendor details after upload</span>
             </label>
             <button
               type="button"
@@ -2178,7 +2638,11 @@ function FilesTab({ vendors }: { vendors: Vendor[] }) {
             <p className="text-sm leading-7 text-[#6a5d55]">Loading private files...</p>
           </PlanningCard>
         ) : files.length > 0 ? (
-          files.map((file) => (
+          files.map((file) => {
+            const extractionStatus = getFileExtractionStatus(file);
+            const canRunExtraction = extractionStatus !== "extracting" && extractionStatus !== "review_needed" && extractionStatus !== "linked";
+
+            return (
             <PlanningCard key={file.id}>
               <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                 <div className="flex items-start gap-4">
@@ -2193,10 +2657,27 @@ function FilesTab({ vendors }: { vendors: Vendor[] }) {
                       <span>{file.uploadedAt ? formatDate(file.uploadedAt.slice(0, 10)) : "Processing"}</span>
                       <span>{file.vendorId ? vendorNameById.get(file.vendorId) ?? "Vendor linked" : "No vendor"}</span>
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-[#6a5d55]">Scan status: {file.scanStatus}. Download only.</p>
+                    <div className="mt-3 flex flex-wrap items-center gap-2">
+                      <Chip tone={extractionStatus === "review_needed" ? "rose" : extractionStatus === "linked" ? "sage" : extractionStatus === "failed" ? "champagne" : "neutral"}>
+                        {getFileExtractionStatusLabel(extractionStatus)}
+                      </Chip>
+                      <p className="text-sm leading-6 text-[#6a5d55]">Scan status: {file.scanStatus}. Download only.</p>
+                    </div>
+                    {file.extraction?.errorMessage && <p className="mt-2 text-sm leading-6 text-[#9b6f68]">{file.extraction.errorMessage}</p>}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-3">
+                  {canRunExtraction && (
+                    <button
+                      type="button"
+                      onClick={() => extractFile(file.id, extractionStatus === "dismissed" || extractionStatus === "failed")}
+                      disabled={extractingFileId === file.id}
+                      className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#b98278] disabled:cursor-not-allowed disabled:opacity-55"
+                    >
+                      <FileText className="h-4 w-4" />
+                      {extractingFileId === file.id ? "Extracting" : extractionStatus === "dismissed" || extractionStatus === "failed" ? "Run Again" : "Extract Details"}
+                    </button>
+                  )}
                   <a
                     href={`/api/private-planning/files/${file.id}/download`}
                     className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#b98278]"
@@ -2214,8 +2695,10 @@ function FilesTab({ vendors }: { vendors: Vendor[] }) {
                   </button>
                 </div>
               </div>
+              {renderExtractionReview(file)}
             </PlanningCard>
-          ))
+            );
+          })
         ) : (
           <PlanningCard>
             <p className="text-sm leading-7 text-[#6a5d55]">No private invoices or receipts have been uploaded yet.</p>
@@ -2300,11 +2783,11 @@ function readLegacyPlanningPayload() {
   };
 }
 
-function PlanningDashboardContent() {
+function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Tab }) {
   const shouldReduceMotion = useReducedMotion();
   const importInputRef = useRef<HTMLInputElement | null>(null);
   const skipNextPersistRef = useRef(true);
-  const [activeTab, setActiveTab] = useState<Tab>("Overview");
+  const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [storedVendors, setStoredVendors] = useState<Vendor[]>(defaultVendors);
   const [storedEvents, setStoredEvents] = useState<CalendarEvent[]>(defaultCalendarEvents);
   const [storedTasks, setStoredTasks] = useState<PlanningTask[]>(defaultTasks);
@@ -2461,6 +2944,14 @@ function PlanningDashboardContent() {
   }, [events, isPlanningDataLoaded, notes, quickNotes, savePlanningPayload, tasks, timeline, vendors]);
 
   function exportPlanningData() {
+    const confirmed = window.confirm(
+      "This exports private planning data. Guest list exports are handled separately in the Guests tab and include sensitive personal data.",
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
     const payload: PlanningExport = {
       version: 1,
       exportedAt: new Date().toISOString(),
@@ -2530,8 +3021,12 @@ function PlanningDashboardContent() {
       return <TimelineTab timeline={timeline} setTimeline={setTimeline} />;
     }
 
+    if (activeTab === "Guests") {
+      return <PrivatePlanningGuestsTab />;
+    }
+
     if (activeTab === "Files") {
-      return <FilesTab vendors={vendors} />;
+      return <FilesTab vendors={vendors} setVendors={setVendors} />;
     }
 
     return <NotesTab notes={notes} setNotes={setNotes} />;
@@ -2558,11 +3053,11 @@ function PlanningDashboardContent() {
               <div className="flex flex-wrap gap-3">
                 <button type="button" onClick={exportPlanningData} className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#b98278]">
                   <Download className="h-4 w-4" />
-                  Export JSON
+                  Export Planning JSON
                 </button>
                 <button type="button" onClick={() => importInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.18)] transition hover:bg-[var(--color-navy-hover)]">
                   <Upload className="h-4 w-4" />
-                  Import JSON
+                  Import Planning JSON
                 </button>
                 <button type="button" onClick={logout} className="inline-flex items-center justify-center rounded-full border border-[#eaded6] bg-white/50 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#6a5d55] transition hover:border-[#b98278]">
                   Log out
@@ -2608,6 +3103,6 @@ function PlanningDashboardContent() {
   );
 }
 
-export default function PrivatePlanningDashboard() {
-  return <PlanningDashboardContent />;
+export default function PrivatePlanningDashboard({ initialTab = "Overview" }: { initialTab?: Tab }) {
+  return <PlanningDashboardContent initialTab={initialTab} />;
 }

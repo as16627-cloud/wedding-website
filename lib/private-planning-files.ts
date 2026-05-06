@@ -186,6 +186,34 @@ export async function validatePrivatePlanningBlobSignature(
   return validateFileSignature(await readStreamPrefix(stream), expectedMimeType);
 }
 
+export async function readPrivatePlanningBlobToBuffer(stream: ReadableStream<Uint8Array>, maxBytes = PRIVATE_PLANNING_MAX_FILE_BYTES) {
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+
+  try {
+    while (true) {
+      const result = await reader.read();
+
+      if (result.done) {
+        break;
+      }
+
+      totalBytes += result.value.length;
+
+      if (totalBytes > maxBytes) {
+        throw new Error("Stored file is larger than the extraction limit.");
+      }
+
+      chunks.push(result.value);
+    }
+  } finally {
+    await reader.cancel().catch(() => undefined);
+  }
+
+  return Buffer.concat(chunks.map((chunk) => Buffer.from(chunk)));
+}
+
 export function toPrivatePlanningFileDto(file: {
   id: string;
   originalFilename: string;
@@ -196,7 +224,7 @@ export function toPrivatePlanningFileDto(file: {
   scanStatus: string;
   uploadedAt: Date | null;
   createdAt: Date;
-}) {
+}, extra?: Record<string, unknown>) {
   return {
     id: file.id,
     originalFilename: file.originalFilename,
@@ -207,5 +235,6 @@ export function toPrivatePlanningFileDto(file: {
     scanStatus: file.scanStatus,
     uploadedAt: file.uploadedAt?.toISOString() ?? null,
     createdAt: file.createdAt.toISOString(),
+    ...extra,
   };
 }
