@@ -3,8 +3,22 @@ import {
   buildPrivatePlanningVendorFromSuggestion,
   coercePrivatePlanningVendorCategory,
   findPrivatePlanningVendorMatches,
+  isPrivatePlanningExtractionConfigured,
   sanitizePrivatePlanningExtraction,
 } from "../lib/private-planning-vendor-extraction";
+
+const originalOpenAiApiKey = process.env.OPENAI_API_KEY;
+
+process.env.OPENAI_API_KEY = "OPENAI_API_KEY";
+assert.equal(isPrivatePlanningExtractionConfigured(), false, "placeholder API key values should not enable extraction");
+process.env.OPENAI_API_KEY = "sk-proj-test";
+assert.equal(isPrivatePlanningExtractionConfigured(), true, "sk-prefixed API keys should enable extraction");
+
+if (originalOpenAiApiKey === undefined) {
+  delete process.env.OPENAI_API_KEY;
+} else {
+  process.env.OPENAI_API_KEY = originalOpenAiApiKey;
+}
 
 const extracted = sanitizePrivatePlanningExtraction({
   vendor: {

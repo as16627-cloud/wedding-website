@@ -29,6 +29,30 @@ function getPlanningVendors(value: unknown): PrivatePlanningVendorRecord[] {
   return Array.isArray(value) ? value.filter((vendor): vendor is PrivatePlanningVendorRecord => Boolean(vendor && typeof vendor === "object")) : [];
 }
 
+function getExtractionFailureMessage(error: unknown) {
+  const message = error instanceof Error ? error.message : "Extraction failed.";
+  const lowerMessage = message.toLowerCase();
+
+  if (
+    lowerMessage.includes("api key") ||
+    lowerMessage.includes("unauthorized") ||
+    lowerMessage.includes("authentication") ||
+    lowerMessage.includes("401")
+  ) {
+    return "OpenAI rejected the extraction credentials. Recheck OPENAI_API_KEY in Vercel, then redeploy.";
+  }
+
+  if (lowerMessage.includes("rate limit") || lowerMessage.includes("429")) {
+    return "OpenAI rate-limited extraction. Please wait a minute, then run extraction again.";
+  }
+
+  if (lowerMessage.includes("quota") || lowerMessage.includes("billing")) {
+    return "OpenAI extraction is unavailable because the API project needs billing or quota attention.";
+  }
+
+  return "Could not extract details from this file. Please try again or enter the vendor manually.";
+}
+
 export async function POST(
   request: NextRequest,
   context: RouteContext<"/api/private-planning/files/[fileId]/extract">,
@@ -52,7 +76,7 @@ export async function POST(
   const force = body?.force === true;
 
   if (!isPrivatePlanningExtractionConfigured()) {
-    await createPrivatePlanningFileAuditLog(request, "extraction_failed", fileId, { reason: "OPENAI_API_KEY missing" });
+    await createPrivatePlanningFileAuditLog(request, "extraction_failed", fileId, { reason: "OPENAI_API_KEY missing or invalid" });
     return privatePlanningJson({ ok: false, error: "Document extraction is not configured yet." }, { status: 503 });
   }
 
@@ -174,17 +198,17 @@ export async function POST(
       extraction: toPrivatePlanningFileExtractionDto(updatedExtraction, suggestion),
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Extraction failed.";
+    const message = getExtractionFailureMessage(error);
     const failedExtraction = await prisma.privatePlanningFileExtraction.update({
       where: { id: extraction.id },
       data: {
         extractionStatus: "failed",
-        errorMessage: message.slice(0, 300),
+        errorMessage: message,
       },
     });
 
     await createPrivatePlanningFileAuditLog(request, "extraction_failed", file.id, {
-      reason: message.slice(0, 300),
+      reason: message,
       model: PRIVATE_PLANNING_EXTRACTION_MODEL,
     });
 

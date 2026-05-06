@@ -205,14 +205,28 @@ const extractionJsonSchema = {
 } as const;
 
 let openAiClient: OpenAI | null = null;
+let openAiClientKey: string | null = null;
+
+export function getPrivatePlanningOpenAiApiKey() {
+  const apiKey = process.env.OPENAI_API_KEY?.trim() ?? "";
+
+  return apiKey.startsWith("sk-") ? apiKey : "";
+}
 
 export function isPrivatePlanningExtractionConfigured() {
-  return Boolean(process.env.OPENAI_API_KEY);
+  return Boolean(getPrivatePlanningOpenAiApiKey());
 }
 
 function getOpenAiClient() {
-  if (!openAiClient) {
-    openAiClient = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+  const apiKey = getPrivatePlanningOpenAiApiKey();
+
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY is not configured.");
+  }
+
+  if (!openAiClient || openAiClientKey !== apiKey) {
+    openAiClient = new OpenAI({ apiKey });
+    openAiClientKey = apiKey;
   }
 
   return openAiClient;
