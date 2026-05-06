@@ -45,3 +45,69 @@ model Guest {
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
+
+model PrivatePlanningData {
+  id        String   @id
+  payload   Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PrivatePlanningSession {
+  id        String    @id
+  expiresAt DateTime
+  lastSeenAt DateTime @default(now())
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([expiresAt])
+  @@index([lastSeenAt])
+}
+
+model PrivatePlanningRateLimit {
+  scope          String
+  keyHash        String
+  failedAttempts Int       @default(0)
+  firstFailedAt  DateTime
+  lockedUntil    DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@id([scope, keyHash])
+  @@index([firstFailedAt])
+  @@index([lockedUntil])
+}
+
+model PrivatePlanningFile {
+  id               String    @id @default(cuid())
+  originalFilename String
+  storageKey       String    @unique
+  mimeType         String
+  size             Int
+  vendorId         String?
+  paymentId        String?
+  status           String    @default("pending")
+  scanStatus       String    @default("unscanned")
+  uploadedAt       DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([status])
+  @@index([vendorId])
+  @@index([uploadedAt])
+}
+
+model PrivatePlanningFileAuditLog {
+  id        String   @id @default(cuid())
+  fileId    String?
+  action    String
+  ipHash    String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([fileId])
+  @@index([action])
+  @@index([createdAt])
+}

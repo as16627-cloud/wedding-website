@@ -1,14 +1,15 @@
 "use client";
 
+import { upload } from "@vercel/blob/client";
 import {
   type ChangeEvent,
   type FormEvent,
   type ReactNode,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
   useState,
-  useSyncExternalStore,
 } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
@@ -19,22 +20,27 @@ import {
   CircleDollarSign,
   ClipboardList,
   Download,
+  FileDown,
   FileText,
-  LockKeyhole,
+  FileUp,
   MessageSquareText,
+  Paperclip,
   Pencil,
   Plus,
   Save,
   Search,
+  ShieldCheck,
   Trash2,
   Upload,
   X,
 } from "lucide-react";
-
-const PLANNING_PASSCODE = "caversham2026";
-const PLANNING_ACCESS_KEY = "private-planning-access";
-const PLANNING_ACCESS_EVENT = "private-planning-access-change";
-const LOCAL_STORAGE_CHANGE_EVENT = "private-planning-local-storage-change";
+import {
+  formatPrivatePlanningFileSize,
+  getPrivatePlanningFileExtension,
+  getPrivatePlanningMimeForExtension,
+  PRIVATE_PLANNING_MAX_FILE_BYTES,
+  privatePlanningAllowedMimeTypes,
+} from "@/lib/private-planning-file-rules";
 
 const VENDORS_KEY = "private-planning-vendors";
 const EVENTS_KEY = "private-planning-calendar-events";
@@ -43,9 +49,20 @@ const TIMELINE_KEY = "private-planning-timeline";
 const QUICK_NOTES_KEY = "private-planning-quick-notes";
 const NOTES_KEY = "private-planning-notes";
 const LEGACY_DECISION_NOTES_KEY = "private-planning-decision-notes";
+const PRIVATE_PLANNING_DATA_ENDPOINT = "/api/private-planning/data";
+const PRIVATE_PLANNING_CSRF_HEADER = "x-private-planning-csrf";
+const LEGACY_PLANNING_STORAGE_KEYS = [
+  VENDORS_KEY,
+  EVENTS_KEY,
+  TASKS_KEY,
+  TIMELINE_KEY,
+  QUICK_NOTES_KEY,
+  NOTES_KEY,
+  LEGACY_DECISION_NOTES_KEY,
+];
 
 const revealEase = [0.22, 1, 0.36, 1] as const;
-const tabs = ["Overview", "Vendors", "Calendar", "Timeline", "Notes"] as const;
+const tabs = ["Overview", "Vendors", "Calendar", "Timeline", "Files", "Notes"] as const;
 const vendorCategories = [
   "Venue",
   "Celebrant",
@@ -393,28 +410,6 @@ function createId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
-function getPlanningAccessSnapshot() {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  return sessionStorage.getItem(PLANNING_ACCESS_KEY) === "true";
-}
-
-function subscribeToPlanningAccess(onStoreChange: () => void) {
-  if (typeof window === "undefined") {
-    return () => {};
-  }
-
-  window.addEventListener("storage", onStoreChange);
-  window.addEventListener(PLANNING_ACCESS_EVENT, onStoreChange);
-
-  return () => {
-    window.removeEventListener("storage", onStoreChange);
-    window.removeEventListener(PLANNING_ACCESS_EVENT, onStoreChange);
-  };
-}
-
 function getLocalRawValue(key: string) {
   if (typeof window === "undefined") {
     return null;
@@ -423,47 +418,28 @@ function getLocalRawValue(key: string) {
   return localStorage.getItem(key);
 }
 
-function subscribeToLocalStorage(onStoreChange: () => void) {
-  if (typeof window === "undefined") {
-    return () => {};
+function parseStoredValue<T>(key: string, fallback: T) {
+  const rawValue = getLocalRawValue(key);
+
+  if (!rawValue) {
+    return fallback;
   }
 
-  window.addEventListener("storage", onStoreChange);
-  window.addEventListener(LOCAL_STORAGE_CHANGE_EVENT, onStoreChange);
-
-  return () => {
-    window.removeEventListener("storage", onStoreChange);
-    window.removeEventListener(LOCAL_STORAGE_CHANGE_EVENT, onStoreChange);
-  };
+  try {
+    return JSON.parse(rawValue) as T;
+  } catch {
+    return fallback;
+  }
 }
 
-function useLocalStorageState<T>(key: string, fallback: T) {
-  const rawValue = useSyncExternalStore(subscribeToLocalStorage, () => getLocalRawValue(key), () => null);
-  const value = useMemo(() => {
-    if (!rawValue) {
-      return fallback;
-    }
+function clearLegacyPlanningStorage() {
+  if (typeof window === "undefined") {
+    return;
+  }
 
-    try {
-      return JSON.parse(rawValue) as T;
-    } catch {
-      return fallback;
-    }
-  }, [fallback, rawValue]);
-
-  const setStoredValue = useCallback(
-    (nextValue: T) => {
-      if (typeof window === "undefined") {
-        return;
-      }
-
-      localStorage.setItem(key, JSON.stringify(nextValue));
-      window.dispatchEvent(new Event(LOCAL_STORAGE_CHANGE_EVENT));
-    },
-    [key],
-  );
-
-  return [value, setStoredValue] as const;
+  for (const key of LEGACY_PLANNING_STORAGE_KEYS) {
+    localStorage.removeItem(key);
+  }
 }
 
 function toDateKey(date: Date) {
@@ -803,53 +779,6 @@ function DueChip({ date }: { date?: string }) {
   return <span className={`rounded-full px-3 py-1 text-xs font-medium ${className}`}>{date ? formatDate(date) : "Not set"}</span>;
 }
 
-function PlanningGate() {
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (password.trim() === PLANNING_PASSCODE) {
-      sessionStorage.setItem(PLANNING_ACCESS_KEY, "true");
-      window.dispatchEvent(new Event(PLANNING_ACCESS_EVENT));
-      setError("");
-      return;
-    }
-
-    setError("That passcode does not look quite right. Please try again.");
-  }
-
-  return (
-    <main className="min-h-screen bg-[#fbf7f2] px-6 py-16 text-[#4f4641]">
-      <section className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl flex-col items-center justify-center text-center">
-        <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-[#eaded6] bg-[#fffaf7] shadow-[0_12px_30px_rgba(90,65,50,0.06)]">
-          <LockKeyhole className="h-5 w-5 text-[#b98278]" />
-        </div>
-        <p className="heading-micro mb-5">Private Planning</p>
-        <h1 className="heading-primary">Sumaya &amp; Adi</h1>
-        <p className="mt-6 text-base leading-8 text-[#6a5d55]">
-          A private planning space for vendors, timelines, and upcoming wedding decisions.
-        </p>
-
-        <form
-          onSubmit={handleSubmit}
-          className="mt-9 w-full rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/86 p-6 shadow-[0_18px_45px_rgba(90,65,50,0.07)] backdrop-blur md:p-8"
-        >
-          <TextField label="Passcode" type="password" value={password} onChange={setPassword} placeholder="Enter private passcode" />
-          {error && <p className="mt-4 text-left text-sm leading-6 text-[#9b6f68]">{error}</p>}
-          <button
-            type="submit"
-            className="mt-6 w-full rounded-full bg-[var(--color-navy)] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.22)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)]"
-          >
-            Enter Dashboard
-          </button>
-        </form>
-      </section>
-    </main>
-  );
-}
-
 type PlanningSummary = {
   nextEvent: string;
   nextPayment: string;
@@ -1001,7 +930,7 @@ function OverviewTab({
             placeholder="Small reminders, thoughts, calls to make..."
             className="mt-6 min-h-[248px] w-full resize-y rounded-[1.25rem] border border-[#eaded6] bg-white/72 p-4 text-sm leading-7 text-[#3f302b] outline-none transition duration-300 ease-out placeholder:text-[#a99790] focus:border-[#b98278]"
           />
-          <p className="mt-3 text-xs uppercase tracking-[0.2em] text-[#8c7a72]">Auto-saved locally</p>
+          <p className="mt-3 text-xs uppercase tracking-[0.2em] text-[#8c7a72]">Auto-saved securely</p>
         </PlanningCard>
       </div>
 
@@ -1991,9 +1920,308 @@ function NotesTab({ notes, setNotes }: { notes: PlanningNotes; setNotes: (notes:
             placeholder={section.placeholder}
             className="mt-5 min-h-[220px] w-full resize-y rounded-[1.25rem] border border-[#eaded6] bg-white/72 p-5 text-sm leading-7 text-[#3f302b] outline-none transition duration-300 ease-out placeholder:text-[#a99790] focus:border-[#b98278]"
           />
-          <p className="mt-3 text-xs uppercase tracking-[0.2em] text-[#8c7a72]">Auto-saved locally</p>
+          <p className="mt-3 text-xs uppercase tracking-[0.2em] text-[#8c7a72]">Auto-saved securely</p>
         </PlanningCard>
       ))}
+    </div>
+  );
+}
+
+type PrivatePlanningFileDto = {
+  id: string;
+  originalFilename: string;
+  mimeType: string;
+  size: number;
+  vendorId: string | null;
+  paymentId: string | null;
+  scanStatus: string;
+  uploadedAt: string | null;
+  createdAt: string;
+};
+
+type PrivatePlanningFilesResponse = {
+  ok: boolean;
+  files?: PrivatePlanningFileDto[];
+  storageConfigured?: boolean;
+  error?: string;
+};
+
+type PrivatePlanningUploadTicketResponse = {
+  ok: boolean;
+  ticket?: {
+    id: string;
+    storageKey: string;
+    mimeType: string;
+    maxSize: number;
+  };
+  error?: string;
+};
+
+function FilesTab({ vendors }: { vendors: Vendor[] }) {
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [files, setFiles] = useState<PrivatePlanningFileDto[]>([]);
+  const [selectedVendorId, setSelectedVendorId] = useState("");
+  const [isStorageConfigured, setIsStorageConfigured] = useState(true);
+  const [isLoadingFiles, setIsLoadingFiles] = useState(true);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [statusMessage, setStatusMessage] = useState("");
+  const vendorNameById = useMemo(() => new Map(vendors.map((vendor) => [vendor.id, vendor.vendorName])), [vendors]);
+  const acceptedFileTypes = `${privatePlanningAllowedMimeTypes.join(",")},.pdf,.png,.jpg,.jpeg,.webp`;
+
+  const loadFiles = useCallback(async () => {
+    setIsLoadingFiles(true);
+
+    try {
+      const response = await fetch("/api/private-planning/files", {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const result = (await response.json().catch(() => null)) as PrivatePlanningFilesResponse | null;
+
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error ?? "Could not load private files.");
+      }
+
+      setFiles(result.files ?? []);
+      setIsStorageConfigured(Boolean(result.storageConfigured));
+      setStatusMessage(result.storageConfigured ? "" : "Private Blob storage is not configured yet.");
+    } catch (error) {
+      console.error("Private planning file list failed.", error);
+      setStatusMessage("Private files could not be loaded.");
+    } finally {
+      setIsLoadingFiles(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      void loadFiles();
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [loadFiles]);
+
+  function validateClientFile(file: File) {
+    const extension = getPrivatePlanningFileExtension(file.name);
+    const expectedMimeType = getPrivatePlanningMimeForExtension(extension);
+
+    if (!expectedMimeType) {
+      return "Only PDF, PNG, JPG, JPEG, and WebP files are allowed.";
+    }
+
+    if (file.size <= 0 || file.size > PRIVATE_PLANNING_MAX_FILE_BYTES) {
+      return "Files must be 10 MB or smaller.";
+    }
+
+    if (file.type && file.type !== expectedMimeType) {
+      return "The file extension and browser-reported type do not match.";
+    }
+
+    return "";
+  }
+
+  async function uploadSelectedFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const validationError = validateClientFile(file);
+
+    if (validationError) {
+      setStatusMessage(validationError);
+      event.target.value = "";
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
+    setStatusMessage("Preparing secure upload...");
+
+    try {
+      const ticketResponse = await fetch("/api/private-planning/files", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          [PRIVATE_PLANNING_CSRF_HEADER]: "1",
+        },
+        body: JSON.stringify({
+          originalFilename: file.name,
+          size: file.size,
+          vendorId: selectedVendorId || undefined,
+        }),
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const ticketResult = (await ticketResponse.json().catch(() => null)) as PrivatePlanningUploadTicketResponse | null;
+
+      if (!ticketResponse.ok || !ticketResult?.ok || !ticketResult.ticket) {
+        throw new Error(ticketResult?.error ?? "Could not prepare the upload.");
+      }
+
+      setStatusMessage("Uploading privately...");
+
+      await upload(ticketResult.ticket.storageKey, file, {
+        access: "private",
+        contentType: ticketResult.ticket.mimeType,
+        handleUploadUrl: "/api/private-planning/files/upload",
+        clientPayload: JSON.stringify({
+          fileId: ticketResult.ticket.id,
+          storageKey: ticketResult.ticket.storageKey,
+        }),
+        headers: {
+          [PRIVATE_PLANNING_CSRF_HEADER]: "1",
+        },
+        multipart: file.size > 4 * 1024 * 1024,
+        onUploadProgress: (progress) => setUploadProgress(progress.percentage),
+      });
+
+      setStatusMessage("Upload complete. Validating file before it appears in the vault...");
+      await new Promise((resolve) => {
+        window.setTimeout(resolve, 1200);
+      });
+      await loadFiles();
+    } catch (error) {
+      console.error("Private planning file upload failed.", error);
+      setStatusMessage(error instanceof Error ? error.message : "Upload failed.");
+    } finally {
+      setIsUploading(false);
+      setUploadProgress(0);
+      event.target.value = "";
+    }
+  }
+
+  async function deleteFile(file: PrivatePlanningFileDto) {
+    const confirmed = window.confirm(`Delete ${file.originalFilename}? This removes the private file and its metadata.`);
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/private-planning/files/${file.id}`, {
+        method: "DELETE",
+        headers: {
+          [PRIVATE_PLANNING_CSRF_HEADER]: "1",
+        },
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const result = (await response.json().catch(() => null)) as { error?: string } | null;
+
+      if (!response.ok) {
+        throw new Error(result?.error ?? "Could not delete that file.");
+      }
+
+      setStatusMessage("Private file deleted.");
+      await loadFiles();
+    } catch (error) {
+      console.error("Private planning file delete failed.", error);
+      setStatusMessage(error instanceof Error ? error.message : "Delete failed.");
+    }
+  }
+
+  return (
+    <div className="grid gap-6">
+      <PlanningCard>
+        <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div>
+            <p className="heading-micro">Private Files</p>
+            <h2 className="heading-secondary heading-secondary-compact mt-2">Invoices & Receipts</h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6a5d55]">
+              Files are uploaded to private storage, validated after upload, and served only through authenticated downloads.
+              Scanning is marked as unscanned, so downloads open as attachments rather than inline previews.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:min-w-[320px]">
+            <label className="grid gap-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#7d6b62]">
+              Vendor
+              <select
+                value={selectedVendorId}
+                onChange={(event) => setSelectedVendorId(event.target.value)}
+                className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm normal-case tracking-normal text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
+              >
+                <option value="">No vendor association</option>
+                {vendors.map((vendor) => (
+                  <option key={vendor.id} value={vendor.id}>
+                    {vendor.vendorName}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!isStorageConfigured || isUploading}
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.18)] transition hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-55"
+            >
+              <FileUp className="h-4 w-4" />
+              {isUploading ? `Uploading ${Math.round(uploadProgress)}%` : "Upload File"}
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={acceptedFileTypes}
+              onChange={uploadSelectedFile}
+              className="hidden"
+            />
+          </div>
+        </div>
+        {statusMessage && <p className="mt-5 rounded-2xl bg-white/58 px-4 py-3 text-sm leading-6 text-[#6a5d55]">{statusMessage}</p>}
+      </PlanningCard>
+
+      <div className="grid gap-4">
+        {isLoadingFiles ? (
+          <PlanningCard>
+            <p className="text-sm leading-7 text-[#6a5d55]">Loading private files...</p>
+          </PlanningCard>
+        ) : files.length > 0 ? (
+          files.map((file) => (
+            <PlanningCard key={file.id}>
+              <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+                <div className="flex items-start gap-4">
+                  <span className="rounded-full bg-[#f4ebe4] p-3 text-[#b98278]">
+                    <Paperclip className="h-5 w-5" />
+                  </span>
+                  <div>
+                    <h3 className="font-serif text-2xl text-[#3f302b]">{file.originalFilename}</h3>
+                    <div className="mt-2 flex flex-wrap gap-2 text-xs uppercase tracking-[0.14em] text-[#7d6b62]">
+                      <span>{formatPrivatePlanningFileSize(file.size)}</span>
+                      <span>{file.mimeType}</span>
+                      <span>{file.uploadedAt ? formatDate(file.uploadedAt.slice(0, 10)) : "Processing"}</span>
+                      <span>{file.vendorId ? vendorNameById.get(file.vendorId) ?? "Vendor linked" : "No vendor"}</span>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-[#6a5d55]">Scan status: {file.scanStatus}. Download only.</p>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  <a
+                    href={`/api/private-planning/files/${file.id}/download`}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#b98278]"
+                  >
+                    <FileDown className="h-4 w-4" />
+                    Download
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => deleteFile(file)}
+                    className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/40 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6f68] transition hover:border-[#b98278]"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </PlanningCard>
+          ))
+        ) : (
+          <PlanningCard>
+            <p className="text-sm leading-7 text-[#6a5d55]">No private invoices or receipts have been uploaded yet.</p>
+          </PlanningCard>
+        )}
+      </div>
     </div>
   );
 }
@@ -2009,17 +2237,83 @@ type PlanningExport = {
   notes: PlanningNotes;
 };
 
+type PlanningDataPayload = Omit<PlanningExport, "version" | "exportedAt">;
+
+type PlanningDataApiResponse = {
+  ok: boolean;
+  hasData?: boolean;
+  data?: Partial<PlanningDataPayload> | null;
+  error?: string;
+};
+
+function normalizePlanningPayload(payload?: Partial<PlanningDataPayload> | null, legacyDecisionNotes = ""): PlanningDataPayload {
+  return {
+    vendors: normalizeVendors(payload?.vendors),
+    events: normalizeEvents(payload?.events),
+    tasks: normalizeTasks(payload?.tasks),
+    timeline: normalizeTimeline(payload?.timeline),
+    quickNotes: typeof payload?.quickNotes === "string" ? payload.quickNotes : "",
+    notes: normalizeNotes(payload?.notes, legacyDecisionNotes),
+  };
+}
+
+function buildPlanningPayload(
+  vendors: Vendor[],
+  events: CalendarEvent[],
+  tasks: PlanningTask[],
+  timeline: TimelineSection[],
+  quickNotes: string,
+  notes: PlanningNotes,
+): PlanningDataPayload {
+  return {
+    vendors,
+    events,
+    tasks,
+    timeline,
+    quickNotes,
+    notes,
+  };
+}
+
+function readLegacyPlanningPayload() {
+  // Security migration: previous dashboard builds used localStorage as the data source;
+  // these reads only preserve a one-time handoff before clearing browser storage.
+  const hasLegacyData = LEGACY_PLANNING_STORAGE_KEYS.some((key) => getLocalRawValue(key) !== null);
+
+  if (!hasLegacyData) {
+    return { hasLegacyData: false, payload: null, legacyDecisionNotes: "" };
+  }
+
+  const legacyDecisionNotes = parseStoredValue(LEGACY_DECISION_NOTES_KEY, "");
+
+  return {
+    hasLegacyData: true,
+    legacyDecisionNotes,
+    payload: {
+      vendors: parseStoredValue<Vendor[]>(VENDORS_KEY, defaultVendors),
+      events: parseStoredValue<CalendarEvent[]>(EVENTS_KEY, defaultCalendarEvents),
+      tasks: parseStoredValue<PlanningTask[]>(TASKS_KEY, defaultTasks),
+      timeline: parseStoredValue<TimelineSection[]>(TIMELINE_KEY, defaultTimeline),
+      quickNotes: parseStoredValue(QUICK_NOTES_KEY, ""),
+      notes: parseStoredValue<PlanningNotes>(NOTES_KEY, defaultNotes),
+    },
+  };
+}
+
 function PlanningDashboardContent() {
   const shouldReduceMotion = useReducedMotion();
   const importInputRef = useRef<HTMLInputElement | null>(null);
+  const skipNextPersistRef = useRef(true);
   const [activeTab, setActiveTab] = useState<Tab>("Overview");
-  const [storedVendors, setStoredVendors] = useLocalStorageState<Vendor[]>(VENDORS_KEY, defaultVendors);
-  const [storedEvents, setStoredEvents] = useLocalStorageState<CalendarEvent[]>(EVENTS_KEY, defaultCalendarEvents);
-  const [storedTasks, setStoredTasks] = useLocalStorageState<PlanningTask[]>(TASKS_KEY, defaultTasks);
-  const [storedTimeline, setStoredTimeline] = useLocalStorageState<TimelineSection[]>(TIMELINE_KEY, defaultTimeline);
-  const [quickNotes, setQuickNotes] = useLocalStorageState(QUICK_NOTES_KEY, "");
-  const [legacyDecisionNotes] = useLocalStorageState(LEGACY_DECISION_NOTES_KEY, "");
-  const [storedNotes, setStoredNotes] = useLocalStorageState<PlanningNotes>(NOTES_KEY, defaultNotes);
+  const [storedVendors, setStoredVendors] = useState<Vendor[]>(defaultVendors);
+  const [storedEvents, setStoredEvents] = useState<CalendarEvent[]>(defaultCalendarEvents);
+  const [storedTasks, setStoredTasks] = useState<PlanningTask[]>(defaultTasks);
+  const [storedTimeline, setStoredTimeline] = useState<TimelineSection[]>(defaultTimeline);
+  const [quickNotes, setQuickNotes] = useState("");
+  const [legacyDecisionNotes, setLegacyDecisionNotes] = useState("");
+  const [storedNotes, setStoredNotes] = useState<PlanningNotes>(defaultNotes);
+  const [isPlanningDataLoaded, setIsPlanningDataLoaded] = useState(false);
+  const [planningDataStatus, setPlanningDataStatus] = useState("Loading secure planning data...");
   const vendors = useMemo(() => normalizeVendors(storedVendors), [storedVendors]);
   const events = useMemo(() => normalizeEvents(storedEvents), [storedEvents]);
   const tasks = useMemo(() => normalizeTasks(storedTasks), [storedTasks]);
@@ -2031,11 +2325,140 @@ function PlanningDashboardContent() {
   const setTasks = useCallback((next: PlanningTask[]) => setStoredTasks(normalizeTasks(next)), [setStoredTasks]);
   const setTimeline = useCallback((next: TimelineSection[]) => setStoredTimeline(normalizeTimeline(next)), [setStoredTimeline]);
   const setNotes = useCallback((next: PlanningNotes) => setStoredNotes(normalizeNotes(next)), [setStoredNotes]);
+  const applyPlanningPayload = useCallback((payload: PlanningDataPayload) => {
+    setStoredVendors(payload.vendors);
+    setStoredEvents(payload.events);
+    setStoredTasks(payload.tasks);
+    setStoredTimeline(payload.timeline);
+    setQuickNotes(payload.quickNotes);
+    setLegacyDecisionNotes("");
+    setStoredNotes(payload.notes);
+  }, []);
+  const savePlanningPayload = useCallback(async (payload: PlanningDataPayload, signal?: AbortSignal) => {
+    const response = await fetch(PRIVATE_PLANNING_DATA_ENDPOINT, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        [PRIVATE_PLANNING_CSRF_HEADER]: "1",
+      },
+      body: JSON.stringify(payload),
+      cache: "no-store",
+      credentials: "same-origin",
+      signal,
+    });
+    const result = (await response.json().catch(() => null)) as { error?: string } | null;
+
+    if (!response.ok) {
+      throw new Error(result?.error ?? "Could not save private planning data.");
+    }
+  }, []);
   const reveal = {
     initial: shouldReduceMotion ? false : { opacity: 0, y: 16 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: shouldReduceMotion ? 0 : 0.55, ease: revealEase },
   };
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    async function loadPlanningData() {
+      try {
+        const response = await fetch(PRIVATE_PLANNING_DATA_ENDPOINT, {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+
+        if (response.status === 401) {
+          window.location.reload();
+          return;
+        }
+
+        const result = (await response.json().catch(() => null)) as PlanningDataApiResponse | null;
+
+        if (!response.ok || !result?.ok) {
+          throw new Error(result?.error ?? "Could not load private planning data.");
+        }
+
+        const legacyPlanningData = readLegacyPlanningPayload();
+        const payload =
+          result.hasData && result.data
+            ? normalizePlanningPayload(result.data)
+            : legacyPlanningData.hasLegacyData
+              ? normalizePlanningPayload(legacyPlanningData.payload, legacyPlanningData.legacyDecisionNotes)
+              : normalizePlanningPayload();
+
+        if (!isCurrent) {
+          return;
+        }
+
+        skipNextPersistRef.current = true;
+        applyPlanningPayload(payload);
+        setIsPlanningDataLoaded(true);
+
+        if (!result.hasData && legacyPlanningData.hasLegacyData) {
+          await savePlanningPayload(payload);
+          clearLegacyPlanningStorage();
+
+          if (isCurrent) {
+            setPlanningDataStatus("Migrated to secure server storage.");
+          }
+
+          return;
+        }
+
+        clearLegacyPlanningStorage();
+        setPlanningDataStatus("Auto-saved securely.");
+      } catch (error) {
+        console.error("Private planning dashboard load failed.", error);
+
+        if (isCurrent) {
+          setPlanningDataStatus("Secure planning data could not be loaded.");
+        }
+      }
+    }
+
+    loadPlanningData();
+
+    return () => {
+      isCurrent = false;
+    };
+  }, [applyPlanningPayload, savePlanningPayload]);
+
+  useEffect(() => {
+    if (!isPlanningDataLoaded) {
+      return undefined;
+    }
+
+    if (skipNextPersistRef.current) {
+      skipNextPersistRef.current = false;
+      return undefined;
+    }
+
+    const controller = new AbortController();
+    const payload = buildPlanningPayload(vendors, events, tasks, timeline, quickNotes, notes);
+    const timeoutId = window.setTimeout(() => {
+      setPlanningDataStatus("Saving securely...");
+
+      savePlanningPayload(payload, controller.signal)
+        .then(() => {
+          clearLegacyPlanningStorage();
+          setPlanningDataStatus("Auto-saved securely.");
+        })
+        .catch((error) => {
+          if (controller.signal.aborted) {
+            return;
+          }
+
+          console.error("Private planning dashboard save failed.", error);
+          setPlanningDataStatus("Secure auto-save failed. Export a backup before leaving.");
+        });
+    }, 700);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [events, isPlanningDataLoaded, notes, quickNotes, savePlanningPayload, tasks, timeline, vendors]);
 
   function exportPlanningData() {
     const payload: PlanningExport = {
@@ -2079,6 +2502,17 @@ function PlanningDashboardContent() {
     }
   }
 
+  async function logout() {
+    await fetch("/api/private-planning/logout", {
+      method: "POST",
+      cache: "no-store",
+      credentials: "same-origin",
+    }).catch(() => null);
+
+    clearLegacyPlanningStorage();
+    window.location.reload();
+  }
+
   const renderTab = useCallback(() => {
     if (activeTab === "Overview") {
       return <OverviewTab vendors={vendors} events={events} tasks={tasks} quickNotes={quickNotes} setQuickNotes={setQuickNotes} setTasks={setTasks} />;
@@ -2094,6 +2528,10 @@ function PlanningDashboardContent() {
 
     if (activeTab === "Timeline") {
       return <TimelineTab timeline={timeline} setTimeline={setTimeline} />;
+    }
+
+    if (activeTab === "Files") {
+      return <FilesTab vendors={vendors} />;
     }
 
     return <NotesTab notes={notes} setNotes={setNotes} />;
@@ -2112,16 +2550,25 @@ function PlanningDashboardContent() {
                 A private space for managing vendors, timelines, and upcoming plans.
               </p>
             </div>
-            <div className="flex flex-wrap gap-3">
-              <button type="button" onClick={exportPlanningData} className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#b98278]">
-                <Download className="h-4 w-4" />
-                Export JSON
-              </button>
-              <button type="button" onClick={() => importInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.18)] transition hover:bg-[var(--color-navy-hover)]">
-                <Upload className="h-4 w-4" />
-                Import JSON
-              </button>
-              <input ref={importInputRef} type="file" accept="application/json" onChange={importPlanningData} className="hidden" />
+            <div className="flex flex-col gap-3 lg:items-end">
+              <p className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#7d6b62]">
+                <ShieldCheck className="h-4 w-4 text-[#b98278]" />
+                {planningDataStatus}
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <button type="button" onClick={exportPlanningData} className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#b98278]">
+                  <Download className="h-4 w-4" />
+                  Export JSON
+                </button>
+                <button type="button" onClick={() => importInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.18)] transition hover:bg-[var(--color-navy-hover)]">
+                  <Upload className="h-4 w-4" />
+                  Import JSON
+                </button>
+                <button type="button" onClick={logout} className="inline-flex items-center justify-center rounded-full border border-[#eaded6] bg-white/50 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#6a5d55] transition hover:border-[#b98278]">
+                  Log out
+                </button>
+                <input ref={importInputRef} type="file" accept="application/json" onChange={importPlanningData} className="hidden" />
+              </div>
             </div>
           </div>
         </motion.header>
@@ -2162,11 +2609,5 @@ function PlanningDashboardContent() {
 }
 
 export default function PrivatePlanningDashboard() {
-  const unlocked = useSyncExternalStore(subscribeToPlanningAccess, getPlanningAccessSnapshot, () => false);
-
-  if (!unlocked) {
-    return <PlanningGate />;
-  }
-
   return <PlanningDashboardContent />;
 }

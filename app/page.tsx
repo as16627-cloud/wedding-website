@@ -1082,41 +1082,41 @@ export default function WeddingWebsiteStarter() {
     : "transition-[opacity,transform,box-shadow,border-color,background-color,color] duration-[400ms] ease-out hover:scale-[1.02]";
   const heroRevealTiming = isHeroMobile
     ? {
-        textDuration: 0.86,
-        namesDuration: 0.88,
-        dividerDuration: 0.78,
-        ctaDuration: 0.88,
-        textY: 4,
-        namesY: 4,
-        ctaY: 4,
+        textDuration: 1.08,
+        namesDuration: 1.12,
+        dividerDuration: 1.05,
+        ctaDuration: 1.08,
+        textY: 0,
+        namesY: 0,
+        ctaY: 3,
         blur: 1.5,
         delays: {
           eyebrow: 0,
-          names: 0.12,
-          divider: 0.25,
-          dateVenue: 0.38,
-          timeLocation: 0.51,
-          cta: 0.72,
-          scrollCue: 0.84,
+          names: 0.18,
+          divider: 0.36,
+          dateVenue: 0.54,
+          timeLocation: 0.72,
+          cta: 1.22,
+          scrollCue: 1.34,
         },
       }
     : {
-        textDuration: 1.02,
-        namesDuration: 1.08,
-        dividerDuration: 0.86,
-        ctaDuration: 1.1,
-        textY: 7,
-        namesY: 7,
-        ctaY: 7,
+        textDuration: 1.3,
+        namesDuration: 1.36,
+        dividerDuration: 1.12,
+        ctaDuration: 1.3,
+        textY: 0,
+        namesY: 0,
+        ctaY: 4,
         blur: 4,
         delays: {
           eyebrow: 0,
-          names: 0.19,
-          divider: 0.39,
-          dateVenue: 0.59,
-          timeLocation: 0.79,
-          cta: 1.08,
-          scrollCue: 1.2,
+          names: 0.24,
+          divider: 0.48,
+          dateVenue: 0.72,
+          timeLocation: 0.96,
+          cta: 1.72,
+          scrollCue: 1.84,
         },
       };
   const heroRevealTransition = (delay = 0, duration = heroRevealTiming.textDuration): Transition => ({
@@ -1157,7 +1157,10 @@ export default function WeddingWebsiteStarter() {
   const heroDividerMarkMotion = {
     initial: shouldReduceMotion ? false : { opacity: 0 },
     animate: heroCopyRevealReady ? { opacity: 1 } : { opacity: 0 },
-    transition: heroRevealTransition(heroRevealTiming.delays.divider + (isHeroMobile ? 0.06 : 0.08), heroRevealTiming.dividerDuration),
+    transition: heroRevealTransition(
+      heroRevealTiming.delays.divider + (isHeroMobile ? 0.08 : 0.1),
+      heroRevealTiming.dividerDuration,
+    ),
   };
   const selectedDressSwatch =
     [...dressCodePastelPalette, ...dressCodeClassicPalette].find((swatch) => swatch.label === selectedSwatchLabel) ??
@@ -1432,7 +1435,7 @@ export default function WeddingWebsiteStarter() {
               aria-label="Scroll to wedding details"
               {...heroTextRevealMotion(
                 heroRevealTiming.delays.scrollCue,
-                heroRevealTiming.textY,
+                0,
                 heroRevealTiming.textDuration * 0.78,
                 heroRevealTiming.blur,
               )}
