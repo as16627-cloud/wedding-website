@@ -16,7 +16,10 @@ import {
   validatePrivatePlanningFileTicket,
 } from "@/lib/private-planning-files";
 import { verifyPrivatePlanningSession } from "@/lib/private-planning-session";
-import { toPrivatePlanningFileExtractionDto } from "@/lib/private-planning-vendor-extraction";
+import {
+  isPrivatePlanningExtractionConfigured,
+  toPrivatePlanningFileExtractionDto,
+} from "@/lib/private-planning-vendor-extraction";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -93,6 +96,7 @@ export async function GET(request: NextRequest) {
       });
     }),
     storageConfigured: isPrivatePlanningBlobConfigured(),
+    extractionConfigured: isPrivatePlanningExtractionConfigured(),
   });
 }
 

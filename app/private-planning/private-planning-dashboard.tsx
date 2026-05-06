@@ -2026,6 +2026,7 @@ type PrivatePlanningFilesResponse = {
   ok: boolean;
   files?: PrivatePlanningFileDto[];
   storageConfigured?: boolean;
+  extractionConfigured?: boolean;
   error?: string;
 };
 
@@ -2111,6 +2112,7 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
   const [files, setFiles] = useState<PrivatePlanningFileDto[]>([]);
   const [selectedVendorId, setSelectedVendorId] = useState("");
   const [isStorageConfigured, setIsStorageConfigured] = useState(true);
+  const [isExtractionConfigured, setIsExtractionConfigured] = useState(true);
   const [isLoadingFiles, setIsLoadingFiles] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [autoExtractAfterUpload, setAutoExtractAfterUpload] = useState(true);
@@ -2166,8 +2168,18 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
 
         return next;
       });
-      setIsStorageConfigured(Boolean(result.storageConfigured));
-      setStatusMessage(result.storageConfigured ? "" : "Private Blob storage is not configured yet.");
+      const storageConfigured = Boolean(result.storageConfigured);
+      const extractionConfigured = result.extractionConfigured !== false;
+
+      setIsStorageConfigured(storageConfigured);
+      setIsExtractionConfigured(extractionConfigured);
+
+      if (!storageConfigured) {
+        setStatusMessage("Private Blob storage is not configured yet.");
+      } else if (!extractionConfigured) {
+        setStatusMessage("AI vendor extraction is not configured yet. Add OPENAI_API_KEY in Vercel to enable Extract Details.");
+      }
+
       return nextFiles;
     } catch (error) {
       console.error("Private planning file list failed.", error);
@@ -2206,6 +2218,11 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
   }
 
   async function extractFile(fileId: string, force = false) {
+    if (!isExtractionConfigured) {
+      setStatusMessage("AI vendor extraction is not configured yet. Add OPENAI_API_KEY in Vercel to enable Extract Details.");
+      return;
+    }
+
     setExtractingFileId(fileId);
     setStatusMessage(force ? "Re-running private extraction..." : "Extracting vendor details privately...");
 
@@ -2383,7 +2400,9 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
       });
       let loadedFiles = await loadFiles();
 
-      if (autoExtractAfterUpload) {
+      if (autoExtractAfterUpload && !isExtractionConfigured) {
+        setStatusMessage("Upload complete. AI vendor extraction is not configured yet. Add OPENAI_API_KEY in Vercel to enable auto-extraction.");
+      } else if (autoExtractAfterUpload) {
         for (let attempt = 0; attempt < 3 && !loadedFiles.some((item) => item.id === ticketResult.ticket?.id && item.uploadedAt); attempt += 1) {
           await new Promise((resolve) => {
             window.setTimeout(resolve, 1000);
@@ -2607,9 +2626,17 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
                 type="checkbox"
                 checked={autoExtractAfterUpload}
                 onChange={(event) => setAutoExtractAfterUpload(event.target.checked)}
+                disabled={!isExtractionConfigured}
                 className="mt-1 h-4 w-4 accent-[var(--color-navy)]"
               />
-              <span>Auto-extract vendor details after upload</span>
+              <span>
+                Auto-extract vendor details after upload
+                {!isExtractionConfigured && (
+                  <span className="mt-1 block text-xs leading-5 text-[#9b6f68]">
+                    Needs OPENAI_API_KEY in Vercel.
+                  </span>
+                )}
+              </span>
             </label>
             <button
               type="button"
@@ -2664,6 +2691,11 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
                       <p className="text-sm leading-6 text-[#6a5d55]">Scan status: {file.scanStatus}. Download only.</p>
                     </div>
                     {file.extraction?.errorMessage && <p className="mt-2 text-sm leading-6 text-[#9b6f68]">{file.extraction.errorMessage}</p>}
+                    {!isExtractionConfigured && (
+                      <p className="mt-2 text-sm leading-6 text-[#9b6f68]">
+                        AI extraction is unavailable until OPENAI_API_KEY is added in Vercel.
+                      </p>
+                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -2671,11 +2703,17 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
                     <button
                       type="button"
                       onClick={() => extractFile(file.id, extractionStatus === "dismissed" || extractionStatus === "failed")}
-                      disabled={extractingFileId === file.id}
+                      disabled={extractingFileId === file.id || !isExtractionConfigured}
                       className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#b98278] disabled:cursor-not-allowed disabled:opacity-55"
                     >
                       <FileText className="h-4 w-4" />
-                      {extractingFileId === file.id ? "Extracting" : extractionStatus === "dismissed" || extractionStatus === "failed" ? "Run Again" : "Extract Details"}
+                      {!isExtractionConfigured
+                        ? "Extraction Unavailable"
+                        : extractingFileId === file.id
+                          ? "Extracting"
+                          : extractionStatus === "dismissed" || extractionStatus === "failed"
+                            ? "Run Again"
+                            : "Extract Details"}
                     </button>
                   )}
                   <a
