@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { type FormEvent, type ReactNode, useState, useSyncExternalStore } from "react";
 
 const INNER_CIRCLE_PASSWORD = "garden2026";
@@ -13,7 +14,176 @@ const pageAnchors = [
   { href: "#week", label: "Wedding week" },
   { href: "#roles", label: "Roles" },
   { href: "#style", label: "Style" },
+  { href: "#lookbooks", label: "Lookbooks" },
   { href: "#contact", label: "Contact" },
+];
+
+type LookbookCategory = {
+  id: string;
+  label: string;
+  brief: string;
+  weLove: string;
+  avoid: string;
+  comfort: string;
+  palette: Array<{ name: string; hex: string }>;
+  images: Array<{
+    src: string;
+    title: string;
+    caption: string;
+    why: string;
+  }>;
+};
+
+const lookbooks: LookbookCategory[] = [
+  {
+    id: "bridal-party",
+    label: "Bridal Party",
+    brief: "Soft, romantic, garden-formal dressing in blush, champagne, sage, powder blue, nude, and dusty lavender tones.",
+    weLove: "Flowing fabrics, soft silhouettes, romantic details, subtle texture, and movement.",
+    avoid: "Neon colours, loud prints, overly casual fabrics, or anything that clashes with the soft garden palette.",
+    comfort: "Choose pieces that move easily through garden paths, photos, hugs, dinner, and dancing.",
+    palette: [
+      { name: "Blush", hex: "#EBC8C4" },
+      { name: "Champagne", hex: "#E7D4B8" },
+      { name: "Soft sage", hex: "#B9C7AA" },
+      { name: "Powder blue", hex: "#B9CBDD" },
+      { name: "Dusty lavender", hex: "#C9B7D6" },
+      { name: "Nude", hex: "#D9BDAE" },
+    ],
+    images: [
+      {
+        src: "/images/dress-code/pastel-formal-main.jpg",
+        title: "Pastel garden formal",
+        caption: "The soft tonal direction for romantic bridal-party styling.",
+        why: "It keeps the palette airy, elegant, and cohesive without feeling too matched.",
+      },
+      {
+        src: "/images/dress-code/pastel-formal-lavender.jpg",
+        title: "Dusty lavender",
+        caption: "A gentle pastel option with a romantic garden feel.",
+        why: "The tone photographs softly beside blush, sage, champagne, and ivory.",
+      },
+      {
+        src: "/images/dress-code/pastel-formal-saree.jpg",
+        title: "Soft formal drape",
+        caption: "Elegant movement and fabric that feels occasion-ready.",
+        why: "Flow and texture make the look feel special while staying graceful.",
+      },
+    ],
+  },
+  {
+    id: "grooms-party",
+    label: "Groom's Party",
+    brief: "Classic formal tailoring with clean lines, polished shoes, and refined neutral tones.",
+    weLove: "Navy, charcoal, black, beige, crisp shirts, champagne or blush accents, and thoughtful finishing details.",
+    avoid: "Casual sneakers, loud ties, clashing accessories, or anything that feels too informal.",
+    comfort: "Tailoring should fit well, breathe well, and hold its shape from ceremony to dance floor.",
+    palette: [
+      { name: "Navy", hex: "#1F2A44" },
+      { name: "Charcoal", hex: "#4B4A49" },
+      { name: "Black", hex: "#171513" },
+      { name: "Beige", hex: "#CBB7A1" },
+      { name: "Champagne", hex: "#E7D4B8" },
+      { name: "Blush accent", hex: "#C08A7A" },
+    ],
+    images: [
+      {
+        src: "/images/dress-code/classic-formal-navy.jpg",
+        title: "Refined navy",
+        caption: "A polished groom-inspired tone that feels formal without being heavy.",
+        why: "Navy brings structure and depth while still sitting beautifully beside blush and ivory.",
+      },
+      {
+        src: "/images/dress-code/classic-formal-charcoal.jpg",
+        title: "Classic charcoal",
+        caption: "Quiet, timeless tailoring for a formal garden setting.",
+        why: "Charcoal is elegant, versatile, and easy to coordinate with soft accents.",
+      },
+      {
+        src: "/images/dress-code/classic-formal-black.jpg",
+        title: "Black formal",
+        caption: "A crisp, classic option for a polished evening feel.",
+        why: "It keeps the look elevated and timeless when styled cleanly.",
+      },
+      {
+        src: "/images/dress-code/classic-formal-beige.jpg",
+        title: "Warm beige",
+        caption: "A softer tailoring option for daytime garden romance.",
+        why: "Warm neutrals lighten the overall palette without feeling casual.",
+      },
+    ],
+  },
+  {
+    id: "family-inner-circle",
+    label: "Family / Inner Circle",
+    brief: "Elegant, polished, and cohesive with the garden setting. Soft neutrals, pastels, and classic formal tones are all welcome.",
+    weLove: "Outfits that feel timeless, comfortable, and photo-ready.",
+    avoid: "Overly bright neon colours or anything too casual.",
+    comfort: "Choose an outfit you can sit, stand, walk, hug, and celebrate in comfortably.",
+    palette: [
+      { name: "Blush", hex: "#EBC8C4" },
+      { name: "Rose beige", hex: "#D8B7AE" },
+      { name: "Ivory", hex: "#FFF8F4" },
+      { name: "Sage", hex: "#AEBE9E" },
+      { name: "Navy", hex: "#1F2A44" },
+      { name: "Charcoal", hex: "#4B4A49" },
+    ],
+    images: [
+      {
+        src: "/images/dress-code/pastel-formal-main.jpg",
+        title: "Soft mixed pastels",
+        caption: "A cohesive family palette without needing everyone to match.",
+        why: "It allows individuality while keeping photos calm and beautifully tied together.",
+      },
+      {
+        src: "/images/dress-code/classic-formal-beige.jpg",
+        title: "Warm neutral formal",
+        caption: "A timeless neutral option that works well with the venue and garden.",
+        why: "It feels polished, approachable, and easy to pair with rose-gold accents.",
+      },
+      {
+        src: "/images/dress-code/classic-formal-navy.jpg",
+        title: "Structured navy",
+        caption: "A refined deeper tone for family and close helpers.",
+        why: "It balances the softer palette with a little groom-side structure.",
+      },
+    ],
+  },
+  {
+    id: "getting-ready",
+    label: "Getting Ready",
+    brief: "Soft, calm, pretty, and comfortable for the morning.",
+    weLove: "Robes, pyjamas, slippers, soft neutral tones, blush accents, and pieces that photograph beautifully.",
+    avoid: "Anything uncomfortable, overly busy, or difficult to change out of.",
+    comfort: "Prioritise easy layers, gentle fabrics, and pieces that will not disturb hair or makeup.",
+    palette: [
+      { name: "Warm ivory", hex: "#FFF8F4" },
+      { name: "Blush", hex: "#EBC8C4" },
+      { name: "Champagne", hex: "#E7D4B8" },
+      { name: "Soft taupe", hex: "#BBA9A0" },
+      { name: "Sage", hex: "#B9C7AA" },
+    ],
+    images: [
+      {
+        src: "/images/venue-card.png",
+        title: "Calm morning mood",
+        caption: "Soft architectural light and quiet garden-house energy.",
+        why: "The getting-ready feel should be pretty, calm, and unhurried.",
+      },
+      {
+        src: "/images/dress-code/pastel-formal-saree.jpg",
+        title: "Soft fabric detail",
+        caption: "Gentle fabric, easy movement, and romantic texture.",
+        why: "These details photograph beautifully in morning prep moments.",
+      },
+      {
+        src: "/images/floral-fixed-top-right.png",
+        title: "Blush floral accents",
+        caption: "A soft floral reference for the morning palette.",
+        why: "It keeps the styling connected to the overall garden romance mood.",
+      },
+    ],
+  },
 ];
 
 const keyDetails = [
@@ -191,6 +361,162 @@ function SoftCard({ children, className = "" }: { children: ReactNode; className
   );
 }
 
+function LookbookMoodboard() {
+  const [activeLookbookId, setActiveLookbookId] = useState(lookbooks[0].id);
+  const [selectedImage, setSelectedImage] = useState<{
+    image: LookbookCategory["images"][number];
+    category: string;
+  } | null>(null);
+  const activeLookbook = lookbooks.find((lookbook) => lookbook.id === activeLookbookId) ?? lookbooks[0];
+  const [featureImage, ...supportingImages] = activeLookbook.images;
+
+  return (
+    <>
+      <PrivateSection id="lookbooks" contentClassName="mx-auto max-w-6xl">
+        <SectionHeading
+          eyebrow="STYLE NOTES"
+          title="Lookbooks"
+          copy="A little visual guide for the people standing closest to us. These are here to help everyone understand the overall mood, colours, and level of formality - not to make anyone feel boxed in."
+        />
+
+        <div className="mx-auto mb-8 flex max-w-4xl flex-wrap justify-center gap-2 rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/78 p-2 shadow-[0_12px_34px_rgba(90,65,50,0.045)]">
+          {lookbooks.map((lookbook) => (
+            <button
+              key={lookbook.id}
+              type="button"
+              onClick={() => setActiveLookbookId(lookbook.id)}
+              className={`min-h-10 rounded-full px-4 text-[11px] font-semibold uppercase tracking-[0.12em] transition ${
+                activeLookbook.id === lookbook.id
+                  ? "bg-[var(--color-navy)] text-[var(--color-cta-text)] shadow-[0_10px_24px_rgba(31,42,68,0.16)]"
+                  : "text-[#7d6b62] hover:bg-white/78 hover:text-[#8f6a63]"
+              }`}
+            >
+              {lookbook.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid gap-6 lg:grid-cols-[0.88fr_1.12fr]">
+          <SoftCard className="lg:sticky lg:top-6">
+            <p className="heading-micro mb-3">{activeLookbook.label}</p>
+            <h3 className="heading-secondary">Style brief</h3>
+            <p className="type-card-body mt-4">{activeLookbook.brief}</p>
+
+            <div className="mt-6 flex flex-wrap gap-2">
+              {activeLookbook.palette.map((tone) => (
+                <span key={tone.name} className="inline-flex items-center gap-2 rounded-full border border-[#eaded6] bg-white/68 py-1.5 pl-2 pr-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#75675f]">
+                  <span className="h-4 w-4 rounded-full border border-[#e3d1c9]" style={{ backgroundColor: tone.hex }} />
+                  {tone.name}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-7 grid gap-4">
+              <div>
+                <p className="heading-micro mb-2">We love</p>
+                <p className="type-card-body">{activeLookbook.weLove}</p>
+              </div>
+              <div>
+                <p className="heading-micro mb-2">Please avoid</p>
+                <p className="type-card-body">{activeLookbook.avoid}</p>
+              </div>
+              <div>
+                <p className="heading-micro mb-2">Comfort notes</p>
+                <p className="type-card-body">{activeLookbook.comfort}</p>
+              </div>
+            </div>
+          </SoftCard>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => setSelectedImage({ image: featureImage, category: activeLookbook.label })}
+              className="group relative min-h-[28rem] overflow-hidden rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7] text-left shadow-[0_18px_40px_rgba(90,65,50,0.08)] transition duration-500 hover:-translate-y-1 sm:col-span-2"
+            >
+              <Image
+                src={featureImage.src}
+                alt={featureImage.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 58vw"
+                className="object-cover transition duration-700 group-hover:scale-[1.035]"
+              />
+              <span className="absolute inset-0 bg-gradient-to-t from-[#3f302b]/44 via-transparent to-transparent" />
+              <span className="absolute bottom-0 left-0 right-0 p-5 text-[#fff8f4]">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] opacity-85">Feature image</span>
+                <span className="mt-2 block font-serif text-3xl leading-tight">{featureImage.title}</span>
+                <span className="mt-2 block max-w-xl text-sm leading-6 opacity-90">{featureImage.caption}</span>
+              </span>
+            </button>
+
+            {supportingImages.map((image) => (
+              <button
+                key={image.title}
+                type="button"
+                onClick={() => setSelectedImage({ image, category: activeLookbook.label })}
+                className="group overflow-hidden rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7]/82 text-left shadow-[0_12px_30px_rgba(90,65,50,0.055)] transition duration-500 hover:-translate-y-1"
+              >
+                <span className="relative block aspect-[4/3] overflow-hidden">
+                  <Image
+                    src={image.src}
+                    alt={image.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 28vw"
+                    className="object-cover transition duration-700 group-hover:scale-[1.05]"
+                  />
+                </span>
+                <span className="block p-4">
+                  <span className="font-serif text-xl text-[#3f302b]">{image.title}</span>
+                  <span className="mt-2 block text-sm leading-6 text-[#6a5d55]">{image.caption}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </PrivateSection>
+
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#3f302b]/64 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={`${selectedImage.image.title} lookbook image`}>
+          <button
+            type="button"
+            aria-label="Close lookbook image"
+            className="absolute inset-0 cursor-default"
+            onClick={() => setSelectedImage(null)}
+          />
+          <div className="relative max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-[2rem] border border-[#eaded6] bg-[#fffaf7] shadow-[0_28px_80px_rgba(40,30,26,0.3)]">
+            <button
+              type="button"
+              onClick={() => setSelectedImage(null)}
+              className="absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[#d8bd96]"
+            >
+              Close
+            </button>
+            <div className="grid max-h-[92vh] overflow-y-auto lg:grid-cols-[1.25fr_0.75fr]">
+              <div className="relative min-h-[22rem] lg:min-h-[42rem]">
+                <Image
+                  src={selectedImage.image.src}
+                  alt={selectedImage.image.title}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 58vw"
+                  className="object-cover"
+                />
+              </div>
+              <div className="p-6 md:p-8">
+                <p className="heading-micro mb-3">{selectedImage.category}</p>
+                <h3 className="heading-secondary">{selectedImage.image.title}</h3>
+                <p className="type-card-body mt-5">{selectedImage.image.caption}</p>
+                <div className="mt-7 rounded-2xl border border-[#eaded6] bg-white/62 p-5">
+                  <p className="heading-micro mb-2">Why we love it</p>
+                  <p className="type-card-body">{selectedImage.image.why}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 function InnerCircleContent() {
   return (
     <main className="min-h-screen bg-[#fbf7f2] text-[#4f4641]">
@@ -324,6 +650,8 @@ function InnerCircleContent() {
           </div>
         </SoftCard>
       </PrivateSection>
+
+      <LookbookMoodboard />
 
       <PrivateSection>
         <SectionHeading title="Little ways to help" copy="Nothing here needs to feel formal. These are simply the small things that make the day easier." />
