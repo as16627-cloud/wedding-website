@@ -170,6 +170,8 @@ type TimelineTask = {
 type TimelineSection = {
   id: string;
   title: string;
+  category: string;
+  priority: Priority;
   tasks: TimelineTask[];
 };
 
@@ -329,77 +331,376 @@ const defaultTasks: PlanningTask[] = [
   },
 ];
 
+function createTimelineTasks(sectionId: string, tasks: string[]): TimelineTask[] {
+  return tasks.map((text, index) => ({
+    id: `${sectionId}-task-${String(index + 1).padStart(2, "0")}`,
+    text,
+    done: false,
+  }));
+}
+
 const defaultTimeline: TimelineSection[] = [
   {
-    id: "now",
-    title: "Now",
-    tasks: [
-      { id: "task-confirm-venue", text: "Confirm venue", done: true },
-      { id: "task-book-photo", text: "Book photographer", done: false },
-      { id: "task-style-direction", text: "Confirm styling direction", done: false },
-    ],
+    id: "timeline-2026-04-01-planning-reset",
+    title: "1-7 April 2026 - Planning reset + essentials audit",
+    category: "Planning",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-04-01-planning-reset", [
+      "Confirm overall wedding vibe and design direction.",
+      "Confirm working budget and payment tracking.",
+      "Create or review full guest list.",
+      "Decide whether a planner/coordinator is needed.",
+      "Audit what is already booked: venue, photographer, videographer, florist, celebrant, entertainment, dress, accommodation.",
+      "Create urgent supplier shortlist for anything not yet booked.",
+    ]),
   },
   {
-    id: "twelve-months",
-    title: "12 months out",
-    tasks: [
-      { id: "task-budget", text: "Confirm planning budget", done: false },
-      { id: "task-guest-list", text: "Draft guest list", done: false },
-    ],
+    id: "timeline-2026-04-08-guest-list-save-date",
+    title: "8-14 April 2026 - Guest list + save-the-date foundation",
+    category: "Guests",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-04-08-guest-list-save-date", [
+      "Finalize working guest list.",
+      "Group guests into households.",
+      "Confirm addresses/emails if needed.",
+      "Confirm RSVP process and guest-facing RSVP page.",
+      "Send or prepare save-the-dates if not already done.",
+      "Research accommodation options for guests if required.",
+    ]),
   },
   {
-    id: "nine-months",
-    title: "9 months out",
-    tasks: [
-      { id: "task-video", text: "Book videographer", done: false },
-      { id: "task-florist", text: "Confirm florist", done: false },
-      { id: "task-save-dates", text: "Send save the dates or website link", done: false },
-    ],
+    id: "timeline-2026-04-15-core-supplier-booking",
+    title: "15-21 April 2026 - Core supplier booking sprint",
+    category: "Vendors",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-04-15-core-supplier-booking", [
+      "Book or confirm photographer.",
+      "Book or confirm videographer.",
+      "Book or confirm celebrant/officiant.",
+      "Book or confirm entertainment for ceremony, cocktail hour, reception, and dance floor.",
+      "Contact decor/hire companies for chairs, lighting, marquee, styling, signage, or ceremony/reception setup.",
+    ]),
   },
   {
-    id: "six-months",
-    title: "6 months out",
-    tasks: [
-      { id: "task-invitations", text: "Send invitations", done: false },
-      { id: "task-menu", text: "Confirm menu and dietary flow", done: false },
-      { id: "task-entertainment", text: "Confirm DJ or entertainment", done: false },
-    ],
+    id: "timeline-2026-04-22-attire-beauty-honeymoon",
+    title: "22-30 April 2026 - Attire, beauty, honeymoon + admin",
+    category: "Attire / Travel / Admin",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-04-22-attire-beauty-honeymoon", [
+      "Start or confirm wedding dress order.",
+      "Book hair and makeup artists.",
+      "Check passports for honeymoon travel.",
+      "Research or book honeymoon.",
+      "Confirm bridal party and proposal gifts if still needed.",
+      "Start hen and bucks party planning with bridal party.",
+    ]),
   },
   {
-    id: "three-months",
-    title: "3 months out",
-    tasks: [
-      { id: "task-trials", text: "Book fittings, tastings, and trials", done: false },
-      { id: "task-rsvp", text: "Review RSVP responses", done: false },
-      { id: "task-transport", text: "Confirm transport plan", done: false },
-    ],
+    id: "timeline-2026-05-01-invitation-rsvp-plan",
+    title: "1-10 May 2026 - Invitation and RSVP plan",
+    category: "Guests",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-05-01-invitation-rsvp-plan", [
+      "Confirm invitation wording and design.",
+      "Set RSVP deadline.",
+      "Prepare guest RSVP instructions.",
+      "Confirm whether guests need accommodation/travel notes.",
+      "Prepare invitation send list.",
+    ]),
   },
   {
-    id: "one-month",
-    title: "1 month out",
-    tasks: [
-      { id: "task-vendor-confirmations", text: "Final vendor confirmations", done: false },
-      { id: "task-seating", text: "Seating chart", done: false },
-      { id: "task-final-payments", text: "Final payments", done: false },
-    ],
+    id: "timeline-2026-05-11-floral-styling-flow",
+    title: "11-24 May 2026 - Floral, styling + event flow",
+    category: "Styling / Vendors",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-05-11-floral-styling-flow", [
+      "Review floral direction.",
+      "Confirm ceremony floral needs.",
+      "Confirm reception floral needs.",
+      "Confirm styling/decor requirements.",
+      "Confirm ceremony-to-reception flow.",
+      "Review entertainment timing for ceremony, cocktail hour, dinner, and dance floor.",
+    ]),
   },
   {
-    id: "wedding-week",
-    title: "Wedding week",
-    tasks: [
-      { id: "task-rehearsal", text: "Ceremony rehearsal", done: false },
-      { id: "task-vendor-messages", text: "Send final vendor messages", done: false },
-      { id: "task-pack-items", text: "Pack wedding day items", done: false },
-    ],
+    id: "timeline-2026-05-25-rings-cake-transport",
+    title: "25-31 May 2026 - Rings, cake, transport decisions",
+    category: "Details",
+    priority: "Medium",
+    tasks: createTimelineTasks("timeline-2026-05-25-rings-cake-transport", [
+      "Choose and order wedding rings.",
+      "Research and book/order wedding cake.",
+      "Organize wedding transport if required.",
+      "Choose bridesmaid dresses if required.",
+      "Confirm hair and makeup trial timing.",
+    ]),
   },
   {
-    id: "wedding-day",
-    title: "Wedding day",
-    tasks: [
-      { id: "task-rings", text: "Rings and vow cards ready", done: false },
-      { id: "task-payments-day", text: "Any day-of balances handled", done: false },
-      { id: "task-be-present", text: "Be present and enjoy it", done: false },
-    ],
+    id: "timeline-2026-06-01-send-invitations",
+    title: "1-7 June 2026 - Send invitations",
+    category: "Guests",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-06-01-send-invitations", [
+      "Send wedding invitations.",
+      "Confirm RSVP page is working.",
+      "Confirm RSVP deadline is visible.",
+      "Track sent invitations in the guest list.",
+      "Suggested RSVP deadline: 1 September 2026.",
+    ]),
+  },
+  {
+    id: "timeline-2026-06-08-beauty-dresses-confirmations",
+    title: "8-21 June 2026 - Beauty, dresses + supplier confirmations",
+    category: "Attire / Vendors",
+    priority: "Medium",
+    tasks: createTimelineTasks("timeline-2026-06-08-beauty-dresses-confirmations", [
+      "Book or attend hair and makeup trial.",
+      "Confirm bridesmaid dresses.",
+      "Confirm transport booking.",
+      "Confirm cake booking.",
+      "Review supplier contracts and payment due dates.",
+      "Upload invoices/receipts into Private Planning Files.",
+    ]),
+  },
+  {
+    id: "timeline-2026-06-22-hire-decor-lock-in",
+    title: "22-30 June 2026 - Hire/decor lock-in",
+    category: "Styling",
+    priority: "Medium",
+    tasks: createTimelineTasks("timeline-2026-06-22-hire-decor-lock-in", [
+      "Confirm all decor and hire items.",
+      "Confirm ceremony setup needs.",
+      "Confirm reception setup needs.",
+      "Confirm lighting/styling/marquee requirements if applicable.",
+      "Update vendor notes with all confirmed inclusions.",
+    ]),
+  },
+  {
+    id: "timeline-2026-07-01-outfits-accessories-gifts",
+    title: "1-14 July 2026 - Outfits, accessories + gifts",
+    category: "Attire",
+    priority: "Medium",
+    tasks: createTimelineTasks("timeline-2026-07-01-outfits-accessories-gifts", [
+      "Buy wedding shoes.",
+      "Buy jewellery and accessories.",
+      "Shop for groom and groomsmen suits.",
+      "Organize gifts for bridesmaids, groomsmen, parents, and key family members.",
+    ]),
+  },
+  {
+    id: "timeline-2026-07-15-small-details",
+    title: "15-31 July 2026 - Small details purchase list",
+    category: "Details",
+    priority: "Medium",
+    tasks: createTimelineTasks("timeline-2026-07-15-small-details", [
+      "Purchase confetti.",
+      "Confirm ring box.",
+      "Confirm guest book.",
+      "Confirm vow cards/books.",
+      "Confirm wedding day cards.",
+      "Confirm sparklers if using.",
+      "Confirm cake knife.",
+      "Confirm getting-ready outfits.",
+      "Start detail box for photographer.",
+    ]),
+  },
+  {
+    id: "timeline-2026-08-01-seating-chart-prep",
+    title: "1-9 August 2026 - Seating chart preparation",
+    category: "Guests",
+    priority: "Medium",
+    tasks: createTimelineTasks("timeline-2026-08-01-seating-chart-prep", [
+      "Start working on seating chart.",
+      "Group guests by household/family/friend group.",
+      "Flag dietary requirements and accessibility notes.",
+      "Identify guests who may need RSVP follow-up.",
+    ]),
+  },
+  {
+    id: "timeline-2026-08-10-first-dress-fitting",
+    title: "10-16 August 2026 - First dress fitting",
+    category: "Attire",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-08-10-first-dress-fitting", [
+      "Attend first dress fitting.",
+      "Confirm alteration timeline.",
+      "Confirm veil/accessory pairing.",
+      "Check shoes with dress length if available.",
+    ]),
+  },
+  {
+    id: "timeline-2026-08-17-music-selections",
+    title: "17-23 August 2026 - Music selections",
+    category: "Ceremony / Reception",
+    priority: "Medium",
+    tasks: createTimelineTasks("timeline-2026-08-17-music-selections", [
+      "Choose walking down the aisle song.",
+      "Choose signing register song.",
+      "Choose confetti exit song.",
+      "Choose reception entrance song.",
+      "Choose first dance song.",
+      "Choose parent/family dance songs if needed.",
+      "Share draft song list with entertainment/DJ.",
+    ]),
+  },
+  {
+    id: "timeline-2026-08-24-details-checkpoint",
+    title: "24-31 August 2026 - Details checkpoint",
+    category: "Details",
+    priority: "Medium",
+    tasks: createTimelineTasks("timeline-2026-08-24-details-checkpoint", [
+      "Check all small wedding-day items are purchased or ordered.",
+      "Confirm detail box items.",
+      "Review vendor invoices and upcoming payment deadlines.",
+      "Review timeline gaps before RSVP deadline.",
+    ]),
+  },
+  {
+    id: "timeline-2026-09-01-rsvp-deadline",
+    title: "1 September 2026 - RSVP deadline",
+    category: "Guests",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-09-01-rsvp-deadline", [
+      "Close or review RSVPs.",
+      "Identify missing RSVPs.",
+      "Update confirmed guest list.",
+      "Update meal choices and dietary notes.",
+    ]),
+  },
+  {
+    id: "timeline-2026-09-02-rsvp-follow-up",
+    title: "2-7 September 2026 - RSVP follow-up",
+    category: "Guests",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-09-02-rsvp-follow-up", [
+      "Follow up with guests who have not RSVP'd.",
+      "Confirm final attendance numbers.",
+      "Confirm plus-ones.",
+      "Confirm children/household details if applicable.",
+    ]),
+  },
+  {
+    id: "timeline-2026-09-08-seating-chart-draft",
+    title: "8-14 September 2026 - Seating chart draft",
+    category: "Guests",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-09-08-seating-chart-draft", [
+      "Create first full seating chart.",
+      "Confirm table groupings.",
+      "Confirm dietary/allergy notes.",
+      "Flag guests needing accessibility consideration.",
+    ]),
+  },
+  {
+    id: "timeline-2026-09-15-supplier-schedule",
+    title: "15-21 September 2026 - Supplier schedule draft",
+    category: "Vendors",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-09-15-supplier-schedule", [
+      "Draft wedding-day run sheet.",
+      "Confirm supplier arrival times.",
+      "Confirm ceremony timing.",
+      "Confirm reception timing.",
+      "Confirm photography timeline.",
+      "Confirm hair and makeup timing.",
+    ]),
+  },
+  {
+    id: "timeline-2026-09-22-vows-payments",
+    title: "22-30 September 2026 - Vows + final payment tracker",
+    category: "Ceremony / Finance",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-09-22-vows-payments", [
+      "Start writing vows.",
+      "Review all vendor balances.",
+      "Confirm final payment due dates.",
+      "Upload any outstanding invoices or receipts.",
+      "Prepare final supplier questions.",
+    ]),
+  },
+  {
+    id: "timeline-2026-10-01-final-payments",
+    title: "1-7 October 2026 - Final payments + supplier confirmations",
+    category: "Finance / Vendors",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-10-01-final-payments", [
+      "Pay final supplier balances due around 4 weeks before the wedding.",
+      "Confirm schedule and timings with all suppliers.",
+      "Confirm final venue/catering requirements.",
+      "Confirm final guest numbers if due.",
+    ]),
+  },
+  {
+    id: "timeline-2026-10-08-final-details",
+    title: "8-17 October 2026 - Final details lock-in",
+    category: "Details",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-10-08-final-details", [
+      "Finalize seating chart.",
+      "Finalize place cards or escort cards.",
+      "Break in wedding shoes.",
+      "Finalize vows.",
+      "Finalize ceremony details.",
+      "Finalize reception details.",
+      "Prepare wedding day emergency kit.",
+    ]),
+  },
+  {
+    id: "timeline-2026-10-18-two-week-countdown",
+    title: "18-24 October 2026 - Two-week countdown",
+    category: "Final Prep",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-10-18-two-week-countdown", [
+      "Attend final dress fitting.",
+      "Get hair cut and coloured.",
+      "Confirm beauty appointments.",
+      "Confirm rehearsal timing if applicable.",
+      "Confirm packed items list.",
+      "Confirm photographer detail box.",
+    ]),
+  },
+  {
+    id: "timeline-2026-10-25-wedding-week",
+    title: "25-30 October 2026 - Wedding week",
+    category: "Wedding Week",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-10-25-wedding-week", [
+      "Manicure and pedicure.",
+      "Clean rings.",
+      "Spray tan if planned.",
+      "Practice vows out loud.",
+      "Write cards for partner, parents, bridal party, or family.",
+      "Prepare emergency kit.",
+      "Prepare getting-ready playlist.",
+      "Attend ceremony rehearsal if applicable.",
+      "Pack bags.",
+    ]),
+  },
+  {
+    id: "timeline-2026-10-31-wedding-eve",
+    title: "31 October 2026 - Day before",
+    category: "Wedding Eve",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-10-31-wedding-eve", [
+      "Steam wedding dress, veil, bridesmaid dresses, and wedding morning outfits.",
+      "Pack clutch or small personal bag.",
+      "Prepare confetti in cone tray if using.",
+      "Store confetti in a cool, dry place.",
+      "Lay out wedding-day items for the morning.",
+      "Get a good night's sleep.",
+    ]),
+  },
+  {
+    id: "timeline-2026-11-01-wedding-morning",
+    title: "1 November 2026 - Wedding morning",
+    category: "Wedding Day",
+    priority: "High",
+    tasks: createTimelineTasks("timeline-2026-11-01-wedding-morning", [
+      "Lay out rings, invitations, vow cards, shoes, jewellery, sentimental items, and detail box for photographer.",
+      "Stay hydrated.",
+      "Eat properly.",
+      "Enjoy the day.",
+    ]),
   },
 ];
 
@@ -591,33 +892,55 @@ function normalizeTasks(value: unknown): PlanningTask[] {
   });
 }
 
+function normalizeTimelineKey(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+function normalizeTimelineTask(raw: Partial<TimelineTask> & Record<string, unknown>): TimelineTask {
+  return {
+    id: typeof raw.id === "string" ? raw.id : createId("timeline-task"),
+    text: typeof raw.text === "string" ? raw.text : "",
+    done: Boolean(raw.done),
+  };
+}
+
 function normalizeTimeline(value: unknown): TimelineSection[] {
   if (!Array.isArray(value)) {
     return defaultTimeline;
   }
 
-  const byId = new Map(
-    value
-      .filter((section): section is Partial<TimelineSection> & Record<string, unknown> => typeof section === "object" && section !== null)
-      .map((section) => [typeof section.id === "string" ? section.id : "", section]),
+  const savedSections = value.filter(
+    (section): section is Partial<TimelineSection> & Record<string, unknown> => typeof section === "object" && section !== null,
   );
+  const byId = new Map(savedSections.map((section) => [typeof section.id === "string" ? section.id : "", section]));
+  const byTitle = new Map(
+    savedSections
+      .filter((section) => typeof section.title === "string")
+      .map((section) => [normalizeTimelineKey(String(section.title)), section]),
+  );
+  const defaultIds = new Set(defaultTimeline.map((section) => section.id));
+  const defaultTitles = new Set(defaultTimeline.map((section) => normalizeTimelineKey(section.title)));
+  const hasOptimizedTimeline = savedSections.some((section) => {
+    const idMatches = typeof section.id === "string" && defaultIds.has(section.id);
+    const titleMatches = typeof section.title === "string" && defaultTitles.has(normalizeTimelineKey(section.title));
+
+    return idMatches || titleMatches;
+  });
 
   return defaultTimeline.map((fallbackSection) => {
-    const saved = byId.get(fallbackSection.id);
+    const saved = byId.get(fallbackSection.id) ?? byTitle.get(normalizeTimelineKey(fallbackSection.title));
     if (!saved || !Array.isArray(saved.tasks)) {
       return fallbackSection;
     }
 
+    const savedTasks = (saved.tasks as unknown[])
+      .filter((task): task is Partial<TimelineTask> & Record<string, unknown> => typeof task === "object" && task !== null)
+      .map((task) => normalizeTimelineTask(task))
+      .filter((task) => task.text);
+
     return {
       ...fallbackSection,
-      tasks: saved.tasks.map((task) => {
-        const raw = task as Partial<TimelineTask>;
-        return {
-          id: typeof raw.id === "string" ? raw.id : createId("timeline-task"),
-          text: typeof raw.text === "string" ? raw.text : "",
-          done: Boolean(raw.done),
-        };
-      }),
+      tasks: hasOptimizedTimeline ? savedTasks : fallbackSection.tasks,
     };
   });
 }
@@ -1854,6 +2177,14 @@ function TimelineTab({
           <div key={section.id} className="relative md:pl-12">
             <div className="absolute left-[9px] top-7 hidden h-3.5 w-3.5 rounded-full bg-[#b98278] ring-4 ring-[#fbf7f2] md:block" />
             <PlanningCard>
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className="rounded-full border border-[#eaded6] bg-[#fffaf7] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8c7a72]">
+                  {section.category}
+                </span>
+                <span className="rounded-full border border-[#eaded6] bg-white/64 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9b6f68]">
+                  {section.priority} priority
+                </span>
+              </div>
               <h2 className="heading-secondary heading-secondary-compact">{section.title}</h2>
               <div className="mt-5 space-y-3">
                 {section.tasks.map((task) => (
