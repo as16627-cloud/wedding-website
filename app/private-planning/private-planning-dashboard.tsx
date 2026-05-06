@@ -2682,6 +2682,87 @@ function RunsheetItemEditor({
   );
 }
 
+function RunsheetFullOverview({ runsheet, vendors }: { runsheet: Runsheet; vendors: Vendor[] }) {
+  return (
+    <PlanningCard>
+      <div className="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="heading-micro">Full Day View</p>
+          <h3 className="heading-secondary heading-secondary-compact mt-2">Complete Runsheet Overview</h3>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-[#6a5d55]">
+            A compact read-only view of the entire wedding day. Use this to scan the flow, then edit individual timings in the detailed sections below.
+          </p>
+        </div>
+        <Chip tone="navy">{runsheet.items.length} timings</Chip>
+      </div>
+
+      <div className="mt-5 overflow-hidden rounded-[1.25rem] border border-[#eaded6] bg-white/50">
+        {runsheet.items.map((item, index) => {
+          const vendorName = getVendorName(vendors, item.vendorId);
+
+          return (
+            <div
+              key={item.id}
+              className={`grid gap-3 px-4 py-4 md:grid-cols-[6.8rem_1fr_15rem] md:gap-5 ${
+                index === runsheet.items.length - 1 ? "" : "border-b border-[#eaded6]"
+              }`}
+            >
+              <div>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8c7a72]">{item.time || "Time TBC"}</p>
+                <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.14em] text-[#a99790]">{getRunsheetGroup(item)}</p>
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <h4 className="font-serif text-xl leading-tight text-[#8f6a63]">{item.title || "Untitled runsheet item"}</h4>
+                  {item.buffer && <Chip tone="champagne">Buffer</Chip>}
+                  {item.internalOnly && <Chip tone="rose">Internal only</Chip>}
+                </div>
+                <p className="mt-1 text-sm leading-6 text-[#6a5d55]">
+                  {item.category || "Uncategorised"} - {item.location || "Location TBC"}
+                </p>
+                {item.notes && <p className="mt-2 text-sm leading-6 text-[#7d6b62]">{item.notes}</p>}
+              </div>
+              <div className="flex flex-col items-start gap-2 md:items-end md:text-right">
+                <span className={`rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${getRunsheetStatusClass(item.status)}`}>
+                  {item.status}
+                </span>
+                <p className="text-xs uppercase tracking-[0.14em] text-[#8c7a72]">{item.owner || "Owner TBC"}</p>
+                {vendorName && <p className="text-xs leading-5 text-[#6a5d55]">Vendor: {vendorName}</p>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="mt-5 rounded-[1.25rem] border border-[#eaded6] bg-[#fffaf7]/72 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <p className="heading-micro">Private Option</p>
+            <h4 className="mt-1 font-serif text-2xl text-[#8f6a63]">{runsheet.alternateEnding.title}</h4>
+          </div>
+          <Chip>{runsheet.alternateEnding.items.length} alternate timings</Chip>
+        </div>
+        <ul className="mt-3 grid gap-2 text-sm leading-6 text-[#6a5d55]">
+          {runsheet.alternateEnding.notes.map((note, index) => (
+            <li key={`${note}-${index}`}>- {note}</li>
+          ))}
+        </ul>
+        <div className="mt-4 grid gap-2">
+          {runsheet.alternateEnding.items.map((item) => (
+            <div key={item.id} className="grid gap-2 rounded-2xl bg-white/60 px-4 py-3 sm:grid-cols-[6rem_1fr_auto] sm:items-center">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8c7a72]">{item.time}</p>
+              <p className="font-serif text-lg leading-tight text-[#8f6a63]">{item.title}</p>
+              <span className={`w-fit rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${getRunsheetStatusClass(item.status)}`}>
+                {item.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </PlanningCard>
+  );
+}
+
 function RunsheetTab({
   runsheet,
   setRunsheet,
@@ -2853,6 +2934,8 @@ function RunsheetTab({
           </div>
         </div>
       </PlanningCard>
+
+      <RunsheetFullOverview runsheet={runsheet} vendors={vendors} />
 
       {groupedItems.map(({ group, items }) => (
         <section key={group} className="grid gap-3">
