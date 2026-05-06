@@ -177,6 +177,7 @@ type TimelineTask = {
   id: string;
   text: string;
   done: boolean;
+  completedAt?: string;
 };
 
 type TimelineSection = {
@@ -445,6 +446,7 @@ function createTimelineTasks(sectionId: string, tasks: string[]): TimelineTask[]
     id: `${sectionId}-task-${String(index + 1).padStart(2, "0")}`,
     text,
     done: false,
+    completedAt: "",
   }));
 }
 
@@ -1006,10 +1008,13 @@ function normalizeTimelineKey(value: string) {
 }
 
 function normalizeTimelineTask(raw: Partial<TimelineTask> & Record<string, unknown>): TimelineTask {
+  const done = Boolean(raw.done);
+
   return {
     id: typeof raw.id === "string" ? raw.id : createId("timeline-task"),
     text: typeof raw.text === "string" ? raw.text : "",
-    done: Boolean(raw.done),
+    done,
+    completedAt: done && typeof raw.completedAt === "string" ? raw.completedAt : "",
   };
 }
 
@@ -2355,6 +2360,30 @@ function CalendarTab({
   );
 }
 
+function getTimelineCompletedTime(value?: string) {
+  if (!value) {
+    return 0;
+  }
+
+  const timestamp = Date.parse(value);
+
+  return Number.isNaN(timestamp) ? 0 : timestamp;
+}
+
+function formatTimelineCompletedAt(value?: string) {
+  const timestamp = getTimelineCompletedTime(value);
+
+  if (!timestamp) {
+    return "Completed earlier";
+  }
+
+  return new Intl.DateTimeFormat("en-AU", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(timestamp));
+}
+
 function TimelineTab({
   timeline,
   setTimeline,
@@ -2363,18 +2392,161 @@ function TimelineTab({
   setTimeline: (timeline: TimelineSection[]) => void;
 }) {
   const [newTaskText, setNewTaskText] = useState<Record<string, string>>({});
+  const [timelineFilter, setTimelineFilter] = useState<"Active" | "Completed" | "All">("Active");
+  const [expandedCompletedSections, setExpandedCompletedSections] = useState<string[]>([]);
+  const [pendingCompletedTaskIds, setPendingCompletedTaskIds] = useState<string[]>([]);
+  const [timelineToast, setTimelineToast] = useState<{ sectionId: string; taskId: string; taskText: string } | null>(null);
+  const [timelineNow] = useState(() => Date.now());
+  const completionTimersRef = useRef<Record<string, number>>({});
 
-  function toggleTask(sectionId: string, taskId: string) {
+  useEffect(() => {
+    const timers = completionTimersRef.current;
+
+    return () => {
+      for (const timer of Object.values(timers)) {
+        window.clearTimeout(timer);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!timelineToast) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setTimelineToast(null), 5000);
+
+    return () => window.clearTimeout(timer);
+  }, [timelineToast]);
+
+  const pendingCompletedTaskSet = useMemo(() => new Set(pendingCompletedTaskIds), [pendingCompletedTaskIds]);
+  const timelineRecords = useMemo(
+    () =>
+      timeline.flatMap((section, sectionIndex) =>
+        section.tasks.map((task, taskIndex) => ({
+          section,
+          sectionIndex,
+          task,
+          taskIndex,
+        })),
+      ),
+    [timeline],
+  );
+  const completedRecords = useMemo(() => timelineRecords.filter(({ task }) => task.done), [timelineRecords]);
+  const totalCompletedTaskCount = completedRecords.length;
+  const completedThisWeekCount = useMemo(() => {
+    if (!timelineNow) {
+      return 0;
+    }
+
+    const weekAgo = timelineNow - 7 * 86_400_000;
+
+    return completedRecords.filter(({ task }) => {
+      const completedTime = getTimelineCompletedTime(task.completedAt);
+
+      return completedTime > 0 && completedTime >= weekAgo;
+    }).length;
+  }, [completedRecords, timelineNow]);
+  const recentCompletedRecords = useMemo(
+    () =>
+      [...completedRecords]
+        .sort((left, right) => {
+          const timeDifference = getTimelineCompletedTime(right.task.completedAt) - getTimelineCompletedTime(left.task.completedAt);
+
+          if (timeDifference !== 0) {
+            return timeDifference;
+          }
+
+          return right.sectionIndex - left.sectionIndex || right.taskIndex - left.taskIndex;
+        })
+        .slice(0, 5),
+    [completedRecords],
+  );
+  const completedSections = useMemo(
+    () =>
+      timeline
+        .map((section) => {
+          const completedTasks = section.tasks.filter((task) => task.done);
+          const completedCount = completedTasks.length;
+          const totalCount = section.tasks.length;
+
+          return {
+            section,
+            completedTasks,
+            completedCount,
+            totalCount,
+            isComplete: totalCount > 0 && completedCount === totalCount,
+          };
+        })
+        .filter(({ completedCount }) => completedCount > 0),
+    [timeline],
+  );
+  const completedMilestones = completedSections.filter(({ isComplete }) => isComplete);
+  const activeSections = timeline
+    .map((section) => ({
+      section,
+      activeTasks: section.tasks.filter((task) => !task.done || pendingCompletedTaskSet.has(task.id)),
+      completedTasks: section.tasks.filter((task) => task.done),
+    }))
+    .filter(({ activeTasks }) => activeTasks.length > 0);
+
+  function clearCompletionTimer(taskId: string) {
+    const timer = completionTimersRef.current[taskId];
+
+    if (timer) {
+      window.clearTimeout(timer);
+      delete completionTimersRef.current[taskId];
+    }
+  }
+
+  function completeTask(sectionId: string, task: TimelineTask) {
+    clearCompletionTimer(task.id);
+
+    const completedAt = new Date().toISOString();
+
     setTimeline(
       timeline.map((section) =>
         section.id === sectionId
           ? {
               ...section,
-              tasks: section.tasks.map((task) => (task.id === taskId ? { ...task, done: !task.done } : task)),
+              tasks: section.tasks.map((sectionTask) =>
+                sectionTask.id === task.id ? { ...sectionTask, done: true, completedAt } : sectionTask,
+              ),
             }
           : section,
       ),
     );
+    setPendingCompletedTaskIds((taskIds) => (taskIds.includes(task.id) ? taskIds : [...taskIds, task.id]));
+    completionTimersRef.current[task.id] = window.setTimeout(() => {
+      setPendingCompletedTaskIds((taskIds) => taskIds.filter((taskId) => taskId !== task.id));
+      delete completionTimersRef.current[task.id];
+    }, 700);
+    setTimelineToast({ sectionId, taskId: task.id, taskText: task.text });
+  }
+
+  function restoreTask(sectionId: string, taskId: string) {
+    clearCompletionTimer(taskId);
+    setPendingCompletedTaskIds((taskIds) => taskIds.filter((pendingTaskId) => pendingTaskId !== taskId));
+    setTimeline(
+      timeline.map((section) =>
+        section.id === sectionId
+          ? {
+              ...section,
+              tasks: section.tasks.map((task) => (task.id === taskId ? { ...task, done: false, completedAt: "" } : task)),
+            }
+          : section,
+      ),
+    );
+    setTimelineToast((toast) => (toast?.taskId === taskId ? null : toast));
+  }
+
+  function toggleTask(sectionId: string, task: TimelineTask) {
+    if (task.done) {
+      restoreTask(sectionId, task.id);
+      return;
+    }
+
+    completeTask(sectionId, task);
   }
 
   function addTask(sectionId: string) {
@@ -2389,7 +2561,7 @@ function TimelineTab({
         section.id === sectionId
           ? {
               ...section,
-              tasks: [...section.tasks, { id: createId("timeline-task"), text, done: false }],
+              tasks: [...section.tasks, { id: createId("timeline-task"), text, done: false, completedAt: "" }],
             }
           : section,
       ),
@@ -2405,62 +2577,276 @@ function TimelineTab({
     );
   }
 
-  return (
-    <div className="relative mx-auto max-w-4xl">
-      <div className="absolute bottom-0 left-4 top-0 hidden w-px bg-[#eaded6] md:block" />
-      <div className="space-y-6">
-        {timeline.map((section) => (
-          <div key={section.id} className="relative md:pl-12">
-            <div className="absolute left-[9px] top-7 hidden h-3.5 w-3.5 rounded-full bg-[#b98278] ring-4 ring-[#fbf7f2] md:block" />
-            <PlanningCard>
-              <div className="mb-3 flex flex-wrap items-center gap-2">
-                <span className="rounded-full border border-[#eaded6] bg-[#fffaf7] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8c7a72]">
-                  {section.category}
-                </span>
-                <span className="rounded-full border border-[#eaded6] bg-white/64 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9b6f68]">
-                  {section.priority} priority
-                </span>
+  function toggleCompletedSection(sectionId: string) {
+    setExpandedCompletedSections((sectionIds) =>
+      sectionIds.includes(sectionId) ? sectionIds.filter((id) => id !== sectionId) : [...sectionIds, sectionId],
+    );
+  }
+
+  function renderTaskRow(section: TimelineSection, task: TimelineTask, options: { completedContext?: boolean } = {}) {
+    const isPendingMove = pendingCompletedTaskSet.has(task.id);
+
+    return (
+      <div
+        key={task.id}
+        className={`flex items-start justify-between gap-3 rounded-2xl px-4 py-3 transition duration-500 ease-out ${
+          options.completedContext ? "bg-[#fffaf7]/70" : "bg-white/60"
+        } ${isPendingMove ? "opacity-70" : "opacity-100"}`}
+      >
+        <label className="flex flex-1 cursor-pointer items-start gap-3">
+          <input
+            type="checkbox"
+            checked={task.done}
+            onChange={() => toggleTask(section.id, task)}
+            className="mt-1 h-4 w-4 accent-[#b98278]"
+          />
+          <span className={`text-sm leading-6 ${task.done ? "text-[#8c7a72] line-through" : "text-[#4f4641]"}`}>{task.text}</span>
+        </label>
+        <div className="flex items-center gap-2">
+          {isPendingMove && <span className="hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9b6f68] sm:inline">Moving</span>}
+          <button type="button" onClick={() => deleteTask(section.id, task.id)} aria-label={`Delete ${task.text}`} className="rounded-full p-1.5 text-[#9b6f68] hover:bg-[#f4ebe4]">
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  function renderCompletedArchive() {
+    if (completedSections.length === 0) {
+      return (
+        <PlanningCard>
+          <p className="text-sm leading-7 text-[#6a5d55]">Completed tasks will gather here as Planning Wins.</p>
+        </PlanningCard>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        {completedMilestones.length > 0 && (
+          <div className="grid gap-3">
+            {completedMilestones.map(({ section, totalCount }) => (
+              <div key={section.id} className="rounded-[1.25rem] border border-[#eaded6] bg-[#fffaf7]/78 px-5 py-4 shadow-[0_10px_24px_rgba(90,65,50,0.045)]">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-start gap-3">
+                    <span className="mt-1 rounded-full bg-[#f5ead7] p-1.5 text-[#9b6f68]">
+                      <CheckCircle2 className="h-4 w-4" />
+                    </span>
+                    <div>
+                      <p className="font-serif text-xl text-[#8f6a63]">{section.title}</p>
+                      <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#8c7a72]">
+                        {totalCount} of {totalCount} completed
+                      </p>
+                    </div>
+                  </div>
+                  <Chip tone="champagne">Milestone complete</Chip>
+                </div>
               </div>
-              <h2 className="heading-secondary heading-secondary-compact">{section.title}</h2>
-              <div className="mt-5 space-y-3">
-                {section.tasks.map((task) => (
-                  <div key={task.id} className="flex items-start justify-between gap-3 rounded-2xl bg-white/60 px-4 py-3">
-                    <label className="flex flex-1 cursor-pointer items-start gap-3">
-                      <input
-                        type="checkbox"
-                        checked={task.done}
-                        onChange={() => toggleTask(section.id, task.id)}
-                        className="mt-1 h-4 w-4 accent-[#b98278]"
-                      />
-                      <span className={`text-sm leading-6 ${task.done ? "text-[#8c7a72] line-through" : "text-[#4f4641]"}`}>{task.text}</span>
-                    </label>
-                    <button type="button" onClick={() => deleteTask(section.id, task.id)} aria-label={`Delete ${task.text}`} className="rounded-full p-1.5 text-[#9b6f68] hover:bg-[#f4ebe4]">
-                      <Trash2 className="h-4 w-4" />
-                    </button>
+            ))}
+          </div>
+        )}
+
+        <div className="space-y-3">
+          {completedSections.map(({ section, completedTasks, completedCount, totalCount }) => (
+            <details key={section.id} className="group rounded-[1.25rem] border border-[#eaded6] bg-white/54 px-5 py-4 shadow-[0_10px_24px_rgba(90,65,50,0.04)]">
+              <summary className="flex cursor-pointer list-none flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-serif text-xl text-[#3f302b]">{section.title}</p>
+                  <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#8c7a72]">
+                    {completedCount} completed · {section.category} · {section.priority} priority
+                  </p>
+                </div>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9b6f68] group-open:hidden">View tasks</span>
+                <span className="hidden text-[10px] font-semibold uppercase tracking-[0.16em] text-[#9b6f68] group-open:inline">Hide tasks</span>
+              </summary>
+              <div className="mt-4 space-y-3">
+                {completedTasks.map((task) => (
+                  <div key={task.id} className="rounded-2xl bg-[#fffaf7]/75 px-4 py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        <CheckCircle2 className="mt-1 h-4 w-4 text-[#9b6f68]" />
+                        <div>
+                          <p className="text-sm leading-6 text-[#6a5d55]">{task.text}</p>
+                          <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8c7a72]">
+                            {formatTimelineCompletedAt(task.completedAt)} · {section.category} · {section.priority}
+                          </p>
+                        </div>
+                      </div>
+                      <button type="button" onClick={() => deleteTask(section.id, task.id)} aria-label={`Delete ${task.text}`} className="rounded-full p-1.5 text-[#9b6f68] hover:bg-[#f4ebe4]">
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </div>
                 ))}
+                {completedCount < totalCount && (
+                  <p className="text-xs uppercase tracking-[0.14em] text-[#8c7a72]">
+                    {totalCount - completedCount} task{totalCount - completedCount === 1 ? "" : "s"} still active in this milestone
+                  </p>
+                )}
               </div>
-              <div className="mt-5 flex flex-col gap-3 sm:flex-row">
-                <input
-                  type="text"
-                  value={newTaskText[section.id] ?? ""}
-                  onChange={(event) => setNewTaskText({ ...newTaskText, [section.id]: event.target.value })}
-                  placeholder="Add custom task"
-                  className="min-h-11 flex-1 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm outline-none focus:border-[#b98278]"
-                />
-                <button
-                  type="button"
-                  onClick={() => addTask(section.id)}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#6a5d55] transition hover:border-[#b98278]"
-                >
-                  <Plus className="h-4 w-4" />
-                  Add
-                </button>
-              </div>
-            </PlanningCard>
+            </details>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative mx-auto max-w-4xl">
+      {timelineToast && (
+        <div aria-live="polite" className="fixed bottom-5 left-1/2 z-50 w-[min(calc(100vw-2rem),32rem)] -translate-x-1/2 rounded-full border border-[#eaded6] bg-[#fffaf7]/95 px-5 py-3 shadow-[0_18px_38px_rgba(80,60,55,0.14)] backdrop-blur">
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8f6a63]">Moved to Planning Wins</span>
+            <button type="button" onClick={() => restoreTask(timelineToast.sectionId, timelineToast.taskId)} className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-navy)]">
+              Undo
+            </button>
           </div>
+        </div>
+      )}
+
+      <PlanningCard className="mb-6 border-[#e8cfc8] bg-[linear-gradient(135deg,#fffaf7_0%,#f9eee8_100%)]">
+        <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-[#8c7a72]">Planning Wins</p>
+            <h2 className="mt-2 font-serif text-3xl text-[#8f6a63]">
+              {totalCompletedTaskCount} task{totalCompletedTaskCount === 1 ? "" : "s"} completed
+            </h2>
+            <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
+              {completedThisWeekCount > 0
+                ? `${completedThisWeekCount} finished in the last 7 days.`
+                : "Ticked tasks move here so the active timeline stays beautifully clear."}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setTimelineFilter("Completed")}
+            className="inline-flex items-center justify-center rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#6a5d55] transition hover:border-[#b98278]"
+          >
+            View all completed
+          </button>
+        </div>
+        <div className="mt-5 grid gap-3">
+          {recentCompletedRecords.length > 0 ? (
+            recentCompletedRecords.slice(0, 5).map(({ section, task }) => (
+              <div key={`${section.id}-${task.id}`} className="flex items-start gap-3 rounded-2xl bg-white/58 px-4 py-3">
+                <CheckCircle2 className="mt-1 h-4 w-4 text-[#9b6f68]" />
+                <div>
+                  <p className="text-sm leading-6 text-[#4f4641]">{task.text}</p>
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8c7a72]">
+                    {section.title} · {formatTimelineCompletedAt(task.completedAt)}
+                  </p>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="rounded-2xl bg-white/58 px-4 py-3 text-sm leading-6 text-[#6a5d55]">Your first completed tasks will appear here as little planning wins.</p>
+          )}
+        </div>
+      </PlanningCard>
+
+      <div className="mb-6 flex flex-wrap gap-2">
+        {(["Active", "Completed", "All"] as const).map((filter) => (
+          <button
+            key={filter}
+            type="button"
+            onClick={() => setTimelineFilter(filter)}
+            className={`rounded-full border px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.14em] transition ${
+              timelineFilter === filter
+                ? "border-[#b98278] bg-[#fff5f2] text-[#8f6a63]"
+                : "border-[#eaded6] bg-white/60 text-[#8c7a72] hover:border-[#b98278]"
+            }`}
+          >
+            {filter}
+          </button>
         ))}
       </div>
+
+      {timelineFilter !== "Completed" && (
+        <section>
+          <div className="mb-4">
+            <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-[#8c7a72]">Active Timeline</p>
+            <h2 className="mt-2 font-serif text-3xl text-[#8f6a63]">What still needs attention</h2>
+          </div>
+          {activeSections.length > 0 ? (
+            <div className="relative">
+              <div className="absolute bottom-0 left-4 top-0 hidden w-px bg-[#eaded6] md:block" />
+              <div className="space-y-6">
+                {activeSections.map(({ section, activeTasks, completedTasks }) => {
+                  const completedCount = completedTasks.length;
+                  const totalCount = section.tasks.length;
+                  const progress = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                  const expanded = expandedCompletedSections.includes(section.id) || timelineFilter === "All";
+
+                  return (
+                    <div key={section.id} className="relative md:pl-12">
+                      <div className="absolute left-[9px] top-7 hidden h-3.5 w-3.5 rounded-full bg-[#b98278] ring-4 ring-[#fbf7f2] md:block" />
+                      <PlanningCard>
+                        <div className="mb-3 flex flex-wrap items-center gap-2">
+                          <span className="rounded-full border border-[#eaded6] bg-[#fffaf7] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8c7a72]">
+                            {section.category}
+                          </span>
+                          <span className="rounded-full border border-[#eaded6] bg-white/64 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#9b6f68]">
+                            {section.priority} priority
+                          </span>
+                          <span className="rounded-full border border-[#eaded6] bg-[#f8eee9] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8c7a72]">
+                            {completedCount} of {totalCount} complete
+                          </span>
+                        </div>
+                        <h2 className="heading-secondary heading-secondary-compact">{section.title}</h2>
+                        <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-[#f4ebe4]">
+                          <div className="h-full rounded-full bg-[#d8b7ae] transition-all duration-500 ease-out" style={{ width: `${progress}%` }} />
+                        </div>
+                        <div className="mt-5 space-y-3">{activeTasks.map((task) => renderTaskRow(section, task))}</div>
+                        {completedTasks.length > 0 && (
+                          <div className="mt-4">
+                            <button
+                              type="button"
+                              onClick={() => toggleCompletedSection(section.id)}
+                              className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#9b6f68] transition hover:text-[#8f6a63]"
+                            >
+                              {expanded ? "Hide" : "Show"} {completedTasks.length} completed
+                            </button>
+                            {expanded && <div className="mt-3 space-y-3">{completedTasks.map((task) => renderTaskRow(section, task, { completedContext: true }))}</div>}
+                          </div>
+                        )}
+                        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+                          <input
+                            type="text"
+                            value={newTaskText[section.id] ?? ""}
+                            onChange={(event) => setNewTaskText({ ...newTaskText, [section.id]: event.target.value })}
+                            placeholder="Add custom task"
+                            className="min-h-11 flex-1 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm outline-none focus:border-[#b98278]"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => addTask(section.id)}
+                            className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#6a5d55] transition hover:border-[#b98278]"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Add
+                          </button>
+                        </div>
+                      </PlanningCard>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <PlanningCard>
+              <p className="text-sm leading-7 text-[#6a5d55]">Everything in the active timeline is complete. A very satisfying page to land on.</p>
+            </PlanningCard>
+          )}
+        </section>
+      )}
+
+      <section className="mt-8">
+        <div className="mb-4">
+          <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-[#8c7a72]">Completed Milestones</p>
+          <h2 className="mt-2 font-serif text-3xl text-[#8f6a63]">Planning Wins Archive</h2>
+        </div>
+        {renderCompletedArchive()}
+      </section>
     </div>
   );
 }
@@ -2682,6 +3068,103 @@ function RunsheetItemEditor({
   );
 }
 
+type RunsheetOverviewExcelRow = {
+  plan: string;
+  time: string;
+  group: string;
+  title: string;
+  category: string;
+  location: string;
+  owner: string;
+  vendor: string;
+  status: string;
+  internalOnly: string;
+  buffer: string;
+  notes: string;
+};
+
+function escapeExcelHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function buildRunsheetOverviewExcelRows(runsheet: Runsheet, vendors: Vendor[]): RunsheetOverviewExcelRow[] {
+  const buildRow = (item: RunsheetItem, plan: string, group: string): RunsheetOverviewExcelRow => ({
+    plan,
+    time: item.time,
+    group,
+    title: item.title,
+    category: item.category,
+    location: item.location,
+    owner: item.owner,
+    vendor: getVendorName(vendors, item.vendorId),
+    status: item.status,
+    internalOnly: item.internalOnly ? "Yes" : "No",
+    buffer: item.buffer ? "Yes" : "No",
+    notes: item.notes,
+  });
+
+  return [
+    ...runsheet.items.map((item) => buildRow(item, "Main day", getRunsheetGroup(item))),
+    ...runsheet.alternateEnding.items.map((item) => buildRow(item, "Alternate midnight finish", runsheet.alternateEnding.title)),
+  ];
+}
+
+function downloadRunsheetExcel(runsheet: Runsheet, vendors: Vendor[]) {
+  const columns: Array<{ key: keyof RunsheetOverviewExcelRow; label: string }> = [
+    { key: "plan", label: "Plan" },
+    { key: "time", label: "Time" },
+    { key: "group", label: "Group" },
+    { key: "title", label: "Title" },
+    { key: "category", label: "Category" },
+    { key: "location", label: "Location" },
+    { key: "owner", label: "Owner / Responsible" },
+    { key: "vendor", label: "Vendor / Supplier" },
+    { key: "status", label: "Status" },
+    { key: "internalOnly", label: "Internal Only" },
+    { key: "buffer", label: "Buffer" },
+    { key: "notes", label: "Notes" },
+  ];
+  const rows = buildRunsheetOverviewExcelRows(runsheet, vendors);
+  const tableHead = columns.map((column) => `<th>${escapeExcelHtml(column.label)}</th>`).join("");
+  const tableRows = rows
+    .map((row) => `<tr>${columns.map((column) => `<td>${escapeExcelHtml(String(row[column.key] ?? ""))}</td>`).join("")}</tr>`)
+    .join("");
+  const workbookHtml = `<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { font-family: Arial, sans-serif; color: #3f302b; }
+    h1 { color: #8f6a63; font-family: Georgia, serif; font-weight: 400; }
+    p { color: #6a5d55; }
+    table { border-collapse: collapse; width: 100%; }
+    th { background: #f4e8e4; color: #3f302b; font-weight: 700; }
+    th, td { border: 1px solid #e8cfc8; padding: 8px; vertical-align: top; mso-number-format: "\\@"; }
+  </style>
+</head>
+<body>
+  <h1>Sumaya &amp; Aditya - Wedding Day Runsheet</h1>
+  <p>Private planning export. Wedding date: Sunday, 1 November 2026. Venue: Caversham House, Swan Valley.</p>
+  <table>
+    <thead><tr>${tableHead}</tr></thead>
+    <tbody>${tableRows}</tbody>
+  </table>
+</body>
+</html>`;
+  const blob = new Blob(["\ufeff", workbookHtml], { type: "application/vnd.ms-excel;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `sumaya-adi-wedding-runsheet-${todayKey()}.xls`;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 function RunsheetFullOverview({ runsheet, vendors }: { runsheet: Runsheet; vendors: Vendor[] }) {
   return (
     <PlanningCard>
@@ -2693,7 +3176,17 @@ function RunsheetFullOverview({ runsheet, vendors }: { runsheet: Runsheet; vendo
             A compact read-only view of the entire wedding day. Use this to scan the flow, then edit individual timings in the detailed sections below.
           </p>
         </div>
-        <Chip tone="navy">{runsheet.items.length} timings</Chip>
+        <div className="flex flex-wrap gap-3 lg:justify-end">
+          <Chip tone="navy">{runsheet.items.length} timings</Chip>
+          <button
+            type="button"
+            onClick={() => downloadRunsheetExcel(runsheet, vendors)}
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#b98278]"
+          >
+            <Download className="h-4 w-4" />
+            Download Excel
+          </button>
+        </div>
       </div>
 
       <div className="mt-5 overflow-hidden rounded-[1.25rem] border border-[#eaded6] bg-white/50">

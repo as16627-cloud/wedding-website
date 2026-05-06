@@ -21,6 +21,10 @@ export type PrivatePlanningGuestBody = {
   email?: string;
   side?: string;
   notes?: string;
+  householdName?: string;
+  householdAddress?: string;
+  householdNotes?: string;
+  lastMessageType?: string;
   rsvpStatus?: string;
   rsvpResponse?: string;
   invitedToCeremony?: boolean | string | null;
@@ -68,6 +72,9 @@ export function buildPrivatePlanningGuestCreateData(body: PrivatePlanningGuestBo
       email: optionalString(body.email),
       side: optionalString(body.side),
       notes: optionalString(body.notes),
+      householdName: optionalString(body.householdName),
+      householdAddress: optionalString(body.householdAddress),
+      householdNotes: optionalString(body.householdNotes),
       inviteToken: rsvpToken,
       rsvpToken,
       invitedToCeremony: parseOptionalBoolean(body.invitedToCeremony) ?? true,
@@ -101,11 +108,46 @@ export function buildPrivatePlanningGuestUpdateData(body: PrivatePlanningGuestBo
   }
 
   if (body.action === "markSmsSent") {
+    const messageType = optionalString(body.lastMessageType) ?? "Save the date reminder";
+
     return {
       ok: true as const,
       id,
-      data: { smsSentAt: new Date() } satisfies Prisma.GuestUpdateInput,
+      data: {
+        smsSentAt: new Date(),
+        lastContactedAt: new Date(),
+        lastMessageType: messageType,
+      } satisfies Prisma.GuestUpdateInput,
       auditAction: "guest_sms_marked",
+    };
+  }
+
+  if (body.action === "markRsvpLinkSent") {
+    const messageType = optionalString(body.lastMessageType) ?? "RSVP link sent";
+
+    return {
+      ok: true as const,
+      id,
+      data: {
+        rsvpLinkSentAt: new Date(),
+        lastContactedAt: new Date(),
+        lastMessageType: messageType,
+      } satisfies Prisma.GuestUpdateInput,
+      auditAction: "guest_rsvp_link_marked",
+    };
+  }
+
+  if (body.action === "regenerateInviteToken") {
+    const rsvpToken = createRsvpToken();
+
+    return {
+      ok: true as const,
+      id,
+      data: {
+        inviteToken: rsvpToken,
+        rsvpToken,
+      } satisfies Prisma.GuestUpdateInput,
+      auditAction: "guest_invite_token_regenerated",
     };
   }
 
@@ -125,6 +167,10 @@ export function buildPrivatePlanningGuestUpdateData(body: PrivatePlanningGuestBo
   if (hasField(body, "email")) data.email = optionalString(body.email);
   if (hasField(body, "side")) data.side = optionalString(body.side);
   if (hasField(body, "notes")) data.notes = optionalString(body.notes);
+  if (hasField(body, "householdName")) data.householdName = optionalString(body.householdName);
+  if (hasField(body, "householdAddress")) data.householdAddress = optionalString(body.householdAddress);
+  if (hasField(body, "householdNotes")) data.householdNotes = optionalString(body.householdNotes);
+  if (hasField(body, "lastMessageType")) data.lastMessageType = optionalString(body.lastMessageType);
 
   if (hasField(body, "invitedToCeremony")) {
     data.invitedToCeremony = parseOptionalBoolean(body.invitedToCeremony) ?? false;
@@ -206,6 +252,9 @@ function formatAnswer(value: boolean | null) {
 export function buildPrivatePlanningGuestCsv(guests: GuestRecord[]) {
   const headers = [
     "Name",
+    "Household",
+    "Household address",
+    "Household notes",
     "Phone",
     "Email",
     "Side",
@@ -218,10 +267,16 @@ export function buildPrivatePlanningGuestCsv(guests: GuestRecord[]) {
     "Song request",
     "Message",
     "Notes",
+    "RSVP link sent at",
+    "Last contacted at",
+    "Last message type",
     "Responded at",
   ];
   const rows = guests.map((guest) => [
     guest.fullName,
+    guest.householdName,
+    guest.householdAddress,
+    guest.householdNotes,
     guest.phoneNumber,
     guest.email,
     guest.side,
@@ -234,6 +289,9 @@ export function buildPrivatePlanningGuestCsv(guests: GuestRecord[]) {
     guest.songRequest,
     getGuestMessage(guest),
     guest.notes,
+    guest.rsvpLinkSentAt,
+    guest.lastContactedAt,
+    guest.lastMessageType,
     guest.respondedAt,
   ]);
 

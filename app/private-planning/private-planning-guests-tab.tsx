@@ -1,6 +1,6 @@
 "use client";
 
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from "react";
 import {
   CheckCircle2,
   CheckSquare,
@@ -15,6 +15,7 @@ import {
   Save,
   Search,
   Trash2,
+  Upload,
   UsersRound,
   X,
 } from "lucide-react";
@@ -29,12 +30,18 @@ type CoupleGuest = {
   email: string | null;
   side: string | null;
   notes: string | null;
+  householdName: string | null;
+  householdAddress: string | null;
+  householdNotes: string | null;
   inviteToken: string;
   rsvpToken: string;
   invitedToCeremony: boolean;
   invitedToReception: boolean;
   plusOneAllowed: boolean;
   smsSentAt: string | null;
+  rsvpLinkSentAt: string | null;
+  lastContactedAt: string | null;
+  lastMessageType: string | null;
   rsvpResponse: RsvpStatus;
   rsvpStatus: RsvpStatus;
   attendingCeremony: boolean | null;
@@ -84,6 +91,9 @@ type GuestForm = {
   email: string;
   side: string;
   notes: string;
+  householdName: string;
+  householdAddress: string;
+  householdNotes: string;
   invitedToCeremony: "Yes" | "No";
   invitedToReception: "Yes" | "No";
   plusOneAllowed: "Yes" | "No";
@@ -116,6 +126,9 @@ const emptyGuestForm: GuestForm = {
   email: "",
   side: "",
   notes: "",
+  householdName: "",
+  householdAddress: "",
+  householdNotes: "",
   invitedToCeremony: "Yes",
   invitedToReception: "Yes",
   plusOneAllowed: "No",
@@ -129,17 +142,34 @@ const emptyGuestForm: GuestForm = {
   message: "",
 };
 
-const statusFilters = ["All", "Responded", "Not responded"] as const;
 const quickFilters = [
   "All",
-  "Attending ceremony",
-  "Attending reception",
-  "Bringing plus one",
-  "Has dietary",
-  "No phone",
-  "SMS not sent",
+  "Waiting",
+  "Responded",
+  "Attending",
+  "Declined",
+  "Ceremony",
+  "Reception",
+  "Plus ones",
+  "Dietary",
+  "Missing contact info",
+  "Bride side",
+  "Groom side",
+  "Needs follow-up",
+  "Potential duplicates",
 ] as const;
 const attendanceOptions: AttendanceValue[] = ["Not answered", "Yes", "No"];
+const messageTemplates = [
+  "Save the date reminder",
+  "RSVP reminder",
+  "Dietary details request",
+  "Accommodation/transport reminder",
+  "Thank you / confirmation",
+] as const;
+
+type QuickFilter = (typeof quickFilters)[number];
+type MessageTemplate = (typeof messageTemplates)[number];
+type DrawerMode = "closed" | "add" | "edit" | "import";
 
 function booleanToAttendance(value: boolean | null): AttendanceValue {
   if (value === null) {
@@ -175,10 +205,6 @@ function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
-function formatValue(value: string | null) {
-  return value && value.trim().length > 0 ? value : "Not provided";
-}
-
 function getGuestStatus(guest: CoupleGuest): RsvpStatus {
   return guest.rsvpStatus ?? guest.rsvpResponse;
 }
@@ -203,12 +229,44 @@ function normalizePhone(value: string | null) {
   return value?.replace(/[^\d+]/g, "") ?? "";
 }
 
+function normalizeComparison(value: string | null | undefined) {
+  return (value ?? "").trim().toLowerCase().replace(/[^a-z0-9]+/g, " ");
+}
+
+function getHouseholdName(guest: CoupleGuest) {
+  return guest.householdName?.trim() || "Ungrouped household";
+}
+
+function hasMissingContact(guest: CoupleGuest) {
+  return !guest.phoneNumber || !guest.email;
+}
+
+function needsFollowUp(guest: CoupleGuest) {
+  return getGuestStatus(guest) !== "Responded" || hasMissingContact(guest) || (guest.plusOneAllowed && getPlusOneResponse(guest) === true && !guest.plusOneName);
+}
+
 function buildInviteLink(siteUrl: string, inviteToken: string) {
   const baseUrl = siteUrl || "";
   return `${baseUrl}/rsvp/${encodeURIComponent(inviteToken)}`;
 }
 
-function buildInviteMessage(fullName: string, inviteLink: string) {
+function buildInviteMessage(fullName: string, inviteLink: string, template: MessageTemplate) {
+  if (template === "RSVP reminder") {
+    return `Hi ${fullName}, a gentle reminder to RSVP for Sumaya and Aditya's wedding here: ${inviteLink}`;
+  }
+
+  if (template === "Dietary details request") {
+    return `Hi ${fullName}, could you please confirm any dietary details for Sumaya and Aditya's wedding here: ${inviteLink}`;
+  }
+
+  if (template === "Accommodation/transport reminder") {
+    return `Hi ${fullName}, sharing the RSVP link for Sumaya and Aditya's wedding so we can keep accommodation and transport notes together: ${inviteLink}`;
+  }
+
+  if (template === "Thank you / confirmation") {
+    return `Hi ${fullName}, thank you for your RSVP for Sumaya and Aditya's wedding. You can review your details here: ${inviteLink}`;
+  }
+
   return `Hi ${fullName}, please RSVP for Sumaya and Aditya's wedding here: ${inviteLink}`;
 }
 
@@ -224,6 +282,9 @@ function formFromGuest(guest: CoupleGuest): GuestForm {
     email: guest.email ?? "",
     side: guest.side ?? "",
     notes: guest.notes ?? "",
+    householdName: guest.householdName ?? "",
+    householdAddress: guest.householdAddress ?? "",
+    householdNotes: guest.householdNotes ?? "",
     invitedToCeremony: guest.invitedToCeremony ? "Yes" : "No",
     invitedToReception: guest.invitedToReception ? "Yes" : "No",
     plusOneAllowed: guest.plusOneAllowed ? "Yes" : "No",
@@ -251,6 +312,111 @@ function formToBody(form: GuestForm) {
   };
 }
 
+function escapeCsvCell(value: string | number | boolean | null | undefined) {
+  const text = value === null || value === undefined ? "" : String(value);
+  return `"${text.replaceAll('"', '""')}"`;
+}
+
+function downloadGuestCsv(filename: string, guests: CoupleGuest[]) {
+  const headers = [
+    "Name",
+    "Household",
+    "Phone",
+    "Email",
+    "Side",
+    "RSVP",
+    "Ceremony",
+    "Reception",
+    "Plus one",
+    "Plus one name",
+    "Dietary",
+    "Last contacted",
+    "Notes",
+  ];
+  const rows = guests.map((guest) => [
+    guest.fullName,
+    getHouseholdName(guest),
+    guest.phoneNumber,
+    guest.email,
+    guest.side,
+    getGuestStatus(guest),
+    formatAnswer(getCeremonyResponse(guest)),
+    formatAnswer(getReceptionResponse(guest)),
+    getPlusOneResponse(guest) ? "Yes" : "No",
+    guest.plusOneName,
+    getDietaryNotes(guest),
+    guest.lastContactedAt ? formatDate(guest.lastContactedAt) : "",
+    guest.notes,
+  ]);
+  const csv = [headers, ...rows].map((row) => row.map(escapeCsvCell).join(",")).join("\n");
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function parseGuestCsv(text: string) {
+  const rows: string[][] = [];
+  let cell = "";
+  let row: string[] = [];
+  let quoted = false;
+
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index];
+    const next = text[index + 1];
+
+    if (char === '"' && quoted && next === '"') {
+      cell += '"';
+      index += 1;
+    } else if (char === '"') {
+      quoted = !quoted;
+    } else if (char === "," && !quoted) {
+      row.push(cell.trim());
+      cell = "";
+    } else if ((char === "\n" || char === "\r") && !quoted) {
+      if (char === "\r" && next === "\n") index += 1;
+      row.push(cell.trim());
+      if (row.some(Boolean)) rows.push(row);
+      row = [];
+      cell = "";
+    } else {
+      cell += char;
+    }
+  }
+
+  row.push(cell.trim());
+  if (row.some(Boolean)) rows.push(row);
+
+  return rows;
+}
+
+function mapCsvGuestRows(rows: string[][]): GuestForm[] {
+  const [headers = [], ...dataRows] = rows;
+  const normalizedHeaders = headers.map((header) => normalizeComparison(header));
+  const read = (row: string[], names: string[]) => {
+    const index = normalizedHeaders.findIndex((header) => names.some((name) => header === normalizeComparison(name)));
+    return index >= 0 ? row[index] ?? "" : "";
+  };
+
+  return dataRows
+    .map((row) => ({
+      ...emptyGuestForm,
+      fullName: read(row, ["name", "full name", "guest", "guest name"]),
+      householdName: read(row, ["household", "household name", "family"]),
+      phoneNumber: read(row, ["phone", "phone number", "mobile"]),
+      email: read(row, ["email", "email address"]),
+      side: read(row, ["side"]),
+      notes: read(row, ["notes", "private notes"]),
+      dietaryRequirements: read(row, ["dietary", "dietary requirements", "allergies"]),
+      plusOneName: read(row, ["plus one name", "plus-one name"]),
+      plusOneAllowed: read(row, ["plus one allowed", "plus one"]) ? ("Yes" as const) : ("No" as const),
+    }))
+    .filter((guest) => guest.fullName.trim());
+}
+
 function SummaryTile({
   label,
   value,
@@ -271,15 +437,6 @@ function SummaryTile({
     <div className={`rounded-2xl border px-5 py-4 ${toneClass}`}>
       <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-[#75675f]">{label}</p>
       <p className="mt-3 font-serif text-4xl leading-none text-[#3f302b]">{value}</p>
-    </div>
-  );
-}
-
-function DetailLine({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <p className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#8c7a72]">{label}</p>
-      <p className="mt-1 break-all text-sm leading-6 text-[#4f4641]">{value}</p>
     </div>
   );
 }
@@ -408,9 +565,11 @@ function GuestEditor({
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <TextField label="Full name" value={form.fullName} onChange={(value) => onChange("fullName", value)} />
+        <TextField label="Household" value={form.householdName} onChange={(value) => onChange("householdName", value)} placeholder="The Sharma Family" />
         <TextField label="Phone" value={form.phoneNumber} onChange={(value) => onChange("phoneNumber", value)} />
         <TextField label="Email" type="email" value={form.email} onChange={(value) => onChange("email", value)} />
         <TextField label="Side" value={form.side} onChange={(value) => onChange("side", value)} placeholder="Bride, groom, family..." />
+        <TextField label="Household address" value={form.householdAddress} onChange={(value) => onChange("householdAddress", value)} placeholder="Mailing address" />
         <SelectField
           label="RSVP"
           value={form.rsvpResponse}
@@ -456,8 +615,74 @@ function GuestEditor({
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         <TextAreaField label="Guest message" value={form.message} onChange={(value) => onChange("message", value)} />
         <TextAreaField label="Private notes" value={form.notes} onChange={(value) => onChange("notes", value)} />
+        <TextAreaField label="Household notes" value={form.householdNotes} onChange={(value) => onChange("householdNotes", value)} />
       </div>
     </form>
+  );
+}
+
+function StatusBadge({ children, tone = "neutral" }: { children: string; tone?: "neutral" | "good" | "warn" | "rose" }) {
+  const toneClass =
+    tone === "good"
+      ? "bg-[#eef5e9] text-[#52634a]"
+      : tone === "warn"
+        ? "bg-[#fff2e8] text-[#8a6758]"
+        : tone === "rose"
+          ? "bg-[#f8e8e4] text-[#9b6f68]"
+          : "bg-[#f4ebe4] text-[#6a5d55]";
+
+  return <span className={`inline-flex rounded-full px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${toneClass}`}>{children}</span>;
+}
+
+function InlineTextControl({
+  value,
+  label,
+  placeholder,
+  onSave,
+}: {
+  value: string | null;
+  label: string;
+  placeholder?: string;
+  onSave: (value: string) => void;
+}) {
+  return (
+    <input
+      key={value ?? ""}
+      aria-label={label}
+      defaultValue={value ?? ""}
+      placeholder={placeholder}
+      onBlur={(event) => {
+        const nextValue = event.currentTarget.value.trim();
+        if (nextValue !== (value ?? "")) onSave(nextValue);
+      }}
+      className="min-h-9 w-full min-w-32 rounded-xl border border-transparent bg-white/64 px-3 text-sm text-[#3f302b] outline-none transition hover:border-[#eaded6] focus:border-[#b98278]"
+    />
+  );
+}
+
+function InlineSelectControl<T extends string>({
+  value,
+  label,
+  options,
+  onSave,
+}: {
+  value: T;
+  label: string;
+  options: readonly T[];
+  onSave: (value: T) => void;
+}) {
+  return (
+    <select
+      key={value}
+      aria-label={label}
+      defaultValue={value}
+      onChange={(event) => onSave(event.currentTarget.value as T)}
+      className="min-h-9 w-full min-w-28 rounded-xl border border-[#eaded6] bg-white/70 px-3 text-xs font-medium uppercase tracking-[0.08em] text-[#3f302b] outline-none transition focus:border-[#b98278]"
+    >
+      {options.map((option) => (
+        <option key={option}>{option}</option>
+      ))}
+    </select>
   );
 }
 
@@ -468,31 +693,79 @@ export default function PrivatePlanningGuestsTab() {
   const [status, setStatus] = useState<"idle" | "loading" | "error" | "success">("idle");
   const [message, setMessage] = useState("");
   const [query, setQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<(typeof statusFilters)[number]>("All");
-  const [quickFilter, setQuickFilter] = useState<(typeof quickFilters)[number]>("All");
+  const [quickFilter, setQuickFilter] = useState<QuickFilter>("All");
+  const [messageTemplate, setMessageTemplate] = useState<MessageTemplate>("RSVP reminder");
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>("closed");
+  const [importPreview, setImportPreview] = useState<GuestForm[]>([]);
   const [selectedGuestIds, setSelectedGuestIds] = useState<Set<string>>(new Set());
   const [addForm, setAddForm] = useState<GuestForm>(emptyGuestForm);
   const [editingGuestId, setEditingGuestId] = useState("");
   const [editForm, setEditForm] = useState<GuestForm>(emptyGuestForm);
 
   const busy = status === "loading";
+  const duplicateGuestIds = useMemo(() => {
+    const ids = new Set<string>();
+    const byEmail = new Map<string, CoupleGuest[]>();
+    const byPhone = new Map<string, CoupleGuest[]>();
+    const byNameHousehold = new Map<string, CoupleGuest[]>();
+
+    for (const guest of guests) {
+      const email = normalizeComparison(guest.email);
+      const phone = normalizePhone(guest.phoneNumber);
+      const nameHousehold = `${normalizeComparison(guest.fullName)}|${normalizeComparison(getHouseholdName(guest))}`;
+
+      if (email) byEmail.set(email, [...(byEmail.get(email) ?? []), guest]);
+      if (phone) byPhone.set(phone, [...(byPhone.get(phone) ?? []), guest]);
+      if (nameHousehold.trim() !== "|ungrouped household") {
+        byNameHousehold.set(nameHousehold, [...(byNameHousehold.get(nameHousehold) ?? []), guest]);
+      }
+    }
+
+    for (const group of [...byEmail.values(), ...byPhone.values(), ...byNameHousehold.values()]) {
+      if (group.length > 1) group.forEach((guest) => ids.add(guest.id));
+    }
+
+    return ids;
+  }, [guests]);
+
+  const householdCount = useMemo(() => new Set(guests.map(getHouseholdName)).size, [guests]);
+  const attentionCards = useMemo(
+    () => [
+      { label: "Waiting RSVPs", value: guests.filter((guest) => getGuestStatus(guest) !== "Responded").length, filter: "Waiting" as const },
+      { label: "Missing contact info", value: guests.filter(hasMissingContact).length, filter: "Missing contact info" as const },
+      { label: "Dietary notes", value: guests.filter((guest) => Boolean(getDietaryNotes(guest))).length, filter: "Dietary" as const },
+      {
+        label: "Plus-one names needed",
+        value: guests.filter((guest) => guest.plusOneAllowed && getPlusOneResponse(guest) === true && !guest.plusOneName).length,
+        filter: "Plus ones" as const,
+      },
+      {
+        label: "Missing ceremony/reception",
+        value: guests.filter((guest) => getCeremonyResponse(guest) === null || getReceptionResponse(guest) === null).length,
+        filter: "Needs follow-up" as const,
+      },
+      { label: "Potential duplicates", value: duplicateGuestIds.size, filter: "Potential duplicates" as const },
+    ],
+    [duplicateGuestIds.size, guests],
+  );
 
   const filteredGuests = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return guests.filter((guest) => {
-      const matchesStatus = statusFilter === "All" || getGuestStatus(guest) === statusFilter;
-
-      if (!matchesStatus) {
-        return false;
-      }
-
-      if (quickFilter === "Attending ceremony" && getCeremonyResponse(guest) !== true) return false;
-      if (quickFilter === "Attending reception" && getReceptionResponse(guest) !== true) return false;
-      if (quickFilter === "Bringing plus one" && getPlusOneResponse(guest) !== true) return false;
-      if (quickFilter === "Has dietary" && !getDietaryNotes(guest)) return false;
-      if (quickFilter === "No phone" && guest.phoneNumber) return false;
-      if (quickFilter === "SMS not sent" && guest.smsSentAt) return false;
+      if (quickFilter === "Waiting" && getGuestStatus(guest) === "Responded") return false;
+      if (quickFilter === "Responded" && getGuestStatus(guest) !== "Responded") return false;
+      if (quickFilter === "Attending" && getCeremonyResponse(guest) !== true && getReceptionResponse(guest) !== true) return false;
+      if (quickFilter === "Declined" && (getCeremonyResponse(guest) !== false || getReceptionResponse(guest) !== false)) return false;
+      if (quickFilter === "Ceremony" && getCeremonyResponse(guest) !== true) return false;
+      if (quickFilter === "Reception" && getReceptionResponse(guest) !== true) return false;
+      if (quickFilter === "Plus ones" && !guest.plusOneAllowed && getPlusOneResponse(guest) !== true) return false;
+      if (quickFilter === "Dietary" && !getDietaryNotes(guest)) return false;
+      if (quickFilter === "Missing contact info" && !hasMissingContact(guest)) return false;
+      if (quickFilter === "Bride side" && normalizeComparison(guest.side) !== "bride") return false;
+      if (quickFilter === "Groom side" && normalizeComparison(guest.side) !== "groom") return false;
+      if (quickFilter === "Needs follow-up" && !needsFollowUp(guest)) return false;
+      if (quickFilter === "Potential duplicates" && !duplicateGuestIds.has(guest.id)) return false;
 
       if (!normalizedQuery) {
         return true;
@@ -500,15 +773,19 @@ export default function PrivatePlanningGuestsTab() {
 
       return [
         guest.fullName,
+        guest.householdName,
+        guest.householdAddress,
         guest.phoneNumber,
         guest.email,
         guest.side,
         getGuestStatus(guest),
         getDietaryNotes(guest),
         guest.plusOneName,
+        guest.notes,
+        guest.householdNotes,
       ].some((value) => value?.toLowerCase().includes(normalizedQuery));
     });
-  }, [guests, query, quickFilter, statusFilter]);
+  }, [duplicateGuestIds, guests, query, quickFilter]);
 
   const selectedGuests = useMemo(
     () => guests.filter((guest) => selectedGuestIds.has(guest.id)),
@@ -574,6 +851,49 @@ export default function PrivatePlanningGuestsTab() {
     return result;
   }
 
+  function replaceGuest(updatedGuest: CoupleGuest) {
+    setGuests((current) => current.map((guest) => (guest.id === updatedGuest.id ? updatedGuest : guest)));
+  }
+
+  async function patchGuest(guest: CoupleGuest, body: object, successMessage?: string) {
+    try {
+      setStatus("loading");
+      setMessage("");
+      const result = await requestGuestChange("PATCH", { id: guest.id, ...body });
+
+      if (result.guest) {
+        replaceGuest(result.guest);
+      }
+
+      await loadGuests();
+      setStatus("success");
+      setMessage(successMessage ?? `${guest.fullName} updated.`);
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : `Could not update ${guest.fullName}.`);
+    }
+  }
+
+  async function applyBulkPatch(body: object, label: string) {
+    if (selectedGuests.length === 0) {
+      return;
+    }
+
+    try {
+      setStatus("loading");
+      setMessage("");
+      for (const guest of selectedGuests) {
+        await requestGuestChange("PATCH", { id: guest.id, ...body });
+      }
+      await loadGuests();
+      setStatus("success");
+      setMessage(`${label} applied to ${selectedGuests.length} selected guest${selectedGuests.length === 1 ? "" : "s"}.`);
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "Could not apply the bulk update.");
+    }
+  }
+
   async function handleRefresh() {
     try {
       await loadGuests();
@@ -591,6 +911,7 @@ export default function PrivatePlanningGuestsTab() {
       setMessage("");
       await requestGuestChange("POST", formToBody(addForm));
       setAddForm(emptyGuestForm);
+      setDrawerMode("closed");
       await loadGuests();
       setStatus("success");
       setMessage("Guest added.");
@@ -608,6 +929,7 @@ export default function PrivatePlanningGuestsTab() {
       setMessage("");
       await requestGuestChange("PATCH", { id: editingGuestId, ...formToBody(editForm) });
       setEditingGuestId("");
+      setDrawerMode("closed");
       await loadGuests();
       setStatus("success");
       setMessage("Guest updated.");
@@ -643,6 +965,7 @@ export default function PrivatePlanningGuestsTab() {
   function startEdit(guest: CoupleGuest) {
     setEditingGuestId(guest.id);
     setEditForm(formFromGuest(guest));
+    setDrawerMode("edit");
     setMessage("");
   }
 
@@ -676,11 +999,11 @@ export default function PrivatePlanningGuestsTab() {
 
   function getGuestInviteMessage(guest: CoupleGuest) {
     const currentSiteUrl = typeof window === "undefined" ? "" : window.location.origin;
-    return buildInviteMessage(guest.fullName, buildInviteLink(currentSiteUrl, guest.rsvpToken ?? guest.inviteToken));
+    return buildInviteMessage(guest.fullName, buildInviteLink(currentSiteUrl, guest.rsvpToken ?? guest.inviteToken), messageTemplate);
   }
 
   async function markGuestSmsSent(guest: CoupleGuest) {
-    await requestGuestChange("PATCH", { id: guest.id, action: "markSmsSent" });
+    await requestGuestChange("PATCH", { id: guest.id, action: "markSmsSent", lastMessageType: messageTemplate });
     await loadGuests();
   }
 
@@ -702,9 +1025,8 @@ export default function PrivatePlanningGuestsTab() {
   async function copyGuestSmsText(guest: CoupleGuest) {
     try {
       await navigator.clipboard.writeText(getGuestInviteMessage(guest));
+      await patchGuest(guest, { action: "markRsvpLinkSent", lastMessageType: messageTemplate }, `Copied SMS text for ${guest.fullName}.`);
       setCopiedGuestId(guest.id);
-      setStatus("success");
-      setMessage(`Copied SMS text for ${guest.fullName}.`);
       window.setTimeout(() => setCopiedGuestId(""), 1800);
     } catch {
       setStatus("error");
@@ -716,9 +1038,8 @@ export default function PrivatePlanningGuestsTab() {
     try {
       const currentSiteUrl = typeof window === "undefined" ? "" : window.location.origin;
       await navigator.clipboard.writeText(buildInviteLink(currentSiteUrl, guest.rsvpToken ?? guest.inviteToken));
+      await patchGuest(guest, { action: "markRsvpLinkSent", lastMessageType: "RSVP link copied" }, `Copied RSVP link for ${guest.fullName}.`);
       setCopiedGuestId(guest.id);
-      setStatus("success");
-      setMessage(`Copied RSVP link for ${guest.fullName}.`);
       window.setTimeout(() => setCopiedGuestId(""), 1800);
     } catch {
       setStatus("error");
@@ -733,11 +1054,105 @@ export default function PrivatePlanningGuestsTab() {
         .join("\n\n");
 
       await navigator.clipboard.writeText(text);
+      await applyBulkPatch({ action: "markRsvpLinkSent", lastMessageType: messageTemplate }, "Message log");
       setStatus("success");
       setMessage(`Copied ${selectedSmsGuests.length} prepared SMS text${selectedSmsGuests.length === 1 ? "" : "s"}.`);
     } catch {
       setStatus("error");
       setMessage("Could not copy selected SMS texts. Try copying one guest at a time.");
+    }
+  }
+
+  async function regenerateGuestInvite(guest: CoupleGuest) {
+    if (!window.confirm(`Regenerate the RSVP link for ${guest.fullName}? The old link will stop working.`)) {
+      return;
+    }
+
+    await patchGuest(guest, { action: "regenerateInviteToken" }, `Regenerated RSVP link for ${guest.fullName}.`);
+  }
+
+  async function deleteSelectedGuests() {
+    if (selectedGuests.length === 0) {
+      return;
+    }
+
+    if (!window.confirm(`Remove ${selectedGuests.length} selected guest${selectedGuests.length === 1 ? "" : "s"}?`)) {
+      return;
+    }
+
+    try {
+      setStatus("loading");
+      setMessage("");
+      for (const guest of selectedGuests) {
+        await requestGuestChange("DELETE", { id: guest.id });
+      }
+      setSelectedGuestIds(new Set());
+      await loadGuests();
+      setStatus("success");
+      setMessage("Selected guests removed.");
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "Could not remove selected guests.");
+    }
+  }
+
+  function exportSelectedGuests() {
+    if (selectedGuests.length === 0) {
+      return;
+    }
+
+    const confirmed = window.confirm("This export contains sensitive selected guest data. Keep it private.");
+
+    if (confirmed) {
+      downloadGuestCsv("sumaya-aditya-selected-guests.csv", selectedGuests);
+    }
+  }
+
+  async function handleImportFile(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    const text = await file.text();
+    setImportPreview(mapCsvGuestRows(parseGuestCsv(text)));
+    setDrawerMode("import");
+    event.currentTarget.value = "";
+  }
+
+  async function confirmImportGuests() {
+    if (importPreview.length === 0) {
+      return;
+    }
+
+    try {
+      setStatus("loading");
+      setMessage("");
+      const response = await fetch("/api/private-planning/guests/import", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          [PRIVATE_PLANNING_CSRF_HEADER]: "1",
+        },
+        body: JSON.stringify({ guests: importPreview.map(formToBody) }),
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const result = (await response.json()) as GuestListResponse & { importedCount?: number };
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.error ?? "Could not import guests.");
+      }
+
+      setImportPreview([]);
+      setDrawerMode("closed");
+      await loadGuests();
+      setStatus("success");
+      setMessage(`Imported ${result.importedCount ?? importPreview.length} guest${(result.importedCount ?? importPreview.length) === 1 ? "" : "s"}.`);
+    } catch (error) {
+      setStatus("error");
+      setMessage(error instanceof Error ? error.message : "Could not import guests.");
     }
   }
 
@@ -800,6 +1215,17 @@ export default function PrivatePlanningGuestsTab() {
           <div className="flex flex-wrap gap-3">
             <button
               type="button"
+              onClick={() => {
+                setAddForm(emptyGuestForm);
+                setDrawerMode("add");
+              }}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition hover:bg-[var(--color-navy-hover)]"
+            >
+              <Plus aria-hidden="true" className="h-4 w-4" />
+              Add Guest
+            </button>
+            <button
+              type="button"
               onClick={handleRefresh}
               disabled={busy}
               className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#d8bd96] disabled:cursor-not-allowed disabled:opacity-60"
@@ -807,6 +1233,11 @@ export default function PrivatePlanningGuestsTab() {
               <RefreshCw aria-hidden="true" className={`h-4 w-4 ${busy ? "animate-spin" : ""}`} />
               Refresh
             </button>
+            <label className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#d8bd96]">
+              <Upload aria-hidden="true" className="h-4 w-4" />
+              Import CSV
+              <input type="file" accept=".csv,text/csv" onChange={(event) => void handleImportFile(event)} className="hidden" />
+            </label>
             <button
               type="button"
               onClick={downloadCsv}
@@ -818,8 +1249,9 @@ export default function PrivatePlanningGuestsTab() {
           </div>
         </header>
 
-        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-8">
+        <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-9">
           <SummaryTile label="Total" value={summary.total} />
+          <SummaryTile label="Households" value={householdCount} />
           <SummaryTile label="Headcount" value={summary.headcount} />
           <SummaryTile label="Responded" value={summary.responded} tone="sage" />
           <SummaryTile label="Waiting" value={summary.notResponded} tone="warm" />
@@ -829,18 +1261,28 @@ export default function PrivatePlanningGuestsTab() {
           <SummaryTile label="Dietary" value={summary.dietaryNotes} tone="warm" />
         </div>
 
-        <div className="mb-6">
-          <GuestEditor
-            title="Add Guest"
-            submitLabel="Add guest"
-            form={addForm}
-            busy={busy}
-            onChange={(key, value) => setAddForm((current) => ({ ...current, [key]: value }))}
-            onSubmit={handleAddGuest}
-          />
+        <div className="mb-6 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {attentionCards.map((card) => (
+            <button
+              key={card.label}
+              type="button"
+              onClick={() => setQuickFilter(card.filter)}
+              className={`rounded-2xl border px-5 py-4 text-left transition hover:-translate-y-[1px] ${
+                quickFilter === card.filter
+                  ? "border-[#b98278] bg-[#fff5f2] shadow-[0_12px_28px_rgba(90,65,50,0.08)]"
+                  : "border-[#eaded6] bg-[#fffaf7]/82 hover:border-[#d8bd96]"
+              }`}
+            >
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#8c7a72]">Needs Attention</p>
+              <div className="mt-3 flex items-end justify-between gap-4">
+                <p className="font-serif text-2xl leading-tight text-[#8f6a63]">{card.label}</p>
+                <span className="font-serif text-4xl leading-none text-[#3f302b]">{card.value}</span>
+              </div>
+            </button>
+          ))}
         </div>
 
-        <div className="mb-6 grid gap-3 rounded-2xl border border-[#eaded6] bg-[#fffaf7]/82 p-4 lg:grid-cols-[1fr_auto]">
+        <div className="mb-6 grid gap-3 rounded-2xl border border-[#eaded6] bg-[#fffaf7]/82 p-4">
           <label className="relative block">
             <Search
               aria-hidden="true"
@@ -856,34 +1298,22 @@ export default function PrivatePlanningGuestsTab() {
           </label>
 
           <div className="flex flex-wrap gap-2">
-            <div className="grid grid-cols-3 gap-2 rounded-full border border-[#eaded6] bg-white/70 p-1">
-              {statusFilters.map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={() => setStatusFilter(filter)}
-                  className={`min-h-9 rounded-full px-4 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-                    statusFilter === filter ? "bg-[var(--color-navy)] text-[var(--color-cta-text)]" : "text-[#5f524b] hover:bg-[#fbf7f2]"
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {quickFilters.map((filter) => (
-                <button
-                  key={filter}
-                  type="button"
-                  onClick={() => setQuickFilter(filter)}
-                  className={`min-h-9 rounded-full px-4 text-xs font-semibold uppercase tracking-[0.12em] transition ${
-                    quickFilter === filter ? "bg-[var(--color-navy)] text-[var(--color-cta-text)]" : "border border-[#eaded6] bg-white/75 text-[#5f524b] hover:bg-[#fbf7f2]"
-                  }`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
+            {quickFilters.map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => setQuickFilter(filter)}
+                className={`min-h-9 rounded-full px-4 text-xs font-semibold uppercase tracking-[0.12em] transition ${
+                  quickFilter === filter ? "bg-[var(--color-navy)] text-[var(--color-cta-text)]" : "border border-[#eaded6] bg-white/75 text-[#5f524b] hover:bg-[#fbf7f2]"
+                }`}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 border-t border-[#eaded6] pt-4">
+            <SelectField label="SMS template" value={messageTemplate} options={messageTemplates} onChange={setMessageTemplate} />
             <button
               type="button"
               onClick={toggleVisibleSelection}
@@ -894,12 +1324,60 @@ export default function PrivatePlanningGuestsTab() {
             </button>
             <button
               type="button"
+              onClick={() => void applyBulkPatch({ rsvpStatus: "Responded" }, "RSVP responded")}
+              disabled={busy || selectedGuests.length === 0}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-5 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96] disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Mark responded
+            </button>
+            <button
+              type="button"
+              onClick={() => void applyBulkPatch({ rsvpStatus: "Not responded" }, "RSVP waiting")}
+              disabled={busy || selectedGuests.length === 0}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-5 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96] disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Mark waiting
+            </button>
+            <button
+              type="button"
+              onClick={() => void applyBulkPatch({ attendingCeremony: "Yes" }, "Ceremony yes")}
+              disabled={busy || selectedGuests.length === 0}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-5 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96] disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Ceremony yes
+            </button>
+            <button
+              type="button"
+              onClick={() => void applyBulkPatch({ attendingReception: "Yes" }, "Reception yes")}
+              disabled={busy || selectedGuests.length === 0}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-5 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96] disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Reception yes
+            </button>
+            <button
+              type="button"
+              onClick={exportSelectedGuests}
+              disabled={busy || selectedGuests.length === 0}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-5 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96] disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Export selected
+            </button>
+            <button
+              type="button"
               onClick={() => void copySelectedSmsTexts()}
               disabled={busy || selectedSmsGuests.length === 0}
               className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[#6f7d5b] px-5 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#5d6c4c] disabled:cursor-not-allowed disabled:opacity-45"
             >
               <MessageCircle aria-hidden="true" className="h-4 w-4" />
               Copy SMS text ({selectedSmsGuests.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => void deleteSelectedGuests()}
+              disabled={busy || selectedGuests.length === 0}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#e6c8c2] bg-[#fff4f2] px-5 text-xs font-semibold uppercase tracking-[0.12em] text-[#7f554f] transition hover:border-[#d8a79e] disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Delete selected
             </button>
           </div>
         </div>
@@ -916,146 +1394,268 @@ export default function PrivatePlanningGuestsTab() {
           </div>
         )}
 
-        <div className="grid gap-4">
-          {filteredGuests.map((guest) => {
-            const selected = selectedGuestIds.has(guest.id);
-            const phone = normalizePhone(guest.phoneNumber);
-            const inviteLink = buildInviteLink("", guest.rsvpToken ?? guest.inviteToken);
+        <div className="overflow-hidden rounded-2xl border border-[#eaded6] bg-[#fffaf7]/82 shadow-[0_14px_34px_rgba(90,65,50,0.055)]">
+          <div className="overflow-x-auto">
+            <table className="min-w-[1500px] w-full border-collapse text-left">
+              <thead className="bg-[#f8eee9]/80 text-[10px] font-semibold uppercase tracking-[0.16em] text-[#75675f]">
+                <tr>
+                  <th className="w-12 px-4 py-4">
+                    <input type="checkbox" checked={allVisibleSelected} onChange={toggleVisibleSelection} className="h-4 w-4 accent-[#6f7d5b]" aria-label="Select visible guests" />
+                  </th>
+                  <th className="px-4 py-4">Guest</th>
+                  <th className="px-4 py-4">Household</th>
+                  <th className="px-4 py-4">Side</th>
+                  <th className="px-4 py-4">Phone</th>
+                  <th className="px-4 py-4">Email</th>
+                  <th className="px-4 py-4">RSVP</th>
+                  <th className="px-4 py-4">Ceremony</th>
+                  <th className="px-4 py-4">Reception</th>
+                  <th className="px-4 py-4">Plus one</th>
+                  <th className="px-4 py-4">Dietary</th>
+                  <th className="px-4 py-4">Last contacted</th>
+                  <th className="px-4 py-4">Notes</th>
+                  <th className="px-4 py-4">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#eaded6]">
+                {filteredGuests.map((guest) => {
+                  const selected = selectedGuestIds.has(guest.id);
+                  const phone = normalizePhone(guest.phoneNumber);
+                  const inviteLink = buildInviteLink("", guest.rsvpToken ?? guest.inviteToken);
 
-            return (
-              <article key={guest.id} className="rounded-2xl border border-[#eaded6] bg-[#fffaf7]/82 p-5">
-                <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-                  <div className="flex min-w-0 flex-1 items-start gap-4">
-                    <label className="mt-1 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-xl border border-[#eaded6] bg-white/85">
-                      <input
-                        type="checkbox"
-                        checked={selected}
-                        onChange={() => toggleGuestSelection(guest.id)}
-                        className="h-4 w-4 accent-[#6f7d5b]"
-                        aria-label={`Select ${guest.fullName}`}
-                      />
-                    </label>
-                    <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-3">
-                        <p className="font-serif text-2xl leading-tight text-[#3f302b]">{guest.fullName}</p>
-                        <span
-                          className={`rounded-full px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] ${
-                            getGuestStatus(guest) === "Responded"
-                              ? "bg-[#eef5e9] text-[#52634a]"
-                              : "bg-[#fff2e8] text-[#8a6758]"
-                          }`}
-                        >
-                          {getGuestStatus(guest)}
-                        </span>
-                      </div>
-                      <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                        <DetailLine label="Phone" value={formatValue(guest.phoneNumber)} />
-                        <DetailLine label="Email" value={formatValue(guest.email)} />
-                        <DetailLine label="Side" value={formatValue(guest.side)} />
-                        <DetailLine label="Responded" value={formatDate(guest.respondedAt)} />
-                        <DetailLine label="Ceremony" value={formatAnswer(getCeremonyResponse(guest))} />
-                        <DetailLine label="Reception" value={formatAnswer(getReceptionResponse(guest))} />
-                        <DetailLine label="Plus one" value={getPlusOneResponse(guest) ? guest.plusOneName ?? "Yes" : "No"} />
-                        <DetailLine label="Dietary" value={getDietaryNotes(guest) || "Not provided"} />
-                        <DetailLine label="Song" value={formatValue(guest.songRequest)} />
-                        <DetailLine label="Message" value={formatValue(guest.guestMessage ?? guest.message)} />
-                        <DetailLine label="SMS sent" value={formatDate(guest.smsSentAt)} />
-                        <DetailLine label="Notes" value={formatValue(guest.notes)} />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex shrink-0 flex-wrap gap-2">
-                    <a
-                      href={inviteLink}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96]"
-                    >
-                      <ExternalLink aria-hidden="true" className="h-4 w-4" />
-                      Open RSVP
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => void copyGuestRsvpLink(guest)}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96]"
-                    >
-                      <Copy aria-hidden="true" className="h-4 w-4" />
-                      {copiedGuestId === guest.id ? "Copied" : "Copy RSVP"}
-                    </button>
-                    {phone ? (
-                      <button
-                        type="button"
-                        onClick={() => void openGuestSms(guest)}
-                        className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#6f7d5b] px-4 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:bg-[#5d6c4c]"
-                      >
-                        <MessageCircle aria-hidden="true" className="h-4 w-4" />
-                        SMS
-                      </button>
-                    ) : (
-                      <span className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[#e9ddd6] px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#8c7a72]">
-                        <MessageCircle aria-hidden="true" className="h-4 w-4" />
-                        No phone
-                      </span>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => void copyGuestSmsText(guest)}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96]"
-                    >
-                      <MessageCircle aria-hidden="true" className="h-4 w-4" />
-                      {copiedGuestId === guest.id ? "Copied" : "Copy text"}
-                    </button>
-                    {guest.phoneNumber && (
-                      <a
-                        href={`tel:${phone}`}
-                        className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96]"
-                      >
-                        <Phone aria-hidden="true" className="h-4 w-4" />
-                        Call
-                      </a>
-                    )}
-                    <button
-                      type="button"
-                      onClick={() => startEdit(guest)}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96]"
-                    >
-                      <Pencil aria-hidden="true" className="h-4 w-4" />
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => void handleDeleteGuest(guest)}
-                      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#e6c8c2] bg-[#fff4f2] px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#7f554f] transition hover:border-[#d8a79e]"
-                    >
-                      <Trash2 aria-hidden="true" className="h-4 w-4" />
-                      Remove
-                    </button>
-                  </div>
-                </div>
-
-                {editingGuestId === guest.id && (
-                  <div className="mt-5 border-t border-[#eaded6] pt-5">
-                    <GuestEditor
-                      title={`Edit ${guest.fullName}`}
-                      submitLabel="Save"
-                      form={editForm}
-                      busy={busy}
-                      onChange={(key, value) => setEditForm((current) => ({ ...current, [key]: value }))}
-                      onSubmit={handleSaveGuest}
-                      onCancel={() => setEditingGuestId("")}
-                    />
-                  </div>
-                )}
-              </article>
-            );
-          })}
+                  return (
+                    <tr key={guest.id} className={`${selected ? "bg-[#fff5f2]" : "bg-white/36"} align-top transition hover:bg-white/58`}>
+                      <td className="px-4 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selected}
+                          onChange={() => toggleGuestSelection(guest.id)}
+                          className="h-4 w-4 accent-[#6f7d5b]"
+                          aria-label={`Select ${guest.fullName}`}
+                        />
+                      </td>
+                      <td className="min-w-56 px-4 py-4">
+                        <InlineTextControl value={guest.fullName} label={`${guest.fullName} full name`} onSave={(value) => void patchGuest(guest, { fullName: value })} />
+                        <div className="mt-2 flex flex-wrap gap-2">
+                          <StatusBadge tone={getGuestStatus(guest) === "Responded" ? "good" : "warn"}>{getGuestStatus(guest)}</StatusBadge>
+                          {duplicateGuestIds.has(guest.id) && <StatusBadge tone="rose">Possible duplicate</StatusBadge>}
+                        </div>
+                      </td>
+                      <td className="min-w-52 px-4 py-4">
+                        <InlineTextControl value={guest.householdName} label={`${guest.fullName} household`} placeholder="Household" onSave={(value) => void patchGuest(guest, { householdName: value })} />
+                      </td>
+                      <td className="min-w-36 px-4 py-4">
+                        <InlineTextControl value={guest.side} label={`${guest.fullName} side`} placeholder="Bride/Groom" onSave={(value) => void patchGuest(guest, { side: value })} />
+                      </td>
+                      <td className="min-w-40 px-4 py-4">
+                        <InlineTextControl value={guest.phoneNumber} label={`${guest.fullName} phone`} onSave={(value) => void patchGuest(guest, { phoneNumber: value })} />
+                      </td>
+                      <td className="min-w-52 px-4 py-4">
+                        <InlineTextControl value={guest.email} label={`${guest.fullName} email`} onSave={(value) => void patchGuest(guest, { email: value })} />
+                      </td>
+                      <td className="min-w-40 px-4 py-4">
+                        <InlineSelectControl value={getGuestStatus(guest)} label={`${guest.fullName} RSVP`} options={["Not responded", "Responded"] as const} onSave={(value) => void patchGuest(guest, { rsvpStatus: value })} />
+                      </td>
+                      <td className="min-w-36 px-4 py-4">
+                        <InlineSelectControl value={booleanToAttendance(getCeremonyResponse(guest))} label={`${guest.fullName} ceremony`} options={attendanceOptions} onSave={(value) => void patchGuest(guest, { attendingCeremony: value })} />
+                      </td>
+                      <td className="min-w-36 px-4 py-4">
+                        <InlineSelectControl value={booleanToAttendance(getReceptionResponse(guest))} label={`${guest.fullName} reception`} options={attendanceOptions} onSave={(value) => void patchGuest(guest, { attendingReception: value })} />
+                      </td>
+                      <td className="min-w-44 px-4 py-4">
+                        <InlineSelectControl value={getPlusOneResponse(guest) ? "Yes" : "No"} label={`${guest.fullName} plus one`} options={["No", "Yes"] as const} onSave={(value) => void patchGuest(guest, { bringingPlusOne: value })} />
+                        {getPlusOneResponse(guest) && (
+                          <div className="mt-2">
+                            <InlineTextControl value={guest.plusOneName} label={`${guest.fullName} plus one name`} placeholder="Plus-one name" onSave={(value) => void patchGuest(guest, { plusOneName: value })} />
+                          </div>
+                        )}
+                      </td>
+                      <td className="min-w-52 px-4 py-4">
+                        <InlineTextControl value={getDietaryNotes(guest)} label={`${guest.fullName} dietary notes`} placeholder="Dietary notes" onSave={(value) => void patchGuest(guest, { dietaryRequirements: value })} />
+                      </td>
+                      <td className="min-w-44 px-4 py-4 text-sm leading-6 text-[#6a5d55]">
+                        <p>{formatDate(guest.lastContactedAt ?? guest.smsSentAt ?? guest.rsvpLinkSentAt)}</p>
+                        {guest.lastMessageType && <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#8c7a72]">{guest.lastMessageType}</p>}
+                      </td>
+                      <td className="min-w-56 px-4 py-4">
+                        <InlineTextControl value={guest.notes} label={`${guest.fullName} notes`} placeholder="Private notes" onSave={(value) => void patchGuest(guest, { notes: value })} />
+                      </td>
+                      <td className="min-w-72 px-4 py-4">
+                        <div className="flex flex-wrap gap-2">
+                          <a
+                            href={inviteLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3f302b] transition hover:border-[#d8bd96]"
+                          >
+                            <ExternalLink aria-hidden="true" className="h-3.5 w-3.5" />
+                            Open
+                          </a>
+                          <button
+                            type="button"
+                            onClick={() => void copyGuestRsvpLink(guest)}
+                            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3f302b] transition hover:border-[#d8bd96]"
+                          >
+                            <Copy aria-hidden="true" className="h-3.5 w-3.5" />
+                            {copiedGuestId === guest.id ? "Copied" : "Link"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void regenerateGuestInvite(guest)}
+                            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3f302b] transition hover:border-[#d8bd96]"
+                          >
+                            <RefreshCw aria-hidden="true" className="h-3.5 w-3.5" />
+                            Regen
+                          </button>
+                          {phone ? (
+                            <button
+                              type="button"
+                              onClick={() => void openGuestSms(guest)}
+                              className="inline-flex min-h-9 items-center gap-2 rounded-full bg-[#6f7d5b] px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-white transition hover:bg-[#5d6c4c]"
+                            >
+                              <MessageCircle aria-hidden="true" className="h-3.5 w-3.5" />
+                              SMS
+                            </button>
+                          ) : (
+                            <span className="inline-flex min-h-9 items-center gap-2 rounded-full bg-[#e9ddd6] px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#8c7a72]">
+                              <MessageCircle aria-hidden="true" className="h-3.5 w-3.5" />
+                              No phone
+                            </span>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => void copyGuestSmsText(guest)}
+                            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3f302b] transition hover:border-[#d8bd96]"
+                          >
+                            <MessageCircle aria-hidden="true" className="h-3.5 w-3.5" />
+                            {copiedGuestId === guest.id ? "Copied" : "Text"}
+                          </button>
+                          {guest.phoneNumber && (
+                            <a
+                              href={`tel:${phone}`}
+                              className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3f302b] transition hover:border-[#d8bd96]"
+                            >
+                              <Phone aria-hidden="true" className="h-3.5 w-3.5" />
+                              Call
+                            </a>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => startEdit(guest)}
+                            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#3f302b] transition hover:border-[#d8bd96]"
+                          >
+                            <Pencil aria-hidden="true" className="h-3.5 w-3.5" />
+                            Edit
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void handleDeleteGuest(guest)}
+                            className="inline-flex min-h-9 items-center gap-2 rounded-full border border-[#e6c8c2] bg-[#fff4f2] px-3 text-[11px] font-semibold uppercase tracking-[0.1em] text-[#7f554f] transition hover:border-[#d8a79e]"
+                          >
+                            <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+                            Remove
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {filteredGuests.length === 0 && (
           <div className="rounded-2xl border border-[#eaded6] bg-[#fffaf7]/82 px-5 py-12 text-center">
             <UsersRound aria-hidden="true" className="mx-auto h-8 w-8 text-[#9b6f68]" />
             <p className="mt-4 font-serif text-2xl text-[#3f302b]">No guests found</p>
+          </div>
+        )}
+
+        {drawerMode !== "closed" && (
+          <div className="fixed inset-0 z-50 flex justify-end bg-[#3f302b]/24 backdrop-blur-sm">
+            <button
+              type="button"
+              aria-label="Close guest drawer"
+              className="absolute inset-0 cursor-default"
+              onClick={() => {
+                setDrawerMode("closed");
+                setEditingGuestId("");
+              }}
+            />
+            <aside className="relative h-full w-full max-w-3xl overflow-y-auto border-l border-[#eaded6] bg-[#fbf7f2] p-4 shadow-[-18px_0_42px_rgba(80,60,55,0.16)] sm:p-6">
+              {drawerMode === "add" && (
+                <GuestEditor
+                  title="Add Guest"
+                  submitLabel="Add guest"
+                  form={addForm}
+                  busy={busy}
+                  onChange={(key, value) => setAddForm((current) => ({ ...current, [key]: value }))}
+                  onSubmit={handleAddGuest}
+                  onCancel={() => setDrawerMode("closed")}
+                />
+              )}
+
+              {drawerMode === "edit" && (
+                <GuestEditor
+                  title={`Edit ${editForm.fullName || "Guest"}`}
+                  submitLabel="Save"
+                  form={editForm}
+                  busy={busy}
+                  onChange={(key, value) => setEditForm((current) => ({ ...current, [key]: value }))}
+                  onSubmit={handleSaveGuest}
+                  onCancel={() => {
+                    setDrawerMode("closed");
+                    setEditingGuestId("");
+                  }}
+                />
+              )}
+
+              {drawerMode === "import" && (
+                <div className="rounded-2xl border border-[#eaded6] bg-[#fffaf7]/82 p-5">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="heading-micro">CSV Import</p>
+                      <h2 className="heading-secondary heading-secondary-compact mt-2">Preview Guests</h2>
+                      <p className="mt-2 text-sm leading-6 text-[#6a5d55]">Review the detected rows before saving them to the private guest list.</p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDrawerMode("closed");
+                        setImportPreview([]);
+                      }}
+                      className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96]"
+                    >
+                      <X aria-hidden="true" className="h-4 w-4" />
+                      Cancel
+                    </button>
+                  </div>
+
+                  <div className="mt-5 max-h-[55vh] overflow-y-auto rounded-2xl border border-[#eaded6] bg-white/55">
+                    {importPreview.map((guest, index) => (
+                      <div key={`${guest.fullName}-${index}`} className="border-b border-[#eaded6] px-4 py-3 last:border-b-0">
+                        <p className="font-serif text-xl text-[#3f302b]">{guest.fullName}</p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.12em] text-[#8c7a72]">
+                          {guest.householdName || "No household"} · {guest.phoneNumber || "No phone"} · {guest.email || "No email"}
+                        </p>
+                      </div>
+                    ))}
+                    {importPreview.length === 0 && <p className="px-4 py-8 text-center text-sm text-[#6a5d55]">No valid rows detected.</p>}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => void confirmImportGuests()}
+                    disabled={busy || importPreview.length === 0}
+                    className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <Upload aria-hidden="true" className="h-4 w-4" />
+                    Import {importPreview.length} guest{importPreview.length === 1 ? "" : "s"}
+                  </button>
+                </div>
+              )}
+            </aside>
           </div>
         )}
 

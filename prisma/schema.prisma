@@ -14,6 +14,9 @@ model Guest {
   email       String?
   side        String?
   notes       String?
+  householdName    String?
+  householdAddress String?
+  householdNotes   String?
 
   inviteToken String  @unique
   rsvpToken   String? @unique
@@ -22,6 +25,9 @@ model Guest {
   invitedToReception Boolean @default(true)
   plusOneAllowed    Boolean @default(false)
   smsSentAt         DateTime?
+  rsvpLinkSentAt    DateTime?
+  lastContactedAt   DateTime?
+  lastMessageType   String?
 
   rsvpResponse String @default("Not responded")
   rsvpStatus   String @default("Not responded")

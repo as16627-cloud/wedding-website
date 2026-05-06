@@ -9,12 +9,18 @@ export type GuestRecord = {
   email: string | null;
   side: string | null;
   notes: string | null;
+  householdName: string | null;
+  householdAddress: string | null;
+  householdNotes: string | null;
   inviteToken: string;
   rsvpToken: string | null;
   invitedToCeremony: boolean;
   invitedToReception: boolean;
   plusOneAllowed: boolean;
   smsSentAt: Date | null;
+  rsvpLinkSentAt: Date | null;
+  lastContactedAt: Date | null;
+  lastMessageType: string | null;
   rsvpResponse: string;
   rsvpStatus: string;
   attendingCeremony: boolean | null;
@@ -42,12 +48,18 @@ export const guestSelect = {
   email: true,
   side: true,
   notes: true,
+  householdName: true,
+  householdAddress: true,
+  householdNotes: true,
   inviteToken: true,
   rsvpToken: true,
   invitedToCeremony: true,
   invitedToReception: true,
   plusOneAllowed: true,
   smsSentAt: true,
+  rsvpLinkSentAt: true,
+  lastContactedAt: true,
+  lastMessageType: true,
   rsvpResponse: true,
   rsvpStatus: true,
   attendingCeremony: true,
@@ -210,7 +222,7 @@ export function buildGuestSummary(guests: GuestRecord[]) {
     receptionYes: mappedGuests.filter((guest) => guest.receptionResponse === true).length,
     plusOnes: mappedGuests.filter((guest) => guest.plusOneResponse === true).length,
     dietaryNotes: mappedGuests.filter((guest) => Boolean(guest.guestDietary || guest.plusOneDietary)).length,
-    noPhone: mappedGuests.filter((guest) => !guest.phoneNumber).length,
+    noPhone: mappedGuests.filter((guest) => !guest.phoneNumber || !guest.email).length,
     smsNotSent: mappedGuests.filter((guest) => !guest.smsSentAt).length,
   };
 }

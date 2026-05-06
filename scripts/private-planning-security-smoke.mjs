@@ -381,6 +381,7 @@ try {
     },
     body: JSON.stringify({
       fullName: smokeGuestName,
+      householdName: "Smoke Household",
       phoneNumber: "+61400111222",
       email: "smoke@example.test",
       invitedToCeremony: true,
@@ -392,6 +393,8 @@ try {
   assert.equal(createGuest.status, 200, `authenticated guest create should succeed: ${createGuestResult.error ?? ""}`);
   smokeGuestId = createGuestResult.guest?.id;
   assert.ok(smokeGuestId, "created smoke guest should include an id");
+  assert.equal(createGuestResult.guest?.householdName, "Smoke Household", "guest create should persist household fields");
+  const originalInviteToken = createGuestResult.guest?.rsvpToken;
 
   const updateGuest = await fetch(`${baseUrl}/api/private-planning/guests`, {
     method: "PATCH",
@@ -404,11 +407,48 @@ try {
     body: JSON.stringify({
       id: smokeGuestId,
       side: "Smoke test",
+      householdAddress: "Smoke address",
     }),
   });
   const updateGuestResult = await readJson(updateGuest);
   assert.equal(updateGuest.status, 200, `authenticated guest update should succeed: ${updateGuestResult.error ?? ""}`);
   assert.equal(updateGuestResult.guest?.side, "Smoke test", "guest update should persist changed fields");
+  assert.equal(updateGuestResult.guest?.householdAddress, "Smoke address", "guest update should persist household admin fields");
+
+  const regenerateGuestToken = await fetch(`${baseUrl}/api/private-planning/guests`, {
+    method: "PATCH",
+    headers: {
+      "content-type": "application/json",
+      origin,
+      cookie,
+      "x-private-planning-csrf": "1",
+    },
+    body: JSON.stringify({
+      id: smokeGuestId,
+      action: "regenerateInviteToken",
+    }),
+  });
+  const regenerateGuestTokenResult = await readJson(regenerateGuestToken);
+  assert.equal(regenerateGuestToken.status, 200, `authenticated RSVP token regeneration should succeed: ${regenerateGuestTokenResult.error ?? ""}`);
+  assert.notEqual(regenerateGuestTokenResult.guest?.rsvpToken, originalInviteToken, "RSVP token regeneration should rotate the guest link");
+
+  const markLinkSent = await fetch(`${baseUrl}/api/private-planning/guests`, {
+    method: "PATCH",
+    headers: {
+      "content-type": "application/json",
+      origin,
+      cookie,
+      "x-private-planning-csrf": "1",
+    },
+    body: JSON.stringify({
+      id: smokeGuestId,
+      action: "markRsvpLinkSent",
+      lastMessageType: "Smoke reminder",
+    }),
+  });
+  const markLinkSentResult = await readJson(markLinkSent);
+  assert.equal(markLinkSent.status, 200, `authenticated RSVP link logging should succeed: ${markLinkSentResult.error ?? ""}`);
+  assert.equal(markLinkSentResult.guest?.lastMessageType, "Smoke reminder", "guest message logging should persist the template label");
 
   const guestExport = await fetch(`${baseUrl}/api/private-planning/guests/export`, {
     headers: { cookie },
@@ -417,6 +457,7 @@ try {
   assert.equal(guestExport.status, 200, "authenticated guest export should succeed");
   assert.equal(guestExport.headers.get("cache-control"), "no-store", "guest export should not be cached");
   assert.match(guestExportText, new RegExp(smokeGuestName), "guest export should include the smoke guest");
+  assert.match(guestExportText, /Smoke Household/, "guest export should include household data");
 
   const deleteGuest = await fetch(`${baseUrl}/api/private-planning/guests`, {
     method: "DELETE",
