@@ -34,6 +34,7 @@ type Faq = {
 };
 
 type DressCodeSwatch = {
+  id: string;
   label: string;
   color: string;
   description: string;
@@ -135,20 +136,20 @@ const dressCode = {
 };
 
 const dressCodePastelPalette: DressCodeSwatch[] = [
-  { label: "Blush Pink", color: "#e8c4bf", description: "Soft, romantic, and closest to the floral blush palette." },
-  { label: "Soft Sage", color: "#c8d0be", description: "A garden green that feels fresh without becoming too bold." },
-  { label: "Dusty Lavender", color: "#cfc5d6", description: "Muted and gentle, ideal for a refined pastel formal look." },
-  { label: "Powder Blue", color: "#c9d5e5", description: "Cooler, airy, and best kept soft rather than bright." },
-  { label: "Nude", color: "#e4d4c9", description: "A warm neutral that pairs beautifully with garden pastels." },
-  { label: "Champagne", color: "#e8d7bd", description: "Lightly golden and elegant, without reading bridal white." },
+  { id: "pastel-blush-pink", label: "Blush Pink", color: "#e8c4bf", description: "Soft, romantic, and closest to the floral blush palette." },
+  { id: "pastel-soft-sage", label: "Soft Sage", color: "#c8d0be", description: "A garden green that feels fresh without becoming too bold." },
+  { id: "pastel-dusty-lavender", label: "Dusty Lavender", color: "#cfc5d6", description: "Muted and gentle, ideal for a refined pastel formal look." },
+  { id: "pastel-powder-blue", label: "Powder Blue", color: "#c9d5e5", description: "Cooler, airy, and best kept soft rather than bright." },
+  { id: "pastel-nude", label: "Nude", color: "#e4d4c9", description: "A warm neutral that pairs beautifully with garden pastels." },
+  { id: "pastel-champagne", label: "Champagne", color: "#e8d7bd", description: "Lightly golden and elegant, without reading bridal white." },
 ];
 
 const dressCodeClassicPalette: DressCodeSwatch[] = [
-  { label: "Navy", color: "#2f3e55", description: "A polished groom-inspired accent that keeps the palette grounded." },
-  { label: "Charcoal", color: "#4a4a4a", description: "A softer formal alternative to black, especially for tailoring." },
-  { label: "Beige", color: "#d9cbbf", description: "Warm, understated, and easy to pair with blush or champagne accents." },
-  { label: "Black", color: "#1f1f1f", description: "Classic formal black is welcome when styled cleanly and elegantly." },
-  { label: "Champagne", color: "#e6d3b3", description: "A refined light accent for ties, pocket squares, or accessories." },
+  { id: "classic-navy", label: "Navy", color: "#2f3e55", description: "A polished groom-inspired accent that keeps the palette grounded." },
+  { id: "classic-charcoal", label: "Charcoal", color: "#4a4a4a", description: "A softer formal alternative to black, especially for tailoring." },
+  { id: "classic-beige", label: "Beige", color: "#d9cbbf", description: "Warm, understated, and easy to pair with blush or champagne accents." },
+  { id: "classic-black", label: "Black", color: "#1f1f1f", description: "Classic formal black is welcome when styled cleanly and elegantly." },
+  { id: "classic-champagne", label: "Champagne", color: "#e6d3b3", description: "A refined light accent for ties, pocket squares, or accessories." },
 ];
 
 const swatchRowStyle: React.CSSProperties = {
@@ -511,10 +512,12 @@ function Swatch({
   swatch,
   isActive = false,
   onSelect,
+  detailId,
 }: {
   swatch: DressCodeSwatch;
   isActive?: boolean;
   onSelect?: () => void;
+  detailId: string;
 }) {
   return (
     <button
@@ -523,6 +526,7 @@ function Swatch({
       style={swatchItemStyle}
       onClick={onSelect}
       aria-pressed={isActive}
+      aria-controls={detailId}
       aria-label={`Show ${swatch.label} dress code note`}
     >
       <div className="swatchCircle" style={{ ...swatchCircleStyle, backgroundColor: swatch.color }} />
@@ -781,7 +785,7 @@ export default function WeddingWebsiteStarter() {
   const [isAmbientAudioOn, setIsAmbientAudioOn] = useState(false);
   const [isAudioToggleVisible, setIsAudioToggleVisible] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const [selectedSwatchLabel, setSelectedSwatchLabel] = useState(dressCodePastelPalette[0].label);
+  const [selectedSwatchId, setSelectedSwatchId] = useState(dressCodePastelPalette[0].id);
   const [hasCopiedVenueAddress, setHasCopiedVenueAddress] = useState(false);
 
   const fadeAmbientAudio = useCallback((targetVolume: number, pauseWhenDone = false) => {
@@ -1163,8 +1167,9 @@ export default function WeddingWebsiteStarter() {
     ),
   };
   const selectedDressSwatch =
-    [...dressCodePastelPalette, ...dressCodeClassicPalette].find((swatch) => swatch.label === selectedSwatchLabel) ??
+    [...dressCodePastelPalette, ...dressCodeClassicPalette].find((swatch) => swatch.id === selectedSwatchId) ??
     dressCodePastelPalette[0];
+  const selectedSwatchDetailId = "selected-swatch-detail";
   const dressRevealMotion = (delay = 0, y = 16) => ({
     initial: shouldReduceMotion ? false : { opacity: 0, y },
     whileInView: { opacity: 1, y: 0 },
@@ -1558,10 +1563,11 @@ export default function WeddingWebsiteStarter() {
             <div className="swatchRow mx-auto mt-10" style={swatchRowStyle}>
               {dressCodePastelPalette.map((swatch) => (
                 <Swatch
-                  key={swatch.label}
+                  key={swatch.id}
                   swatch={swatch}
-                  isActive={selectedSwatchLabel === swatch.label}
-                  onSelect={() => setSelectedSwatchLabel(swatch.label)}
+                  isActive={selectedSwatchId === swatch.id}
+                  detailId={selectedSwatchDetailId}
+                  onSelect={() => setSelectedSwatchId(swatch.id)}
                 />
               ))}
             </div>
@@ -1587,10 +1593,11 @@ export default function WeddingWebsiteStarter() {
             <div className="swatchRow mx-auto mt-7" style={swatchRowStyle}>
               {dressCodeClassicPalette.map((swatch) => (
                 <Swatch
-                  key={swatch.label}
+                  key={swatch.id}
                   swatch={swatch}
-                  isActive={selectedSwatchLabel === swatch.label}
-                  onSelect={() => setSelectedSwatchLabel(swatch.label)}
+                  isActive={selectedSwatchId === swatch.id}
+                  detailId={selectedSwatchDetailId}
+                  onSelect={() => setSelectedSwatchId(swatch.id)}
                 />
               ))}
             </div>
@@ -1603,15 +1610,28 @@ export default function WeddingWebsiteStarter() {
 
         <motion.div
           {...dressRevealMotion(0.06, 8)}
+          id={selectedSwatchDetailId}
+          aria-live="polite"
           className="swatch-detail-card card-luxe card-luxe-text mx-auto mt-10 max-w-xl text-center"
         >
-          <span
-            className="swatch-detail-dot"
-            style={{ backgroundColor: selectedDressSwatch.color }}
-            aria-hidden="true"
-          />
-          <p className="type-swatch-label mt-4">{selectedDressSwatch.label}</p>
-          <p className="type-card-body mx-auto mt-3 max-w-[30ch]">{selectedDressSwatch.description}</p>
+          <motion.div
+            key={selectedDressSwatch.id}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 6, filter: "blur(2px)" }}
+            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.34, ease: gateOpenEase }}
+            className="swatch-detail-content"
+          >
+            <p className="type-swatch-label swatch-detail-kicker">Selected shade</p>
+            <div className="swatch-detail-heading">
+              <span
+                className="swatch-detail-dot"
+                style={{ backgroundColor: selectedDressSwatch.color }}
+                aria-hidden="true"
+              />
+              <p className="swatch-detail-name">{selectedDressSwatch.label}</p>
+            </div>
+            <p className="type-card-body mx-auto mt-3 max-w-[30ch]">{selectedDressSwatch.description}</p>
+          </motion.div>
         </motion.div>
 
         <motion.div
