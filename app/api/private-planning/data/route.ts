@@ -6,6 +6,7 @@ import {
   PRIVATE_PLANNING_DATA_ID,
   savePrivatePlanningDataPayload,
 } from "@/lib/private-planning-data";
+import { withDefaultPrivatePlanningRunsheet } from "@/lib/private-planning-runsheet-seed";
 import {
   hasPrivatePlanningCsrfHeader,
   isPrivatePlanningAuthConfigured,
@@ -72,7 +73,7 @@ export async function GET(request: NextRequest) {
     return privatePlanningJson({
       ok: true,
       hasData: Boolean(record),
-      data: record?.payload ?? null,
+      data: withDefaultPrivatePlanningRunsheet(record?.payload ?? null),
       updatedAt: record?.updatedAt?.toISOString() ?? null,
     });
   } catch (error) {

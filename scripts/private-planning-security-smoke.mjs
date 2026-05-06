@@ -222,6 +222,7 @@ const beforeResponse = await fetch(`${baseUrl}/api/private-planning/data`, {
 });
 const previousState = await readJson(beforeResponse);
 assert.equal(beforeResponse.status, 200, `authenticated read should succeed: ${previousState.error ?? ""}`);
+assert.ok(Array.isArray(previousState.data?.runsheet?.items), "authenticated planning data should include private runsheet items");
 let smokeGuestId = "";
 
 try {
@@ -356,6 +357,11 @@ try {
   const readResult = await readJson(read);
   assert.equal(read.status, 200, `authenticated read after write should succeed: ${readResult.error ?? ""}`);
   assert.equal(readResult.data?.quickNotes, smokePayload.quickNotes, "read should return the saved smoke payload");
+  assert.ok(Array.isArray(readResult.data?.runsheet?.items), "planning data reads should seed the private runsheet when missing");
+  assert.ok(
+    readResult.data.runsheet.items.some((item) => item.title === "Ceremony begins"),
+    "private runsheet seed should include the wedding ceremony anchor",
+  );
 
   const guestList = await fetch(`${baseUrl}/api/private-planning/guests`, {
     headers: { cookie },

@@ -13,6 +13,8 @@ import {
 } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
+  ArrowDown,
+  ArrowUp,
   CalendarDays,
   CheckCircle2,
   ChevronLeft,
@@ -63,7 +65,7 @@ const LEGACY_PLANNING_STORAGE_KEYS = [
 ];
 
 const revealEase = [0.22, 1, 0.36, 1] as const;
-const tabs = ["Overview", "Vendors", "Calendar", "Timeline", "Guests", "Files", "Notes"] as const;
+const tabs = ["Overview", "Vendors", "Calendar", "Timeline", "Runsheet", "Guests", "Files", "Notes"] as const;
 const vendorCategories = [
   "Venue",
   "Celebrant",
@@ -93,6 +95,14 @@ const priorities = ["Low", "Medium", "High"] as const;
 const contactMethods = ["Email", "Phone", "Instagram", "Website"] as const;
 const eventTypes = ["Meeting", "Payment", "Follow-up", "Deadline", "Appointment"] as const;
 const taskStatuses = ["To do", "In progress", "Waiting", "Done"] as const;
+const runsheetStatuses = ["Draft", "Confirmed", "Needs confirmation", "Optional", "Optional / Needs confirmation"] as const;
+const runsheetGroupNames = [
+  "Morning Prep",
+  "Ceremony",
+  "Cocktail Hour / Portraits",
+  "Reception",
+  "Party / Farewell",
+] as const;
 const paymentFilters = ["All", "Paid", "Balance due", "Overdue", "Due in 14 days"] as const;
 const sortOptions = ["Due date", "Balance due", "Status", "Vendor name"] as const;
 
@@ -103,6 +113,8 @@ type Priority = (typeof priorities)[number];
 type ContactMethod = (typeof contactMethods)[number];
 type EventType = (typeof eventTypes)[number];
 type TaskStatus = (typeof taskStatuses)[number];
+type RunsheetStatus = (typeof runsheetStatuses)[number];
+type RunsheetGroupName = (typeof runsheetGroupNames)[number];
 type PaymentFilter = (typeof paymentFilters)[number];
 type SortOption = (typeof sortOptions)[number];
 
@@ -175,6 +187,61 @@ type TimelineSection = {
   tasks: TimelineTask[];
 };
 
+type RunsheetItem = {
+  id: string;
+  time: string;
+  title: string;
+  category: string;
+  location: string;
+  owner: string;
+  notes: string;
+  vendorId: string;
+  status: RunsheetStatus;
+  internalOnly: boolean;
+  buffer: boolean;
+};
+
+type RunsheetRole = {
+  id: string;
+  role: string;
+  person: string;
+  responsibility: string;
+};
+
+type RunsheetChecklistItem = {
+  id: string;
+  text: string;
+  done: boolean;
+};
+
+type RunsheetNotes = {
+  wetWeatherPlan: string;
+  vendorContacts: string;
+  familyPhotoList: string;
+  speechOrder: string;
+  songList: string;
+  decorStylingSetup: string;
+  ceremonySetup: string;
+  receptionSetup: string;
+  dietaryAllergyNotes: string;
+  transportNotes: string;
+  packDownNotes: string;
+  itemsToBring: string;
+  itemsToCollect: string;
+};
+
+type Runsheet = {
+  items: RunsheetItem[];
+  alternateEnding: {
+    title: string;
+    notes: string[];
+    items: RunsheetItem[];
+  };
+  roles: RunsheetRole[];
+  confirmationChecklist: RunsheetChecklistItem[];
+  notes: RunsheetNotes;
+};
+
 type PlanningNotes = {
   decision: string;
   budget: string;
@@ -187,6 +254,7 @@ type VendorForm = Omit<Vendor, "id" | "communicationLog">;
 type EventForm = Omit<CalendarEvent, "id">;
 type TaskForm = Omit<PlanningTask, "id">;
 type LogForm = Omit<CommunicationLog, "id">;
+type RunsheetItemForm = Omit<RunsheetItem, "id">;
 
 const emptyVendorForm: VendorForm = {
   category: "Venue",
@@ -244,6 +312,47 @@ const defaultNotes: PlanningNotes = {
   design: "",
   venueQuestions: "",
   vendorQuestions: "",
+};
+
+const emptyRunsheetNotes: RunsheetNotes = {
+  wetWeatherPlan: "",
+  vendorContacts: "",
+  familyPhotoList: "",
+  speechOrder: "",
+  songList: "",
+  decorStylingSetup: "",
+  ceremonySetup: "",
+  receptionSetup: "",
+  dietaryAllergyNotes: "",
+  transportNotes: "",
+  packDownNotes: "",
+  itemsToBring: "",
+  itemsToCollect: "",
+};
+
+const emptyRunsheet: Runsheet = {
+  items: [],
+  alternateEnding: {
+    title: "Alternate ending if venue allows midnight finish",
+    notes: [],
+    items: [],
+  },
+  roles: [],
+  confirmationChecklist: [],
+  notes: emptyRunsheetNotes,
+};
+
+const emptyRunsheetItemForm: RunsheetItemForm = {
+  time: "",
+  title: "",
+  category: "Morning Prep",
+  location: "",
+  owner: "",
+  notes: "",
+  vendorId: "",
+  status: "Draft",
+  internalOnly: false,
+  buffer: false,
 };
 
 const defaultVendors: Vendor[] = [
@@ -960,6 +1069,106 @@ function normalizeNotes(value: unknown, legacyDecisionNotes = ""): PlanningNotes
   };
 }
 
+function normalizeRunsheetItem(raw: Partial<RunsheetItem> & Record<string, unknown>): RunsheetItem {
+  return {
+    ...emptyRunsheetItemForm,
+    id: typeof raw.id === "string" ? raw.id : createId("runsheet-item"),
+    time: typeof raw.time === "string" ? raw.time : "",
+    title: typeof raw.title === "string" ? raw.title : "",
+    category: typeof raw.category === "string" ? raw.category : "Morning Prep",
+    location: typeof raw.location === "string" ? raw.location : "",
+    owner: typeof raw.owner === "string" ? raw.owner : "",
+    notes: typeof raw.notes === "string" ? raw.notes : "",
+    vendorId: typeof raw.vendorId === "string" ? raw.vendorId : "",
+    status: isOneOf(raw.status, runsheetStatuses) ? raw.status : "Draft",
+    internalOnly: Boolean(raw.internalOnly),
+    buffer: Boolean(raw.buffer),
+  };
+}
+
+function normalizeRunsheetRole(raw: Partial<RunsheetRole> & Record<string, unknown>): RunsheetRole {
+  return {
+    id: typeof raw.id === "string" ? raw.id : createId("runsheet-role"),
+    role: typeof raw.role === "string" ? raw.role : "",
+    person: typeof raw.person === "string" ? raw.person : "",
+    responsibility: typeof raw.responsibility === "string" ? raw.responsibility : "",
+  };
+}
+
+function normalizeRunsheetChecklistItem(raw: Partial<RunsheetChecklistItem> & Record<string, unknown>): RunsheetChecklistItem {
+  return {
+    id: typeof raw.id === "string" ? raw.id : createId("runsheet-check"),
+    text: typeof raw.text === "string" ? raw.text : "",
+    done: Boolean(raw.done),
+  };
+}
+
+function normalizeRunsheetNotes(value: unknown): RunsheetNotes {
+  if (typeof value !== "object" || value === null) {
+    return emptyRunsheetNotes;
+  }
+
+  const raw = value as Partial<RunsheetNotes>;
+
+  return {
+    wetWeatherPlan: typeof raw.wetWeatherPlan === "string" ? raw.wetWeatherPlan : "",
+    vendorContacts: typeof raw.vendorContacts === "string" ? raw.vendorContacts : "",
+    familyPhotoList: typeof raw.familyPhotoList === "string" ? raw.familyPhotoList : "",
+    speechOrder: typeof raw.speechOrder === "string" ? raw.speechOrder : "",
+    songList: typeof raw.songList === "string" ? raw.songList : "",
+    decorStylingSetup: typeof raw.decorStylingSetup === "string" ? raw.decorStylingSetup : "",
+    ceremonySetup: typeof raw.ceremonySetup === "string" ? raw.ceremonySetup : "",
+    receptionSetup: typeof raw.receptionSetup === "string" ? raw.receptionSetup : "",
+    dietaryAllergyNotes: typeof raw.dietaryAllergyNotes === "string" ? raw.dietaryAllergyNotes : "",
+    transportNotes: typeof raw.transportNotes === "string" ? raw.transportNotes : "",
+    packDownNotes: typeof raw.packDownNotes === "string" ? raw.packDownNotes : "",
+    itemsToBring: typeof raw.itemsToBring === "string" ? raw.itemsToBring : "",
+    itemsToCollect: typeof raw.itemsToCollect === "string" ? raw.itemsToCollect : "",
+  };
+}
+
+function normalizeRunsheet(value: unknown): Runsheet {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return emptyRunsheet;
+  }
+
+  const raw = value as Partial<Runsheet> & Record<string, unknown>;
+  const rawAlternateEnding =
+    typeof raw.alternateEnding === "object" && raw.alternateEnding !== null && !Array.isArray(raw.alternateEnding)
+      ? (raw.alternateEnding as Partial<Runsheet["alternateEnding"]> & Record<string, unknown>)
+      : {};
+
+  return {
+    items: Array.isArray(raw.items)
+      ? (raw.items as unknown[])
+          .filter((item): item is Partial<RunsheetItem> & Record<string, unknown> => typeof item === "object" && item !== null)
+          .map((item) => normalizeRunsheetItem(item))
+      : emptyRunsheet.items,
+    alternateEnding: {
+      title: typeof rawAlternateEnding.title === "string" ? rawAlternateEnding.title : emptyRunsheet.alternateEnding.title,
+      notes: Array.isArray(rawAlternateEnding.notes)
+        ? rawAlternateEnding.notes.filter((note): note is string => typeof note === "string")
+        : emptyRunsheet.alternateEnding.notes,
+      items: Array.isArray(rawAlternateEnding.items)
+        ? (rawAlternateEnding.items as unknown[])
+            .filter((item): item is Partial<RunsheetItem> & Record<string, unknown> => typeof item === "object" && item !== null)
+            .map((item) => normalizeRunsheetItem(item))
+        : emptyRunsheet.alternateEnding.items,
+    },
+    roles: Array.isArray(raw.roles)
+      ? (raw.roles as unknown[])
+          .filter((role): role is Partial<RunsheetRole> & Record<string, unknown> => typeof role === "object" && role !== null)
+          .map((role) => normalizeRunsheetRole(role))
+      : emptyRunsheet.roles,
+    confirmationChecklist: Array.isArray(raw.confirmationChecklist)
+      ? (raw.confirmationChecklist as unknown[])
+          .filter((item): item is Partial<RunsheetChecklistItem> & Record<string, unknown> => typeof item === "object" && item !== null)
+          .map((item) => normalizeRunsheetChecklistItem(item))
+      : emptyRunsheet.confirmationChecklist,
+    notes: normalizeRunsheetNotes(raw.notes),
+  };
+}
+
 function getVendorName(vendors: Vendor[], vendorId: string) {
   return vendors.find((vendor) => vendor.id === vendorId)?.vendorName || "";
 }
@@ -1060,6 +1269,33 @@ function SelectField<T extends string>({
           <option key={option}>{option}</option>
         ))}
       </select>
+    </label>
+  );
+}
+
+function TextAreaField({
+  label,
+  value,
+  onChange,
+  placeholder = "",
+  rows = 3,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  rows?: number;
+}) {
+  return (
+    <label className="grid gap-2">
+      <FieldLabel>{label}</FieldLabel>
+      <textarea
+        value={value}
+        rows={rows}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="min-h-24 resize-y rounded-2xl border border-[#eaded6] bg-white/80 px-4 py-3 text-sm leading-6 text-[#3f302b] outline-none transition duration-300 ease-out placeholder:text-[#a99790] focus:border-[#b98278]"
+      />
     </label>
   );
 }
@@ -2229,6 +2465,574 @@ function TimelineTab({
   );
 }
 
+const runsheetNoteFields: Array<{ key: keyof RunsheetNotes; label: string; placeholder: string }> = [
+  { key: "wetWeatherPlan", label: "Wet-weather plan", placeholder: "Backup ceremony location, timing changes, guest directions..." },
+  { key: "vendorContacts", label: "Vendor contacts", placeholder: "Supplier names, mobile numbers, emergency contacts..." },
+  { key: "familyPhotoList", label: "Family photo list", placeholder: "Exact photo combinations and family wrangler notes..." },
+  { key: "speechOrder", label: "Speech order and max length", placeholder: "Speaker order, rough timing, maximum speech length..." },
+  { key: "songList", label: "Song list", placeholder: "Processional, signing, entrance, first dance, final song..." },
+  { key: "decorStylingSetup", label: "Decor/styling setup notes", placeholder: "Signage, table styling, florals, hire items, placement notes..." },
+  { key: "ceremonySetup", label: "Ceremony setup notes", placeholder: "Chairs, aisle, signing table, microphones, reserved seats..." },
+  { key: "receptionSetup", label: "Reception setup notes", placeholder: "Floorplan, place cards, menus, bar, cake table, gift table..." },
+  { key: "dietaryAllergyNotes", label: "Dietary/allergy notes", placeholder: "Venue/catering notes for meal service and allergies..." },
+  { key: "transportNotes", label: "Transport notes", placeholder: "Cars, pickup windows, guest transport, end-of-night plan..." },
+  { key: "packDownNotes", label: "Pack-down notes", placeholder: "Supplier pickup, hire returns, leftover cake/flowers, gifts/cards..." },
+  { key: "itemsToBring", label: "Items to bring", placeholder: "Rings, vow cards, detail box, emergency kit, confetti..." },
+  { key: "itemsToCollect", label: "Items to collect at end of night", placeholder: "Cards, gifts, signage, flowers, keepsakes, cake, personal items..." },
+];
+
+function parseRunsheetStartMinutes(time: string) {
+  const match = time.match(/(\d{1,2})(?::(\d{2}))?\s*(AM|PM)/i);
+
+  if (!match) {
+    return Number.POSITIVE_INFINITY;
+  }
+
+  let hour = Number(match[1]);
+  const minutes = Number(match[2] ?? "0");
+  const meridiem = match[3].toUpperCase();
+
+  if (meridiem === "PM" && hour !== 12) {
+    hour += 12;
+  }
+
+  if (meridiem === "AM" && hour === 12) {
+    hour = 0;
+  }
+
+  return hour * 60 + minutes;
+}
+
+function getRunsheetGroup(item: RunsheetItem): RunsheetGroupName {
+  const minutes = parseRunsheetStartMinutes(item.time);
+
+  if (minutes < 15 * 60) {
+    return "Morning Prep";
+  }
+
+  if (minutes < 17 * 60) {
+    return "Ceremony";
+  }
+
+  if (minutes < 18 * 60) {
+    return "Cocktail Hour / Portraits";
+  }
+
+  if (minutes < 21 * 60 + 5) {
+    return "Reception";
+  }
+
+  return "Party / Farewell";
+}
+
+function getRunsheetStatusClass(status: RunsheetStatus) {
+  if (status === "Confirmed") {
+    return "border-[#d7e2cf] bg-[#eef5e9] text-[#52634a]";
+  }
+
+  if (status === "Needs confirmation" || status === "Optional / Needs confirmation") {
+    return "border-[#ead7bf] bg-[#f8eddb] text-[#8a6c45]";
+  }
+
+  if (status === "Optional") {
+    return "border-[#eaded6] bg-white/70 text-[#8c7a72]";
+  }
+
+  return "border-[#eaded6] bg-[#f4ebe4] text-[#6a5d55]";
+}
+
+function reorderRunsheetItems<T extends { id: string }>(items: T[], itemId: string, direction: -1 | 1) {
+  const currentIndex = items.findIndex((item) => item.id === itemId);
+  const nextIndex = currentIndex + direction;
+
+  if (currentIndex < 0 || nextIndex < 0 || nextIndex >= items.length) {
+    return items;
+  }
+
+  const nextItems = [...items];
+  const [item] = nextItems.splice(currentIndex, 1);
+  nextItems.splice(nextIndex, 0, item);
+  return nextItems;
+}
+
+function RunsheetVendorSelect({
+  value,
+  vendors,
+  onChange,
+}: {
+  value: string;
+  vendors: Vendor[];
+  onChange: (vendorId: string) => void;
+}) {
+  const selectedVendorStillExists = !value || vendors.some((vendor) => vendor.id === value);
+
+  return (
+    <label className="grid gap-2">
+      <FieldLabel>Vendor / Supplier</FieldLabel>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
+      >
+        <option value="">No vendor association</option>
+        {!selectedVendorStillExists && <option value={value}>Linked vendor no longer listed</option>}
+        {vendors.map((vendor) => (
+          <option key={vendor.id} value={vendor.id}>
+            {vendor.vendorName || vendor.category}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function RunsheetItemEditor({
+  item,
+  vendors,
+  canMoveUp,
+  canMoveDown,
+  onChange,
+  onDelete,
+  onMoveUp,
+  onMoveDown,
+}: {
+  item: RunsheetItem;
+  vendors: Vendor[];
+  canMoveUp: boolean;
+  canMoveDown: boolean;
+  onChange: (updates: Partial<RunsheetItem>) => void;
+  onDelete: () => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+}) {
+  return (
+    <div className="rounded-[1.1rem] border border-[#eaded6] bg-white/58 p-4 shadow-[0_10px_24px_rgba(90,65,50,0.035)]">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-[var(--color-navy)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)]">
+              {item.time || "Time TBC"}
+            </span>
+            <span className={`rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] ${getRunsheetStatusClass(item.status)}`}>
+              {item.status}
+            </span>
+            {item.buffer && <Chip tone="champagne">Buffer</Chip>}
+            {item.internalOnly && <Chip tone="rose">Internal only</Chip>}
+          </div>
+          <h3 className="font-serif text-2xl leading-tight text-[#8f6a63]">{item.title || "Untitled runsheet item"}</h3>
+          <p className="mt-1 text-sm leading-6 text-[#6a5d55]">
+            {item.category || "Uncategorised"} - {item.location || "Location TBC"}
+          </p>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={onMoveUp}
+            disabled={!canMoveUp}
+            aria-label={`Move ${item.title} earlier`}
+            className="rounded-full border border-[#eaded6] bg-[#fffaf7] p-2 text-[#6a5d55] transition hover:border-[#b98278] disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            <ArrowUp className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onMoveDown}
+            disabled={!canMoveDown}
+            aria-label={`Move ${item.title} later`}
+            className="rounded-full border border-[#eaded6] bg-[#fffaf7] p-2 text-[#6a5d55] transition hover:border-[#b98278] disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            <ArrowDown className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            onClick={onDelete}
+            aria-label={`Delete ${item.title}`}
+            className="rounded-full border border-[#eaded6] bg-[#fffaf7] p-2 text-[#9b6f68] transition hover:border-[#b98278]"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      <div className="mt-4 grid gap-3 md:grid-cols-2">
+        <TextField label="Time" value={item.time} onChange={(time) => onChange({ time })} placeholder="4:00 PM" />
+        <TextField label="Title" value={item.title} onChange={(title) => onChange({ title })} />
+        <TextField label="Category" value={item.category} onChange={(category) => onChange({ category })} />
+        <TextField label="Location" value={item.location} onChange={(location) => onChange({ location })} />
+        <TextField label="Owner / Responsible person" value={item.owner} onChange={(owner) => onChange({ owner })} />
+        <SelectField label="Status" value={item.status} options={runsheetStatuses} onChange={(status) => onChange({ status })} />
+        <RunsheetVendorSelect vendors={vendors} value={item.vendorId} onChange={(vendorId) => onChange({ vendorId })} />
+      </div>
+
+      <div className="mt-3">
+        <TextAreaField label="Private notes" value={item.notes} onChange={(notes) => onChange({ notes })} rows={3} />
+      </div>
+
+      <div className="mt-4 flex flex-wrap gap-3 text-xs font-medium uppercase tracking-[0.12em] text-[#6a5d55]">
+        <label className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-4">
+          <input type="checkbox" checked={item.internalOnly} onChange={(event) => onChange({ internalOnly: event.target.checked })} className="accent-[#b98278]" />
+          Internal only
+        </label>
+        <label className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-4">
+          <input type="checkbox" checked={item.buffer} onChange={(event) => onChange({ buffer: event.target.checked })} className="accent-[#b98278]" />
+          Buffer
+        </label>
+      </div>
+    </div>
+  );
+}
+
+function RunsheetTab({
+  runsheet,
+  setRunsheet,
+  vendors,
+}: {
+  runsheet: Runsheet;
+  setRunsheet: (runsheet: Runsheet) => void;
+  vendors: Vendor[];
+}) {
+  const [newItem, setNewItem] = useState<RunsheetItemForm>(emptyRunsheetItemForm);
+  const [newConfirmation, setNewConfirmation] = useState("");
+
+  function updateItem(itemId: string, updates: Partial<RunsheetItem>) {
+    setRunsheet({
+      ...runsheet,
+      items: runsheet.items.map((item) => (item.id === itemId ? { ...item, ...updates } : item)),
+    });
+  }
+
+  function deleteItem(itemId: string) {
+    setRunsheet({
+      ...runsheet,
+      items: runsheet.items.filter((item) => item.id !== itemId),
+    });
+  }
+
+  function moveItem(itemId: string, direction: -1 | 1) {
+    setRunsheet({
+      ...runsheet,
+      items: reorderRunsheetItems(runsheet.items, itemId, direction),
+    });
+  }
+
+  function addItem(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const title = newItem.title.trim();
+    const time = newItem.time.trim();
+
+    if (!title || !time) {
+      return;
+    }
+
+    setRunsheet({
+      ...runsheet,
+      items: [...runsheet.items, { ...newItem, id: createId("runsheet-item"), title, time }],
+    });
+    setNewItem(emptyRunsheetItemForm);
+  }
+
+  function updateAlternateItem(itemId: string, updates: Partial<RunsheetItem>) {
+    setRunsheet({
+      ...runsheet,
+      alternateEnding: {
+        ...runsheet.alternateEnding,
+        items: runsheet.alternateEnding.items.map((item) => (item.id === itemId ? { ...item, ...updates } : item)),
+      },
+    });
+  }
+
+  function deleteAlternateItem(itemId: string) {
+    setRunsheet({
+      ...runsheet,
+      alternateEnding: {
+        ...runsheet.alternateEnding,
+        items: runsheet.alternateEnding.items.filter((item) => item.id !== itemId),
+      },
+    });
+  }
+
+  function moveAlternateItem(itemId: string, direction: -1 | 1) {
+    setRunsheet({
+      ...runsheet,
+      alternateEnding: {
+        ...runsheet.alternateEnding,
+        items: reorderRunsheetItems(runsheet.alternateEnding.items, itemId, direction),
+      },
+    });
+  }
+
+  function updateRole(roleId: string, updates: Partial<RunsheetRole>) {
+    setRunsheet({
+      ...runsheet,
+      roles: runsheet.roles.map((role) => (role.id === roleId ? { ...role, ...updates } : role)),
+    });
+  }
+
+  function addRole() {
+    setRunsheet({
+      ...runsheet,
+      roles: [
+        ...runsheet.roles,
+        {
+          id: createId("runsheet-role"),
+          role: "New role",
+          person: "TBC",
+          responsibility: "",
+        },
+      ],
+    });
+  }
+
+  function deleteRole(roleId: string) {
+    setRunsheet({
+      ...runsheet,
+      roles: runsheet.roles.filter((role) => role.id !== roleId),
+    });
+  }
+
+  function toggleConfirmation(itemId: string) {
+    setRunsheet({
+      ...runsheet,
+      confirmationChecklist: runsheet.confirmationChecklist.map((item) => (item.id === itemId ? { ...item, done: !item.done } : item)),
+    });
+  }
+
+  function addConfirmation() {
+    const text = newConfirmation.trim();
+
+    if (!text) {
+      return;
+    }
+
+    setRunsheet({
+      ...runsheet,
+      confirmationChecklist: [...runsheet.confirmationChecklist, { id: createId("runsheet-confirmation"), text, done: false }],
+    });
+    setNewConfirmation("");
+  }
+
+  function deleteConfirmation(itemId: string) {
+    setRunsheet({
+      ...runsheet,
+      confirmationChecklist: runsheet.confirmationChecklist.filter((item) => item.id !== itemId),
+    });
+  }
+
+  const totalItems = runsheet.items.length;
+  const confirmedItems = runsheet.items.filter((item) => item.status === "Confirmed").length;
+  const needsConfirmation = runsheet.items.filter((item) => item.status === "Needs confirmation" || item.status === "Optional / Needs confirmation").length;
+  const groupedItems = runsheetGroupNames.map((group) => ({
+    group,
+    items: runsheet.items.filter((item) => getRunsheetGroup(item) === group),
+  }));
+
+  return (
+    <div className="grid gap-6">
+      <PlanningCard>
+        <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div>
+            <p className="heading-micro">Private Runsheet</p>
+            <h2 className="heading-secondary mt-2">Wedding Day Runsheet</h2>
+            <p className="mt-3 max-w-3xl text-sm leading-7 text-[#6a5d55]">
+              Sunday, 1 November 2026 at Caversham House. Ceremony at Garden House at 4:00 PM, with an elegant sit-down dinner reception and an assumed 11:00 PM finish until the venue confirms otherwise.
+            </p>
+          </div>
+          <div className="grid gap-2 text-sm text-[#6a5d55] sm:grid-cols-3 lg:min-w-[420px]">
+            <div className="rounded-2xl border border-[#eaded6] bg-white/62 p-4">
+              <p className="heading-micro">Items</p>
+              <p className="mt-2 font-serif text-3xl text-[#8f6a63]">{totalItems}</p>
+            </div>
+            <div className="rounded-2xl border border-[#eaded6] bg-white/62 p-4">
+              <p className="heading-micro">Confirmed</p>
+              <p className="mt-2 font-serif text-3xl text-[#52634a]">{confirmedItems}</p>
+            </div>
+            <div className="rounded-2xl border border-[#eaded6] bg-white/62 p-4">
+              <p className="heading-micro">To Confirm</p>
+              <p className="mt-2 font-serif text-3xl text-[#8a6c45]">{needsConfirmation}</p>
+            </div>
+          </div>
+        </div>
+      </PlanningCard>
+
+      {groupedItems.map(({ group, items }) => (
+        <section key={group} className="grid gap-3">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="heading-micro">Chronological Group</p>
+              <h3 className="mt-1 font-serif text-3xl text-[#8f6a63]">{group}</h3>
+            </div>
+            <Chip>{items.length} items</Chip>
+          </div>
+          {items.map((item) => {
+            const itemIndex = runsheet.items.findIndex((candidate) => candidate.id === item.id);
+
+            return (
+              <RunsheetItemEditor
+                key={item.id}
+                item={item}
+                vendors={vendors}
+                canMoveUp={itemIndex > 0}
+                canMoveDown={itemIndex >= 0 && itemIndex < runsheet.items.length - 1}
+                onChange={(updates) => updateItem(item.id, updates)}
+                onDelete={() => deleteItem(item.id)}
+                onMoveUp={() => moveItem(item.id, -1)}
+                onMoveDown={() => moveItem(item.id, 1)}
+              />
+            );
+          })}
+        </section>
+      ))}
+
+      <PlanningCard>
+        <p className="heading-micro">Add Timing</p>
+        <h3 className="heading-secondary heading-secondary-compact mt-2">Add Runsheet Item</h3>
+        <form onSubmit={addItem} className="mt-5 grid gap-3 md:grid-cols-2">
+          <TextField label="Time" value={newItem.time} onChange={(time) => setNewItem({ ...newItem, time })} placeholder="7:00 PM" />
+          <TextField label="Title" value={newItem.title} onChange={(title) => setNewItem({ ...newItem, title })} />
+          <TextField label="Category" value={newItem.category} onChange={(category) => setNewItem({ ...newItem, category })} />
+          <TextField label="Location" value={newItem.location} onChange={(location) => setNewItem({ ...newItem, location })} />
+          <TextField label="Owner / Responsible person" value={newItem.owner} onChange={(owner) => setNewItem({ ...newItem, owner })} />
+          <SelectField label="Status" value={newItem.status} options={runsheetStatuses} onChange={(status) => setNewItem({ ...newItem, status })} />
+          <RunsheetVendorSelect vendors={vendors} value={newItem.vendorId} onChange={(vendorId) => setNewItem({ ...newItem, vendorId })} />
+          <div className="md:col-span-2">
+            <TextAreaField label="Private notes" value={newItem.notes} onChange={(notes) => setNewItem({ ...newItem, notes })} rows={3} />
+          </div>
+          <div className="flex flex-wrap gap-3 md:col-span-2">
+            <label className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-4 text-xs font-medium uppercase tracking-[0.12em] text-[#6a5d55]">
+              <input type="checkbox" checked={newItem.internalOnly} onChange={(event) => setNewItem({ ...newItem, internalOnly: event.target.checked })} className="accent-[#b98278]" />
+              Internal only
+            </label>
+            <label className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-4 text-xs font-medium uppercase tracking-[0.12em] text-[#6a5d55]">
+              <input type="checkbox" checked={newItem.buffer} onChange={(event) => setNewItem({ ...newItem, buffer: event.target.checked })} className="accent-[#b98278]" />
+              Buffer
+            </label>
+          </div>
+          <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.18)] transition hover:bg-[var(--color-navy-hover)] md:col-span-2 md:w-fit">
+            <Plus className="h-4 w-4" />
+            Add item
+          </button>
+        </form>
+      </PlanningCard>
+
+      <PlanningCard>
+        <p className="heading-micro">Private Option</p>
+        <TextField
+          label="Alternate ending title"
+          value={runsheet.alternateEnding.title}
+          onChange={(title) => setRunsheet({ ...runsheet, alternateEnding: { ...runsheet.alternateEnding, title } })}
+        />
+        <div className="mt-4 rounded-2xl border border-[#eaded6] bg-white/54 p-4">
+          <p className="heading-micro">Guidance</p>
+          <ul className="mt-3 grid gap-2 text-sm leading-6 text-[#6a5d55]">
+            {runsheet.alternateEnding.notes.map((note, index) => (
+              <li key={`${note}-${index}`}>- {note}</li>
+            ))}
+          </ul>
+        </div>
+        <div className="mt-4 grid gap-3">
+          {runsheet.alternateEnding.items.map((item, index) => (
+            <RunsheetItemEditor
+              key={item.id}
+              item={item}
+              vendors={vendors}
+              canMoveUp={index > 0}
+              canMoveDown={index < runsheet.alternateEnding.items.length - 1}
+              onChange={(updates) => updateAlternateItem(item.id, updates)}
+              onDelete={() => deleteAlternateItem(item.id)}
+              onMoveUp={() => moveAlternateItem(item.id, -1)}
+              onMoveDown={() => moveAlternateItem(item.id, 1)}
+            />
+          ))}
+        </div>
+      </PlanningCard>
+
+      <PlanningCard>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="heading-micro">Private Roles</p>
+            <h3 className="heading-secondary heading-secondary-compact mt-2">Roles & Jobs</h3>
+          </div>
+          <button type="button" onClick={addRole} className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#6a5d55] transition hover:border-[#b98278]">
+            <Plus className="h-4 w-4" />
+            Add role
+          </button>
+        </div>
+        <div className="mt-5 grid gap-3 lg:grid-cols-2">
+          {runsheet.roles.map((role) => (
+            <div key={role.id} className="rounded-2xl border border-[#eaded6] bg-white/58 p-4">
+              <div className="grid gap-3">
+                <TextField label="Role" value={role.role} onChange={(value) => updateRole(role.id, { role: value })} />
+                <TextField label="Person" value={role.person} onChange={(person) => updateRole(role.id, { person })} />
+                <TextAreaField label="Responsibility" value={role.responsibility} onChange={(responsibility) => updateRole(role.id, { responsibility })} rows={3} />
+              </div>
+              <button type="button" onClick={() => deleteRole(role.id)} className="mt-3 inline-flex items-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-4 py-2 text-xs font-semibold uppercase tracking-[0.14em] text-[#9b6f68] transition hover:border-[#b98278]">
+                <Trash2 className="h-4 w-4" />
+                Remove role
+              </button>
+            </div>
+          ))}
+        </div>
+      </PlanningCard>
+
+      <PlanningCard>
+        <p className="heading-micro">Private Checklist</p>
+        <h3 className="heading-secondary heading-secondary-compact mt-2">Needs Confirmation</h3>
+        <div className="mt-5 grid gap-3 md:grid-cols-2">
+          {runsheet.confirmationChecklist.map((item) => (
+            <div key={item.id} className="flex items-start justify-between gap-3 rounded-2xl border border-[#eaded6] bg-white/58 px-4 py-3">
+              <label className="flex flex-1 cursor-pointer items-start gap-3">
+                <input type="checkbox" checked={item.done} onChange={() => toggleConfirmation(item.id)} className="mt-1 h-4 w-4 accent-[#b98278]" />
+                <span className={`text-sm leading-6 ${item.done ? "text-[#8c7a72] line-through" : "text-[#4f4641]"}`}>{item.text}</span>
+              </label>
+              <button type="button" onClick={() => deleteConfirmation(item.id)} aria-label={`Delete ${item.text}`} className="rounded-full p-1.5 text-[#9b6f68] hover:bg-[#f4ebe4]">
+                <Trash2 className="h-4 w-4" />
+              </button>
+            </div>
+          ))}
+        </div>
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row">
+          <input
+            type="text"
+            value={newConfirmation}
+            onChange={(event) => setNewConfirmation(event.target.value)}
+            placeholder="Add confirmation item"
+            className="min-h-11 flex-1 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm outline-none focus:border-[#b98278]"
+          />
+          <button type="button" onClick={addConfirmation} className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#6a5d55] transition hover:border-[#b98278]">
+            <Plus className="h-4 w-4" />
+            Add
+          </button>
+        </div>
+      </PlanningCard>
+
+      <PlanningCard>
+        <p className="heading-micro">Internal Notes</p>
+        <h3 className="heading-secondary heading-secondary-compact mt-2">Wedding Day Notes</h3>
+        <div className="mt-5 grid gap-4 md:grid-cols-2">
+          {runsheetNoteFields.map((field) => (
+            <TextAreaField
+              key={field.key}
+              label={field.label}
+              value={runsheet.notes[field.key]}
+              placeholder={field.placeholder}
+              rows={4}
+              onChange={(value) =>
+                setRunsheet({
+                  ...runsheet,
+                  notes: {
+                    ...runsheet.notes,
+                    [field.key]: value,
+                  },
+                })
+              }
+            />
+          ))}
+        </div>
+      </PlanningCard>
+    </div>
+  );
+}
+
 function NotesTab({ notes, setNotes }: { notes: PlanningNotes; setNotes: (notes: PlanningNotes) => void }) {
   const noteSections: Array<{ key: keyof PlanningNotes; title: string; placeholder: string }> = [
     { key: "decision", title: "Decision Notes", placeholder: "Vendor comparisons, decisions, negotiations..." },
@@ -3085,6 +3889,7 @@ type PlanningExport = {
   events: CalendarEvent[];
   tasks: PlanningTask[];
   timeline: TimelineSection[];
+  runsheet: Runsheet;
   quickNotes: string;
   notes: PlanningNotes;
 };
@@ -3104,6 +3909,7 @@ function normalizePlanningPayload(payload?: Partial<PlanningDataPayload> | null,
     events: normalizeEvents(payload?.events),
     tasks: normalizeTasks(payload?.tasks),
     timeline: normalizeTimeline(payload?.timeline),
+    runsheet: normalizeRunsheet(payload?.runsheet),
     quickNotes: typeof payload?.quickNotes === "string" ? payload.quickNotes : "",
     notes: normalizeNotes(payload?.notes, legacyDecisionNotes),
   };
@@ -3114,6 +3920,7 @@ function buildPlanningPayload(
   events: CalendarEvent[],
   tasks: PlanningTask[],
   timeline: TimelineSection[],
+  runsheet: Runsheet,
   quickNotes: string,
   notes: PlanningNotes,
 ): PlanningDataPayload {
@@ -3122,6 +3929,7 @@ function buildPlanningPayload(
     events,
     tasks,
     timeline,
+    runsheet,
     quickNotes,
     notes,
   };
@@ -3161,6 +3969,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const [storedEvents, setStoredEvents] = useState<CalendarEvent[]>(defaultCalendarEvents);
   const [storedTasks, setStoredTasks] = useState<PlanningTask[]>(defaultTasks);
   const [storedTimeline, setStoredTimeline] = useState<TimelineSection[]>(defaultTimeline);
+  const [storedRunsheet, setStoredRunsheet] = useState<Runsheet>(emptyRunsheet);
   const [quickNotes, setQuickNotes] = useState("");
   const [legacyDecisionNotes, setLegacyDecisionNotes] = useState("");
   const [storedNotes, setStoredNotes] = useState<PlanningNotes>(defaultNotes);
@@ -3170,18 +3979,21 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const events = useMemo(() => normalizeEvents(storedEvents), [storedEvents]);
   const tasks = useMemo(() => normalizeTasks(storedTasks), [storedTasks]);
   const timeline = useMemo(() => normalizeTimeline(storedTimeline), [storedTimeline]);
+  const runsheet = useMemo(() => normalizeRunsheet(storedRunsheet), [storedRunsheet]);
   const notes = useMemo(() => normalizeNotes(storedNotes, legacyDecisionNotes), [legacyDecisionNotes, storedNotes]);
   const planningSummary = useMemo(() => getPlanningSummary(vendors, events, tasks), [events, tasks, vendors]);
   const setVendors = useCallback((next: Vendor[]) => setStoredVendors(normalizeVendors(next)), [setStoredVendors]);
   const setEvents = useCallback((next: CalendarEvent[]) => setStoredEvents(normalizeEvents(next)), [setStoredEvents]);
   const setTasks = useCallback((next: PlanningTask[]) => setStoredTasks(normalizeTasks(next)), [setStoredTasks]);
   const setTimeline = useCallback((next: TimelineSection[]) => setStoredTimeline(normalizeTimeline(next)), [setStoredTimeline]);
+  const setRunsheet = useCallback((next: Runsheet) => setStoredRunsheet(normalizeRunsheet(next)), [setStoredRunsheet]);
   const setNotes = useCallback((next: PlanningNotes) => setStoredNotes(normalizeNotes(next)), [setStoredNotes]);
   const applyPlanningPayload = useCallback((payload: PlanningDataPayload) => {
     setStoredVendors(payload.vendors);
     setStoredEvents(payload.events);
     setStoredTasks(payload.tasks);
     setStoredTimeline(payload.timeline);
+    setStoredRunsheet(payload.runsheet);
     setQuickNotes(payload.quickNotes);
     setLegacyDecisionNotes("");
     setStoredNotes(payload.notes);
@@ -3232,12 +4044,17 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
         }
 
         const legacyPlanningData = readLegacyPlanningPayload();
+        const serverSeedPayload = result.data && typeof result.data === "object" ? result.data : null;
+        const mergedLegacyPayload = {
+          ...(serverSeedPayload ?? {}),
+          ...(legacyPlanningData.payload ?? {}),
+        };
         const payload =
           result.hasData && result.data
             ? normalizePlanningPayload(result.data)
             : legacyPlanningData.hasLegacyData
-              ? normalizePlanningPayload(legacyPlanningData.payload, legacyPlanningData.legacyDecisionNotes)
-              : normalizePlanningPayload();
+              ? normalizePlanningPayload(mergedLegacyPayload, legacyPlanningData.legacyDecisionNotes)
+              : normalizePlanningPayload(serverSeedPayload);
 
         if (!isCurrent) {
           return;
@@ -3287,7 +4104,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
     }
 
     const controller = new AbortController();
-    const payload = buildPlanningPayload(vendors, events, tasks, timeline, quickNotes, notes);
+    const payload = buildPlanningPayload(vendors, events, tasks, timeline, runsheet, quickNotes, notes);
     const timeoutId = window.setTimeout(() => {
       setPlanningDataStatus("Saving securely...");
 
@@ -3310,11 +4127,11 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [events, isPlanningDataLoaded, notes, quickNotes, savePlanningPayload, tasks, timeline, vendors]);
+  }, [events, isPlanningDataLoaded, notes, quickNotes, runsheet, savePlanningPayload, tasks, timeline, vendors]);
 
   function exportPlanningData() {
     const confirmed = window.confirm(
-      "This exports private planning data. Guest list exports are handled separately in the Guests tab and include sensitive personal data.",
+      "This exports private planning data, including the private wedding-day runsheet. Guest list exports are handled separately in the Guests tab and include sensitive personal data.",
     );
 
     if (!confirmed) {
@@ -3328,6 +4145,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       events,
       tasks,
       timeline,
+      runsheet,
       quickNotes,
       notes,
     };
@@ -3353,6 +4171,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       setEvents(normalizeEvents(payload.events));
       setTasks(normalizeTasks(payload.tasks));
       setTimeline(normalizeTimeline(payload.timeline));
+      setRunsheet(normalizeRunsheet(payload.runsheet));
       setQuickNotes(typeof payload.quickNotes === "string" ? payload.quickNotes : "");
       setNotes(normalizeNotes(payload.notes));
     } catch {
@@ -3390,6 +4209,10 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       return <TimelineTab timeline={timeline} setTimeline={setTimeline} />;
     }
 
+    if (activeTab === "Runsheet") {
+      return <RunsheetTab runsheet={runsheet} setRunsheet={setRunsheet} vendors={vendors} />;
+    }
+
     if (activeTab === "Guests") {
       return <PrivatePlanningGuestsTab />;
     }
@@ -3399,7 +4222,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
     }
 
     return <NotesTab notes={notes} setNotes={setNotes} />;
-  }, [activeTab, events, notes, quickNotes, setEvents, setNotes, setQuickNotes, setTasks, setTimeline, setVendors, tasks, timeline, vendors]);
+  }, [activeTab, events, notes, quickNotes, runsheet, setEvents, setNotes, setQuickNotes, setRunsheet, setTasks, setTimeline, setVendors, tasks, timeline, vendors]);
 
   return (
     <main className="min-h-screen bg-[#fbf7f2] px-5 py-8 text-[#4f4641] sm:px-6 lg:px-8">
