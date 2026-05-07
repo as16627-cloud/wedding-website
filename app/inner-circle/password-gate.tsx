@@ -2,10 +2,12 @@
 
 import Image from "next/image";
 import { type FormEvent, type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
+import { motion, useReducedMotion } from "framer-motion";
 
 const INNER_CIRCLE_PASSWORD = "garden2026";
 const INNER_CIRCLE_ACCESS_KEY = "inner-circle-access";
 const INNER_CIRCLE_ACCESS_EVENT = "inner-circle-access-change";
+const innerRevealEase = [0.19, 1, 0.22, 1] as const;
 
 const pageAnchors = [
   { href: "#note", label: "Note" },
@@ -315,22 +317,36 @@ function SectionHeading({
   title: string;
   copy?: string;
 }) {
+  const shouldReduceMotion = useReducedMotion();
+  const reveal = (delay = 0, y = 16) => ({
+    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
+    whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
+    viewport: { once: true, amount: 0.42 },
+    transition: { duration: shouldReduceMotion ? 0 : 0.9, delay: shouldReduceMotion ? 0 : delay, ease: innerRevealEase },
+  });
+
   return (
     <div className="mx-auto mb-10 max-w-3xl text-center">
-      {eyebrow && <p className="heading-micro mb-3">{eyebrow}</p>}
-      <h2 className="heading-primary">{title}</h2>
-      {copy && <p className="heading-copy mx-auto mt-4 max-w-[620px] text-[16px]">{copy}</p>}
+      {eyebrow && <motion.p className="heading-micro mb-3" {...reveal(0, 10)}>{eyebrow}</motion.p>}
+      <motion.h2 className="heading-primary" {...reveal(0.12, 16)}>{title}</motion.h2>
+      {copy && <motion.p className="heading-copy mx-auto mt-4 max-w-[620px] text-[16px]" {...reveal(0.24, 14)}>{copy}</motion.p>}
     </div>
   );
 }
 
 function SoftCard({ children, className = "" }: { children: ReactNode; className?: string }) {
+  const shouldReduceMotion = useReducedMotion();
+
   return (
-    <div
+    <motion.div
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 16, filter: "blur(2px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      viewport={{ once: true, amount: 0.24 }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.86, ease: innerRevealEase }}
       className={`inner-soft-card rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7]/82 p-6 text-[#4f4641] shadow-[0_14px_38px_rgba(90,65,50,0.055)] backdrop-blur ${className}`}
     >
       {children}
-    </div>
+    </motion.div>
   );
 }
 
@@ -621,6 +637,13 @@ function LookbookMoodboard() {
 }
 
 function InnerCircleContent() {
+  const shouldReduceMotion = useReducedMotion();
+  const heroReveal = (delay = 0, y = 16) => ({
+    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
+    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    transition: { duration: shouldReduceMotion ? 0 : 0.92, delay: shouldReduceMotion ? 0 : delay, ease: innerRevealEase },
+  });
+
   useEffect(() => {
     document.documentElement.classList.add("inner-circle-editorial-scroll");
 
@@ -634,16 +657,20 @@ function InnerCircleContent() {
       <section className="inner-circle-hero inner-editorial-panel relative isolate overflow-hidden px-6 pb-16 pt-20 text-center md:pb-20 md:pt-28">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_20%,_rgba(185,130,120,0.13),_transparent_34%),radial-gradient(circle_at_18%_70%,_rgba(203,185,163,0.18),_transparent_30%),radial-gradient(circle_at_86%_68%,_rgba(143,154,125,0.10),_transparent_28%)]" />
         <div className="mx-auto max-w-4xl">
-          <p className="heading-micro mb-5">INNER CIRCLE</p>
-          <h1 className="heading-primary">Inner Circle</h1>
-          <p className="luxe-serif-detail mx-auto mt-8 max-w-2xl text-[1.35rem] md:text-[1.65rem]">
+          <motion.p className="heading-micro mb-5" {...heroReveal(0, 10)}>
+            INNER CIRCLE
+          </motion.p>
+          <motion.h1 className="heading-primary" {...heroReveal(0.14, 16)}>
+            Inner Circle
+          </motion.h1>
+          <motion.p className="luxe-serif-detail mx-auto mt-8 max-w-2xl text-[1.35rem] md:text-[1.65rem]" {...heroReveal(0.28, 14)}>
             A little space for the people helping us bring the day to life.
-          </p>
-          <p className="heading-copy mx-auto mt-6 max-w-2xl">
+          </motion.p>
+          <motion.p className="heading-copy mx-auto mt-6 max-w-2xl" {...heroReveal(0.4, 12)}>
             This page is here to keep everyone gently in the loop as we get closer to the wedding. We&rsquo;ll use it for key dates, wedding-week reminders, small jobs, and anything our favourite people need to know.
-          </p>
+          </motion.p>
         </div>
-        <nav aria-label="Inner Circle sections" className="mx-auto mt-10 flex max-w-4xl flex-wrap justify-center gap-2">
+        <motion.nav aria-label="Inner Circle sections" className="mx-auto mt-10 flex max-w-4xl flex-wrap justify-center gap-2" {...heroReveal(0.54, 10)}>
           {pageAnchors.map((anchor) => (
             <a
               key={anchor.href}
@@ -653,7 +680,7 @@ function InnerCircleContent() {
               {anchor.label}
             </a>
           ))}
-        </nav>
+        </motion.nav>
       </section>
 
       <PrivateSection id="note" className="pt-10 md:pt-14" contentClassName="mx-auto max-w-[780px] text-center">

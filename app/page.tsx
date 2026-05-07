@@ -2,7 +2,7 @@
 
 import React, { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { motion, type Transition, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, type Transition, useReducedMotion } from "framer-motion";
 import {
   CalendarPlus,
   Check,
@@ -39,11 +39,6 @@ type DressCodeSwatch = {
   color: string;
 };
 
-type FadeInSectionProps = {
-  children: ReactNode;
-  className?: string;
-};
-
 type SoftSectionProps = {
   children: ReactNode;
   id?: string;
@@ -71,11 +66,12 @@ const venueImages = [
   { src: "/images/venue3.png", alt: "Caversham House garden lawn and gazebo" },
 ];
 
-const venueAutoPlayDelay = 5000;
-const venueManualPauseDelay = 6000;
+const venueAutoPlayDelay = 6800;
+const venueManualPauseDelay = 7600;
 const venueSwipeThreshold = 40;
 const gateOpenEase = [0.16, 1, 0.3, 1] as const;
 const invitationRevealEase = [0.22, 1, 0.36, 1] as const;
+const cinematicRevealEase = [0.19, 1, 0.22, 1] as const;
 const ambientAudioSrc = "/audio/until-i-found-you-violin-piano-wedding-version.mp3";
 const ambientAudioTargetVolume = 0.22;
 const ambientAudioFadeDuration = 1800;
@@ -482,22 +478,6 @@ const mobileEditorialNavItems = [
   { href: "#faq", step: "06", label: "FAQ" },
 ];
 
-function FadeInSection({ children, className = "" }: FadeInSectionProps) {
-  const shouldReduceMotion = useReducedMotion();
-
-  return (
-    <motion.div
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: shouldReduceMotion ? 0 : 0.58, ease: [0.22, 1, 0.36, 1] }}
-      className={className}
-    >
-      {children}
-    </motion.div>
-  );
-}
-
 function SectionProgressCue({ step, label }: { step?: string; label?: string }) {
   if (!step || !label) {
     return null;
@@ -528,17 +508,25 @@ function SoftSection({
       <div className="mobile-section-fade mobile-section-fade-top pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
       <div className="mobile-section-fade mobile-section-fade-bottom pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,_rgba(232,174,168,0.13),_transparent_32%),radial-gradient(circle_at_82%_76%,_rgba(218,192,138,0.12),_transparent_34%)]" />
-      <FadeInSection className={`relative ${contentClassName}`}>{children}</FadeInSection>
+      <div className={`relative ${contentClassName}`}>{children}</div>
     </section>
   );
 }
 
 function SectionHeading({ eyebrow, title, subtitle }: SectionHeadingProps) {
+  const shouldReduceMotion = useReducedMotion();
+  const reveal = (delay = 0, y = 18) => ({
+    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
+    whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
+    viewport: { once: true, amount: 0.5 },
+    transition: { duration: shouldReduceMotion ? 0 : 0.92, delay: shouldReduceMotion ? 0 : delay, ease: cinematicRevealEase },
+  });
+
   return (
     <div className="mx-auto mb-10 max-w-3xl text-center">
-      <p className="heading-micro mb-3">{eyebrow}</p>
-      <h2 className="heading-primary">{title}</h2>
-      {subtitle && <p className="heading-copy mt-4">{subtitle}</p>}
+      <motion.p className="heading-micro mb-3" {...reveal(0, 10)}>{eyebrow}</motion.p>
+      <motion.h2 className="heading-primary" {...reveal(0.12, 18)}>{title}</motion.h2>
+      {subtitle && <motion.p className="heading-copy mt-4" {...reveal(0.24, 16)}>{subtitle}</motion.p>}
     </div>
   );
 }
@@ -559,18 +547,43 @@ function Swatch({ swatch }: { swatch: DressCodeSwatch }) {
 
 function FaqItem({ item, index }: { item: Faq; index: number }) {
   const [open, setOpen] = useState(index === 0);
+  const shouldReduceMotion = useReducedMotion();
 
   return (
-    <div className="faq-item card-luxe card-luxe-text card-luxe-hover">
+    <motion.div
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 18, filter: "blur(2px)" }}
+      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      viewport={{ once: true, amount: 0.26 }}
+      transition={{
+        duration: shouldReduceMotion ? 0 : 0.86,
+        delay: shouldReduceMotion ? 0 : Math.min(index * 0.09, 0.42),
+        ease: cinematicRevealEase,
+      }}
+      className="faq-item card-luxe card-luxe-text card-luxe-hover"
+    >
       <button
         onClick={() => setOpen(!open)}
-        className="faq-button flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition duration-300 ease-out"
+        className="faq-button flex w-full items-center justify-between gap-4 px-5 py-4 text-left"
+        aria-expanded={open}
       >
         <span className="type-question">{item.question}</span>
-        <ChevronDown className={`faq-icon h-5 w-5 text-[var(--color-divider)] transition ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`faq-icon h-5 w-5 text-[var(--color-divider)] ${open ? "rotate-180" : ""}`} />
       </button>
-      {open && <p className="faq-answer type-card-body px-5 pb-5">{item.answer}</p>}
-    </div>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            key="answer"
+            initial={shouldReduceMotion ? false : { height: 0, opacity: 0, y: -4 }}
+            animate={{ height: "auto", opacity: 1, y: 0 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0, y: -4 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.58, ease: cinematicRevealEase }}
+            className="overflow-hidden"
+          >
+            <p className="faq-answer type-card-body px-5 pb-5">{item.answer}</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -718,8 +731,8 @@ function VenueCarousel() {
             fill
             loading="lazy"
             sizes="(min-width: 768px) 50vw, 100vw"
-            className={`object-cover contrast-[1.04] saturate-[0.88] transition-opacity duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none ${
-              index === currentIndex ? "opacity-100" : "opacity-0"
+            className={`venue-carousel-image object-cover contrast-[1.04] saturate-[0.88] motion-reduce:transition-none ${
+              index === currentIndex ? "venue-carousel-image-active opacity-100" : "opacity-0"
             }`}
           />
         ))}
@@ -766,7 +779,7 @@ function VenueCarousel() {
             type="button"
             onClick={() => goToImage(index)}
             aria-label={`Show ${image.alt}`}
-            className={`h-2 rounded-full transition duration-300 ease-out ${
+            className={`venue-carousel-dot h-2 rounded-full transition duration-300 ease-out ${
               index === currentIndex ? "w-6 bg-[var(--color-divider)]" : "w-2 bg-[rgba(255,248,244,0.62)]"
             }`}
           />
@@ -1155,6 +1168,18 @@ export default function WeddingWebsiteStarter() {
     delay: shouldReduceMotion || !heroCopyRevealReady ? 0 : delay,
     ease: invitationRevealEase,
   });
+  const cinematicRevealMotion = (delay = 0, y = 18, duration = 0.92, amount = 0.28) => ({
+    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
+    whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
+    viewport: { once: true, amount },
+    transition: { duration: shouldReduceMotion ? 0 : duration, delay: shouldReduceMotion ? 0 : delay, ease: cinematicRevealEase },
+  });
+  const cinematicDividerMotion = (delay = 0) => ({
+    initial: shouldReduceMotion ? false : { opacity: 0, scaleX: 0 },
+    whileInView: { opacity: 1, scaleX: 1 },
+    viewport: { once: true, amount: 0.45 },
+    transition: { duration: shouldReduceMotion ? 0 : 0.92, delay: shouldReduceMotion ? 0 : delay, ease: cinematicRevealEase },
+  });
   const heroTextRevealMotion = (
     delay = 0,
     y = heroRevealTiming.textY,
@@ -1194,10 +1219,10 @@ export default function WeddingWebsiteStarter() {
     ),
   };
   const dressRevealMotion = (delay = 0, y = 16) => ({
-    initial: shouldReduceMotion ? false : { opacity: 0, y },
-    whileInView: { opacity: 1, y: 0 },
+    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
+    whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
     viewport: { once: true, amount: 0.18 },
-    transition: { duration: shouldReduceMotion ? 0 : 0.5, delay: shouldReduceMotion ? 0 : delay, ease: gateOpenEase },
+    transition: { duration: shouldReduceMotion ? 0 : 0.92, delay: shouldReduceMotion ? 0 : delay, ease: cinematicRevealEase },
   });
   return (
     <main className="invite-page min-h-screen bg-[#fbf7f2] text-[var(--color-body)]">
@@ -1454,43 +1479,51 @@ export default function WeddingWebsiteStarter() {
       </section>
 
       <section className="editorial-panel mobile-invite-quote bg-[#fbf7f2] md:px-6 md:py-24">
-        <div className="mx-auto max-w-[600px] text-center">
-          <blockquote className="type-quote">
+        <motion.div {...cinematicRevealMotion(0, 18, 1.08, 0.38)} className="mx-auto max-w-[600px] text-center">
+          <motion.blockquote className="type-quote" {...cinematicRevealMotion(0.08, 14, 1.08, 0.46)}>
             &ldquo;Whatever our souls are made of, his and mine are the same.&rdquo;
-          </blockquote>
-          <p className="type-quote-attribution type-section-eyebrow mt-6">
+          </motion.blockquote>
+          <motion.p className="type-quote-attribution type-section-eyebrow mt-6" {...cinematicRevealMotion(0.28, 10, 0.88, 0.5)}>
             &mdash; Emily Bront&euml;
-          </p>
-        </div>
+          </motion.p>
+        </motion.div>
       </section>
 
       <section id="note" className="editorial-panel mobile-invite-note bg-[#fbf7f2]">
-        <div className="mobile-invite-note-inner">
-          <h2 className="mobile-note-title">A Note from Us</h2>
-          <div className="mobile-note-body">
+        <motion.div {...cinematicRevealMotion(0, 16, 1.0, 0.34)} className="mobile-invite-note-inner">
+          <motion.h2 className="mobile-note-title" {...cinematicRevealMotion(0, 10, 0.86, 0.48)}>
+            A Note from Us
+          </motion.h2>
+          <motion.div className="mobile-note-body" {...cinematicRevealMotion(0.16, 14, 0.96, 0.44)}>
             <p>We are so grateful to be celebrating this day with the people who have been part of our story.</p>
             <p>
               More details will be shared closer to the day, but for now, we would love for you to join us at Caversham
               House for a romantic garden celebration.
             </p>
-          </div>
-          <div className="mobile-note-signature" aria-label="With love, Sumaya and Aditya">
+          </motion.div>
+          <motion.div
+            className="mobile-note-signature"
+            aria-label="With love, Sumaya and Aditya"
+            {...cinematicRevealMotion(0.32, 10, 0.86, 0.42)}
+          >
             <p>With love,</p>
             <p>Sumaya &amp; Aditya</p>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </section>
 
       <SoftSection id="details" panelStep="01 / 06" panelLabel="Details">
         <div className="mx-auto mb-10 max-w-3xl text-center">
-          <p className="heading-micro mb-3">The celebration</p>
-          <h2 className="heading-primary">
+          <motion.p className="heading-micro mb-3" {...cinematicRevealMotion(0, 10, 0.86, 0.5)}>
+            The celebration
+          </motion.p>
+          <motion.h2 className="heading-primary" {...cinematicRevealMotion(0.14, 18, 1.02, 0.46)}>
             A garden ceremony, an intimate dinner, and an evening to remember
-          </h2>
-          <p className="heading-copy mt-4">
+          </motion.h2>
+          <motion.p className="heading-copy mt-4" {...cinematicRevealMotion(0.3, 14, 0.92, 0.44)}>
             Our day has been designed to feel romantic, relaxed, and full of warmth — with garden moments, beautiful
             food, music, and time to celebrate with the people we love most.
-          </p>
+          </motion.p>
         </div>
         <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
           {[
@@ -1512,10 +1545,14 @@ export default function WeddingWebsiteStarter() {
           ].map((card, index) => (
             <motion.div
               key={card.title}
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 18, filter: "blur(2px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               viewport={{ once: true, amount: 0.24 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.58, delay: shouldReduceMotion ? 0 : index * 0.06, ease: "easeOut" }}
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.9,
+                delay: shouldReduceMotion ? 0 : 0.28 + index * 0.12,
+                ease: cinematicRevealEase,
+              }}
               className="mobile-invite-card card-luxe card-luxe-text card-luxe-hover px-8 py-10"
             >
               <card.icon className="mb-7 h-6 w-6 text-[var(--color-divider)]" />
@@ -1711,20 +1748,23 @@ export default function WeddingWebsiteStarter() {
 
       <SoftSection id="itinerary" contentClassName="mx-auto max-w-5xl" panelStep="03 / 06" panelLabel="Itinerary">
         <div className="mx-auto mb-12 max-w-3xl text-center">
-          <h2 className="heading-primary">
+          <motion.h2 className="heading-primary" {...cinematicRevealMotion(0, 16, 1.0, 0.46)}>
             Wedding itinerary
-          </h2>
-          <div className="mx-auto my-6 flex w-full max-w-[128px] items-center justify-center gap-2.5">
+          </motion.h2>
+          <motion.div
+            className="mx-auto my-6 flex w-full max-w-[128px] items-center justify-center gap-2.5"
+            {...cinematicDividerMotion(0.18)}
+          >
             <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
             <span className="font-serif text-[20px] leading-none text-[var(--color-divider)] opacity-90">❦</span>
             <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
-          </div>
-          <p className="heading-copy mx-auto max-w-[560px]">
+          </motion.div>
+          <motion.p className="heading-copy mx-auto max-w-[560px]" {...cinematicRevealMotion(0.32, 14, 0.92, 0.42)}>
             The final schedule may be refined closer to the day, but this is the planned flow for guests.
-          </p>
-          <p className="type-editorial-note mt-7">
+          </motion.p>
+          <motion.p className="type-editorial-note mt-7" {...cinematicRevealMotion(0.48, 10, 0.82, 0.4)}>
             A gentle unfolding of our day
-          </p>
+          </motion.p>
         </div>
         <div className="itinerary-list relative mx-auto grid max-w-[900px] gap-0">
           <div
@@ -1735,10 +1775,14 @@ export default function WeddingWebsiteStarter() {
           {itinerary.map((item, index) => (
             <motion.div
               key={item.title}
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 16, filter: "blur(2px)" }}
+              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.56, delay: shouldReduceMotion ? 0 : index * 0.08, ease: "easeOut" }}
+              transition={{
+                duration: shouldReduceMotion ? 0 : 0.86,
+                delay: shouldReduceMotion ? 0 : index * 0.11,
+                ease: cinematicRevealEase,
+              }}
               className="itinerary-item grid grid-cols-[68px_24px_1fr] gap-x-3 md:grid-cols-[130px_40px_1fr] md:gap-x-6"
             >
               <div className="type-timeline-time pt-4 text-right">
@@ -1773,11 +1817,14 @@ export default function WeddingWebsiteStarter() {
             </motion.div>
           ))}
         </div>
-        <div className="mx-auto mt-10 flex w-full max-w-[260px] items-center justify-center gap-3">
+        <motion.div
+          className="mx-auto mt-10 flex w-full max-w-[260px] items-center justify-center gap-3"
+          {...cinematicDividerMotion(0.08)}
+        >
           <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
           <span className="h-2 w-2 rotate-45 rounded-[1px] bg-[var(--color-divider)] opacity-90" />
           <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
-        </div>
+        </motion.div>
       </SoftSection>
 
       <SoftSection
@@ -1787,23 +1834,29 @@ export default function WeddingWebsiteStarter() {
         panelLabel="Venue"
       >
         <div className="venue-desktop-flow">
-          <div className="mx-auto mb-14 max-w-3xl text-center md:mb-16">
+          <motion.div
+            className="mx-auto mb-14 max-w-3xl text-center md:mb-16"
+            {...cinematicRevealMotion(0, 18, 0.98, 0.4)}
+          >
             <p className="heading-micro mb-3">VENUE</p>
             <h2 className="heading-primary">Caversham House</h2>
-            <div className="mx-auto my-4 flex w-full max-w-[104px] items-center justify-center gap-2">
+            <motion.div className="mx-auto my-4 flex w-full max-w-[104px] items-center justify-center gap-2" {...cinematicDividerMotion(0.18)}>
               <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
               <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90" />
               <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
-            </div>
+            </motion.div>
             <p className="heading-copy mx-auto max-w-[560px]">
               A Swan Valley garden setting with a romantic ceremony at Garden House and a reception at Main House.
             </p>
             <p className="type-card-body mx-auto mt-3 max-w-[520px]">
               A soft garden setting for the day to unfold slowly, warmly, and beautifully.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid gap-8 md:grid-cols-[1.05fr_0.95fr] md:items-stretch md:gap-10">
+          <motion.div
+            className="grid gap-8 md:grid-cols-[1.05fr_0.95fr] md:items-stretch md:gap-10"
+            {...cinematicRevealMotion(0.22, 18, 0.95, 0.22)}
+          >
             <div className="relative isolate h-full">
               <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-[radial-gradient(circle_at_center,_rgba(218,192,138,0.34),_rgba(244,226,190,0.18)_44%,_transparent_72%)] blur-3xl" />
               <VenueCarousel />
@@ -1842,9 +1895,9 @@ export default function WeddingWebsiteStarter() {
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
 
-          <div className="card-luxe-map card-luxe-hover relative mt-12">
+          <motion.div className="card-luxe-map card-luxe-hover relative mt-12" {...cinematicRevealMotion(0.12, 14, 0.9, 0.18)}>
             <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3384.9999!2d115.9905802!3d-31.8777983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2a32b77920209d99%3A0xeb200b707ad3d95d!2sCaversham%20House%2C%20141%20Caversham%20Ave%2C%20Caversham%20WA%206055!5e0!3m2!1sen!2sau!4v1620000000000"
@@ -1856,11 +1909,11 @@ export default function WeddingWebsiteStarter() {
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />
-          </div>
+          </motion.div>
         </div>
 
         <div className="venue-mobile-panels">
-          <section className="venue-mobile-panel venue-mobile-panel-intro">
+          <motion.section className="venue-mobile-panel venue-mobile-panel-intro" {...cinematicRevealMotion(0, 14, 0.95, 0.18)}>
             <div className="venue-mobile-panel-inner">
               <div className="mx-auto max-w-3xl text-center">
                 <p className="heading-micro">VENUE</p>
@@ -1883,9 +1936,9 @@ export default function WeddingWebsiteStarter() {
                 <VenueCarousel />
               </div>
             </div>
-          </section>
+          </motion.section>
 
-          <section className="venue-mobile-panel venue-mobile-panel-practical">
+          <motion.section className="venue-mobile-panel venue-mobile-panel-practical" {...cinematicRevealMotion(0, 14, 0.95, 0.18)}>
             <div className="venue-mobile-panel-inner">
               <div className="card-luxe card-luxe-text venue-mobile-info-card">
                 <h3 className="type-card-title">Getting There &amp; Parking</h3>
@@ -1934,22 +1987,32 @@ export default function WeddingWebsiteStarter() {
                 />
               </div>
             </div>
-          </section>
+          </motion.section>
         </div>
       </SoftSection>
 
       <SoftSection id="rsvp" contentClassName="mx-auto max-w-4xl" panelStep="05 / 06" panelLabel="RSVP">
-        <div className="card-luxe card-luxe-dark px-5 py-10 md:px-10 md:py-12">
+        <motion.div
+          className="card-luxe card-luxe-dark px-5 py-10 md:px-10 md:py-12"
+          {...cinematicRevealMotion(0, 18, 1.0, 0.28)}
+        >
           <div className="mx-auto max-w-3xl text-center">
-            <p className="heading-micro heading-micro-light mb-3">RSVP</p>
-            <h2 className="heading-primary">We hope you can celebrate with us</h2>
-            <p className="heading-copy mt-5">
+            <motion.p className="heading-micro heading-micro-light mb-3" {...cinematicRevealMotion(0.08, 10, 0.86, 0.5)}>
+              RSVP
+            </motion.p>
+            <motion.h2 className="heading-primary" {...cinematicRevealMotion(0.2, 16, 0.98, 0.46)}>
+              We hope you can celebrate with us
+            </motion.h2>
+            <motion.p className="heading-copy mt-5" {...cinematicRevealMotion(0.34, 12, 0.9, 0.42)}>
               Your formal invitation will include a private RSVP link created just for you. Please use that link so we
               can recognise your invitation and save your response to the right guest record.
-            </p>
+            </motion.p>
           </div>
 
-          <div className="card-luxe card-luxe-text mt-10 p-6 text-center text-[var(--color-body)] md:p-8">
+          <motion.div
+            className="card-luxe card-luxe-text mt-10 p-6 text-center text-[var(--color-body)] md:p-8"
+            {...cinematicRevealMotion(0.48, 14, 0.9, 0.3)}
+          >
             <p className="type-card-body mx-auto max-w-2xl">
               There is no public name-search RSVP form, so your private link is the most reliable way for us to prefill
               your invitation details and ask only the questions relevant to you.
@@ -1968,7 +2031,7 @@ export default function WeddingWebsiteStarter() {
             <p className="type-card-body mx-auto mt-6 max-w-xl">
               If you cannot find your link, please message Sumaya or Aditya and we can send it again.
             </p>
-          </div>
+          </motion.div>
 
           <div
             className="hidden"
@@ -2122,7 +2185,7 @@ export default function WeddingWebsiteStarter() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </SoftSection>
 
       <SoftSection id="faq" contentClassName="mx-auto max-w-4xl" panelStep="06 / 06" panelLabel="FAQ">
@@ -2138,21 +2201,31 @@ export default function WeddingWebsiteStarter() {
         </div>
       </SoftSection>
 
-      <footer className="border-t border-[color:var(--color-divider-soft)] px-6 py-10 text-center">
-        <p className="type-card-title">Sumaya & Aditya</p>
-        <p className="type-meta mt-2">01 November 2026 &middot; Perth</p>
-        <div className="card-luxe-pill type-card-body mx-auto mt-6 flex max-w-md items-center justify-center gap-2 px-5 py-3">
+      <motion.footer
+        className="border-t border-[color:var(--color-divider-soft)] px-6 py-10 text-center"
+        {...cinematicRevealMotion(0, 14, 1.02, 0.24)}
+      >
+        <motion.p className="type-card-title" {...cinematicRevealMotion(0.08, 10, 0.82, 0.48)}>
+          Sumaya & Aditya
+        </motion.p>
+        <motion.p className="type-meta mt-2" {...cinematicRevealMotion(0.18, 8, 0.78, 0.48)}>
+          01 November 2026 &middot; Perth
+        </motion.p>
+        <motion.div
+          className="card-luxe-pill type-card-body mx-auto mt-6 flex max-w-md items-center justify-center gap-2 px-5 py-3"
+          {...cinematicRevealMotion(0.28, 10, 0.82, 0.44)}
+        >
           <Mail className="h-4 w-4" />
           Wedding website and RSVP system in progress
-        </div>
-        <div className="mt-8 flex items-center justify-center gap-5">
+        </motion.div>
+        <motion.div className="mt-8 flex items-center justify-center gap-5" {...cinematicRevealMotion(0.38, 8, 0.72, 0.4)}>
           <a href="/guest-list" className="type-nav text-[var(--color-label)] transition hover:text-[var(--color-heading)]">Guest List</a>
           <span className="text-[var(--color-divider-soft)]">&middot;</span>
           <a href="/inner-circle" className="type-nav text-[var(--color-label)] transition hover:text-[var(--color-heading)]">Inner Circle</a>
           <span className="text-[var(--color-divider-soft)]">&middot;</span>
           <a href="/private-planning" className="type-nav text-[var(--color-label)] transition hover:text-[var(--color-heading)]">Planning</a>
-        </div>
-      </footer>
+        </motion.div>
+      </motion.footer>
     </main>
   );
 }

@@ -2,6 +2,7 @@
 
 import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import { CheckCircle2, Heart, Loader2 } from "lucide-react";
 
 type PublicGuest = {
@@ -32,6 +33,7 @@ type SubmitResponse = LookupResponse & {
 };
 
 type YesNo = "" | "yes" | "no";
+const rsvpRevealEase = [0.19, 1, 0.22, 1] as const;
 
 function answerLabel(value: boolean | null | undefined) {
   if (value === true) return "Yes";
@@ -119,6 +121,7 @@ function TextArea({
 }
 
 export default function TokenRsvpForm({ token }: { token: string }) {
+  const shouldReduceMotion = useReducedMotion();
   const [guest, setGuest] = useState<PublicGuest | null>(null);
   const [ceremonyResponse, setCeremonyResponse] = useState<YesNo>("");
   const [receptionResponse, setReceptionResponse] = useState<YesNo>("");
@@ -185,6 +188,12 @@ export default function TokenRsvpForm({ token }: { token: string }) {
     if (guest?.plusOneAllowed) parts.push("Plus one welcome");
     return parts.join(" · ");
   }, [guest]);
+
+  const reveal = (delay = 0, y = 16) => ({
+    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
+    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    transition: { duration: shouldReduceMotion ? 0 : 0.9, delay: shouldReduceMotion ? 0 : delay, ease: rsvpRevealEase },
+  });
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -257,7 +266,7 @@ export default function TokenRsvpForm({ token }: { token: string }) {
   return (
     <main className="guest-rsvp-page min-h-screen bg-[#fbf7f2] px-5 py-10 text-[#4f4641] md:px-8 md:py-14">
       <section className="mx-auto max-w-4xl">
-        <div className="mb-9 text-center">
+        <motion.div className="mb-9 text-center" {...reveal(0, 12)}>
           <Link href="/" className="type-nav text-[var(--color-muted-taupe)]">
             Sumaya &amp; Aditya
           </Link>
@@ -265,9 +274,12 @@ export default function TokenRsvpForm({ token }: { token: string }) {
           <p className="heading-copy mx-auto mt-5 max-w-xl">
             A private RSVP page for your invitation.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="guest-rsvp-card rounded-[2.25rem] border border-[#eaded6] bg-[#fffaf7]/86 p-6 shadow-[0_22px_60px_rgba(90,65,50,0.08)] md:p-9">
+        <motion.div
+          className="guest-rsvp-card rounded-[2.25rem] border border-[#eaded6] bg-[#fffaf7]/86 p-6 shadow-[0_22px_60px_rgba(90,65,50,0.08)] md:p-9"
+          {...reveal(0.18, 18)}
+        >
           {status === "loading" && (
             <div className="flex min-h-[320px] flex-col items-center justify-center text-center">
               <Loader2 aria-hidden="true" className="h-7 w-7 animate-spin text-[#b98278]" />
@@ -436,7 +448,7 @@ export default function TokenRsvpForm({ token }: { token: string }) {
               </div>
             </form>
           )}
-        </div>
+        </motion.div>
       </section>
     </main>
   );
