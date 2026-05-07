@@ -135,7 +135,7 @@ const dressCode = {
     "Flowing fabrics, soft silhouettes, and romantic textures are encouraged.",
   ],
   classicFormalCopy: [
-    "Classic tailoring in navy, charcoal, beige, or black pairs beautifully with crisp white shirts and refined blush or champagne accents.",
+    "Classic tailoring in navy, charcoal, beige, or black pairs beautifully with crisp white shirts and refined blush accents.",
     "Tailored suits, blazers, and well-fitted formal shirts are all welcome — the emphasis is on clean lines, thoughtful details, and a polished finish.",
   ],
 };
@@ -154,7 +154,6 @@ const dressCodeClassicPalette: DressCodeSwatch[] = [
   { id: "classic-charcoal", label: "Charcoal", color: "#4a4a4a" },
   { id: "classic-beige", label: "Beige", color: "#d9cbbf" },
   { id: "classic-black", label: "Black", color: "#1f1f1f" },
-  { id: "classic-champagne", label: "Champagne", color: "#e6d3b3" },
 ];
 
 const swatchRowStyle: React.CSSProperties = {
@@ -562,15 +561,15 @@ function FaqItem({ item, index }: { item: Faq; index: number }) {
   const [open, setOpen] = useState(index === 0);
 
   return (
-    <div className="card-luxe card-luxe-text card-luxe-hover">
+    <div className="faq-item card-luxe card-luxe-text card-luxe-hover">
       <button
         onClick={() => setOpen(!open)}
-        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition duration-300 ease-out"
+        className="faq-button flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition duration-300 ease-out"
       >
         <span className="type-question">{item.question}</span>
-        <ChevronDown className={`h-5 w-5 text-[var(--color-divider)] transition ${open ? "rotate-180" : ""}`} />
+        <ChevronDown className={`faq-icon h-5 w-5 text-[var(--color-divider)] transition ${open ? "rotate-180" : ""}`} />
       </button>
-      {open && <p className="type-card-body px-5 pb-5">{item.answer}</p>}
+      {open && <p className="faq-answer type-card-body px-5 pb-5">{item.answer}</p>}
     </div>
   );
 }
@@ -1534,96 +1533,180 @@ export default function WeddingWebsiteStarter() {
         panelStep="02 / 06"
         panelLabel="Dress Code"
       >
-        <motion.div {...dressRevealMotion(0, 10)} className="mx-auto max-w-3xl text-center">
-          <p className="heading-micro mb-4">
-            {dressCode.eyebrow}
-          </p>
-          <h2 className="heading-primary">
-            {dressCode.title}
-          </h2>
-          <div className="mx-auto mt-7 flex w-full max-w-[280px] items-center justify-center gap-3">
+        <div className="dress-code-desktop-flow">
+          <motion.div {...dressRevealMotion(0, 10)} className="mx-auto max-w-3xl text-center">
+            <p className="heading-micro mb-4">
+              {dressCode.eyebrow}
+            </p>
+            <h2 className="heading-primary">
+              {dressCode.title}
+            </h2>
+            <div className="mx-auto mt-7 flex w-full max-w-[280px] items-center justify-center gap-3">
+              <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+              <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90" />
+              <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+            </div>
+            <p className="heading-copy mx-auto mt-8 max-w-[600px]">
+              {dressCode.description}
+            </p>
+          </motion.div>
+
+          <motion.article
+            {...dressRevealMotion(0.04, 10)}
+            className="mt-16 pb-2"
+          >
+            <div className="mx-auto max-w-3xl text-center">
+              <h3 className="heading-secondary">Pastel Formal</h3>
+              <div className="type-card-body mx-auto mt-6 max-w-[600px] space-y-3">
+                {dressCode.pastelFormalCopy.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </div>
+
+              <div className="swatchRow mx-auto mt-10" style={swatchRowStyle}>
+                {dressCodePastelPalette.map((swatch) => (
+                  <Swatch
+                    key={swatch.id}
+                    swatch={swatch}
+                  />
+                ))}
+              </div>
+            </div>
+
+          </motion.article>
+
+          <motion.div {...dressRevealMotion(0.04, 8)} className="mx-auto mt-10 flex w-full max-w-[86px] items-center justify-center gap-2">
             <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
-            <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90" />
+            <span className="h-1 w-1 rotate-45 bg-[var(--color-divider)] opacity-90" />
             <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
-          </div>
-          <p className="heading-copy mx-auto mt-8 max-w-[600px]">
-            {dressCode.description}
-          </p>
-        </motion.div>
+          </motion.div>
 
-        <motion.article
-          {...dressRevealMotion(0.04, 10)}
-          className="mt-16 pb-2"
-        >
-          <div className="mx-auto max-w-3xl text-center">
-            <h3 className="heading-secondary">Pastel Formal</h3>
-            <div className="type-card-body mx-auto mt-6 max-w-[600px] space-y-3">
-              {dressCode.pastelFormalCopy.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
+          <motion.article {...dressRevealMotion(0.05, 8)} className="mt-8">
+            <div className="mx-auto max-w-3xl text-center">
+              <h3 className="heading-secondary">Classic Formal</h3>
+              <div className="type-card-body mx-auto mt-5 max-w-[600px] space-y-2">
+                {dressCode.classicFormalCopy.map((paragraph) => (
+                  <p key={paragraph}>{paragraph}</p>
+                ))}
+              </div>
+
+              <div className="swatchRow mx-auto mt-7" style={swatchRowStyle}>
+                {dressCodeClassicPalette.map((swatch) => (
+                  <Swatch
+                    key={swatch.id}
+                    swatch={swatch}
+                  />
+                ))}
+              </div>
             </div>
 
-            <div className="swatchRow mx-auto mt-10" style={swatchRowStyle}>
-              {dressCodePastelPalette.map((swatch) => (
-                <Swatch
-                  key={swatch.id}
-                  swatch={swatch}
-                />
-              ))}
+          </motion.article>
+
+          <motion.p
+            {...dressRevealMotion(0.06, 6)}
+            className="dress-palette-guidance luxe-serif-detail mx-auto mt-8 max-w-[34ch] text-center"
+          >
+            Soft romantic neutrals inspired by the floral palette.
+          </motion.p>
+
+          <motion.div
+            {...dressRevealMotion(0.08, 8)}
+            className="mobile-editorial-callout mx-auto mt-10 max-w-2xl text-center"
+          >
+            <h3 className="type-card-title">A small note</h3>
+            <p className="type-card-body mx-auto mt-3 max-w-[600px]">
+              We kindly ask guests to avoid white, ivory, cream, or anything bridal in tone.
+            </p>
+
+            <h3 className="type-card-title mt-7">Garden shoes</h3>
+            <p className="type-card-body mx-auto mt-3 max-w-[600px]">
+              The ceremony will take place within the venue gardens, so block heels, wedges, flats, or comfortable dress
+              shoes are recommended.
+            </p>
+          </motion.div>
+        </div>
+
+        <div className="dress-code-mobile-panels">
+          <motion.div {...dressRevealMotion(0, 8)} className="dress-code-mobile-panel dress-code-mobile-panel-primary">
+            <div className="dress-code-mobile-panel-inner">
+              <p className="heading-micro">
+                {dressCode.eyebrow}
+              </p>
+              <h2 className="heading-primary">
+                {dressCode.title}
+              </h2>
+              <div className="mx-auto flex w-full max-w-[168px] items-center justify-center gap-2">
+                <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+                <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90" />
+                <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+              </div>
+              <p className="heading-copy">
+                {dressCode.description}
+              </p>
+
+              <article className="dress-code-mobile-block">
+                <h3 className="heading-secondary">Pastel Formal</h3>
+                <div className="type-card-body">
+                  {dressCode.pastelFormalCopy.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </div>
+
+                <div className="swatchRow mx-auto" style={swatchRowStyle}>
+                  {dressCodePastelPalette.map((swatch) => (
+                    <Swatch
+                      key={swatch.id}
+                      swatch={swatch}
+                    />
+                  ))}
+                </div>
+              </article>
             </div>
-          </div>
+          </motion.div>
 
-        </motion.article>
+          <motion.div {...dressRevealMotion(0.02, 8)} className="dress-code-mobile-panel">
+            <div className="dress-code-mobile-panel-inner">
+              <article className="dress-code-mobile-block">
+                <h3 className="heading-secondary">Classic Formal</h3>
+                <div className="type-card-body">
+                  {dressCode.classicFormalCopy.map((paragraph) => (
+                    <p key={paragraph}>{paragraph}</p>
+                  ))}
+                </div>
 
-        <motion.div {...dressRevealMotion(0.04, 8)} className="mx-auto mt-10 flex w-full max-w-[86px] items-center justify-center gap-2">
-          <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
-          <span className="h-1 w-1 rotate-45 bg-[var(--color-divider)] opacity-90" />
-          <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
-        </motion.div>
+                <div className="swatchRow mx-auto" style={swatchRowStyle}>
+                  {dressCodeClassicPalette.map((swatch) => (
+                    <Swatch
+                      key={swatch.id}
+                      swatch={swatch}
+                    />
+                  ))}
+                </div>
+              </article>
 
-        <motion.article {...dressRevealMotion(0.05, 8)} className="mt-8">
-          <div className="mx-auto max-w-3xl text-center">
-            <h3 className="heading-secondary">Classic Formal</h3>
-            <div className="type-card-body mx-auto mt-5 max-w-[600px] space-y-2">
-              {dressCode.classicFormalCopy.map((paragraph) => (
-                <p key={paragraph}>{paragraph}</p>
-              ))}
+              <p className="dress-palette-guidance luxe-serif-detail mx-auto max-w-[34ch] text-center">
+                Soft romantic neutrals inspired by the floral palette.
+              </p>
             </div>
+          </motion.div>
 
-            <div className="swatchRow mx-auto mt-7" style={swatchRowStyle}>
-              {dressCodeClassicPalette.map((swatch) => (
-                <Swatch
-                  key={swatch.id}
-                  swatch={swatch}
-                />
-              ))}
+          <motion.div {...dressRevealMotion(0.03, 8)} className="dress-code-mobile-panel dress-code-mobile-panel-notes">
+            <div className="dress-code-mobile-panel-inner">
+              <div className="mobile-editorial-callout mx-auto max-w-2xl text-center">
+                <h3 className="type-card-title">A small note</h3>
+                <p className="type-card-body mx-auto max-w-[600px]">
+                  We kindly ask guests to avoid white, ivory, cream, or anything bridal in tone.
+                </p>
+
+                <h3 className="type-card-title">Garden shoes</h3>
+                <p className="type-card-body mx-auto max-w-[600px]">
+                  The ceremony will take place within the venue gardens, so block heels, wedges, flats, or comfortable dress
+                  shoes are recommended.
+                </p>
+              </div>
             </div>
-          </div>
-
-        </motion.article>
-
-        <motion.p
-          {...dressRevealMotion(0.06, 6)}
-          className="dress-palette-guidance luxe-serif-detail mx-auto mt-8 max-w-[34ch] text-center"
-        >
-          Soft romantic neutrals inspired by the floral palette.
-        </motion.p>
-
-        <motion.div
-          {...dressRevealMotion(0.08, 8)}
-          className="mobile-editorial-callout mx-auto mt-10 max-w-2xl text-center"
-        >
-          <h3 className="type-card-title">A small note</h3>
-          <p className="type-card-body mx-auto mt-3 max-w-[600px]">
-            We kindly ask guests to avoid white, ivory, cream, or anything bridal in tone.
-          </p>
-
-          <h3 className="type-card-title mt-7">Garden shoes</h3>
-          <p className="type-card-body mx-auto mt-3 max-w-[600px]">
-            The ceremony will take place within the venue gardens, so block heels, wedges, flats, or comfortable dress
-            shoes are recommended.
-          </p>
-        </motion.div>
+          </motion.div>
+        </div>
       </SoftSection>
 
       <SoftSection id="itinerary" contentClassName="mx-auto max-w-5xl" panelStep="03 / 06" panelLabel="Itinerary">
@@ -1703,75 +1786,155 @@ export default function WeddingWebsiteStarter() {
         panelStep="04 / 06"
         panelLabel="Venue"
       >
-        <div className="mx-auto mb-14 max-w-3xl text-center md:mb-16">
-          <p className="heading-micro mb-3">VENUE</p>
-          <h2 className="heading-primary">Caversham House</h2>
-          <div className="mx-auto my-4 flex w-full max-w-[104px] items-center justify-center gap-2">
-            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
-            <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90" />
-            <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+        <div className="venue-desktop-flow">
+          <div className="mx-auto mb-14 max-w-3xl text-center md:mb-16">
+            <p className="heading-micro mb-3">VENUE</p>
+            <h2 className="heading-primary">Caversham House</h2>
+            <div className="mx-auto my-4 flex w-full max-w-[104px] items-center justify-center gap-2">
+              <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+              <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90" />
+              <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+            </div>
+            <p className="heading-copy mx-auto max-w-[560px]">
+              A Swan Valley garden setting with a romantic ceremony at Garden House and a reception at Main House.
+            </p>
+            <p className="type-card-body mx-auto mt-3 max-w-[520px]">
+              A soft garden setting for the day to unfold slowly, warmly, and beautifully.
+            </p>
           </div>
-          <p className="heading-copy mx-auto max-w-[560px]">
-            A Swan Valley garden setting with a romantic ceremony at Garden House and a reception at Main House.
-          </p>
-          <p className="type-card-body mx-auto mt-3 max-w-[520px]">
-            A soft garden setting for the day to unfold slowly, warmly, and beautifully.
-          </p>
-        </div>
 
-        <div className="grid gap-8 md:grid-cols-[1.05fr_0.95fr] md:items-stretch md:gap-10">
-          <div className="relative isolate h-full">
-            <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-[radial-gradient(circle_at_center,_rgba(218,192,138,0.34),_rgba(244,226,190,0.18)_44%,_transparent_72%)] blur-3xl" />
-            <VenueCarousel />
-          </div>
-          <div className="mx-auto flex h-full w-full max-w-[480px] md:max-w-none">
-            <div className="card-luxe card-luxe-text flex h-full w-full flex-col justify-center p-8 md:p-9">
-              <h3 className="type-card-title">Getting There &amp; Parking</h3>
-              <div className="type-card-body mt-5 space-y-4">
-                <p>
-                  Caversham House
-                  <br />
-                  Swan Valley, Perth
-                </p>
-                <div className="h-px w-full bg-[var(--color-divider)] opacity-90" />
-                <p>
-                  Parking is available at the Main House car park. Please follow signage upon arrival.
-                </p>
-                <p>
-                  We recommend arriving 20&ndash;30 minutes before the ceremony to allow time to settle into the
-                  gardens.
-                </p>
-              </div>
-              <div className="mobile-venue-actions mt-6 md:hidden">
-                <a href={googleDirectionsUrl} target="_blank" rel="noopener noreferrer">
-                  <MapPin className="h-4 w-4" />
-                  Open Maps
-                </a>
-                <a href="#venue-map">
-                  <MapPin className="h-4 w-4" />
-                  View Map
-                </a>
-                <button type="button" onClick={handleCopyVenueAddress}>
-                  {hasCopiedVenueAddress ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                  {hasCopiedVenueAddress ? "Copied" : "Copy Address"}
-                </button>
+          <div className="grid gap-8 md:grid-cols-[1.05fr_0.95fr] md:items-stretch md:gap-10">
+            <div className="relative isolate h-full">
+              <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-[radial-gradient(circle_at_center,_rgba(218,192,138,0.34),_rgba(244,226,190,0.18)_44%,_transparent_72%)] blur-3xl" />
+              <VenueCarousel />
+            </div>
+            <div className="mx-auto flex h-full w-full max-w-[480px] md:max-w-none">
+              <div className="card-luxe card-luxe-text flex h-full w-full flex-col justify-center p-8 md:p-9">
+                <h3 className="type-card-title">Getting There &amp; Parking</h3>
+                <div className="type-card-body mt-5 space-y-4">
+                  <p>
+                    Caversham House
+                    <br />
+                    Swan Valley, Perth
+                  </p>
+                  <div className="h-px w-full bg-[var(--color-divider)] opacity-90" />
+                  <p>
+                    Parking is available at the Main House car park. Please follow signage upon arrival.
+                  </p>
+                  <p>
+                    We recommend arriving 20&ndash;30 minutes before the ceremony to allow time to settle into the
+                    gardens.
+                  </p>
+                </div>
+                <div className="mobile-venue-actions mt-6 md:hidden">
+                  <a href={googleDirectionsUrl} target="_blank" rel="noopener noreferrer">
+                    <MapPin className="h-4 w-4" />
+                    Open Maps
+                  </a>
+                  <a href="#venue-map">
+                    <MapPin className="h-4 w-4" />
+                    View Map
+                  </a>
+                  <button type="button" onClick={handleCopyVenueAddress}>
+                    {hasCopiedVenueAddress ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {hasCopiedVenueAddress ? "Copied" : "Copy Address"}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
+
+          <div className="card-luxe-map card-luxe-hover relative mt-12">
+            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3384.9999!2d115.9905802!3d-31.8777983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2a32b77920209d99%3A0xeb200b707ad3d95d!2sCaversham%20House%2C%20141%20Caversham%20Ave%2C%20Caversham%20WA%206055!5e0!3m2!1sen!2sau!4v1620000000000"
+              width="100%"
+              height="450"
+              className="block saturate-[0.72] contrast-[0.96] blur-[0.15px]"
+              style={{ border: 0 }}
+              allowFullScreen
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+          </div>
         </div>
 
-        <div id="venue-map" className="card-luxe-map card-luxe-hover relative mt-12">
-          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
-          <iframe
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3384.9999!2d115.9905802!3d-31.8777983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2a32b77920209d99%3A0xeb200b707ad3d95d!2sCaversham%20House%2C%20141%20Caversham%20Ave%2C%20Caversham%20WA%206055!5e0!3m2!1sen!2sau!4v1620000000000"
-            width="100%"
-            height="450"
-            className="block saturate-[0.72] contrast-[0.96] blur-[0.15px]"
-            style={{ border: 0 }}
-            allowFullScreen
-            loading="lazy"
-            referrerPolicy="no-referrer-when-downgrade"
-          />
+        <div className="venue-mobile-panels">
+          <section className="venue-mobile-panel venue-mobile-panel-intro">
+            <div className="venue-mobile-panel-inner">
+              <div className="mx-auto max-w-3xl text-center">
+                <p className="heading-micro">VENUE</p>
+                <h2 className="heading-primary">Caversham House</h2>
+                <div className="mx-auto flex w-full max-w-[104px] items-center justify-center gap-2">
+                  <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+                  <span className="h-1.5 w-1.5 rotate-45 bg-[var(--color-divider)] opacity-90" />
+                  <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
+                </div>
+                <p className="heading-copy mx-auto max-w-[560px]">
+                  A Swan Valley garden setting with a romantic ceremony at Garden House and a reception at Main House.
+                </p>
+                <p className="type-card-body mx-auto max-w-[520px]">
+                  A soft garden setting for the day to unfold slowly, warmly, and beautifully.
+                </p>
+              </div>
+
+              <div className="venue-mobile-carousel relative isolate">
+                <div className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-[radial-gradient(circle_at_center,_rgba(218,192,138,0.24),_rgba(244,226,190,0.12)_45%,_transparent_72%)] blur-2xl" />
+                <VenueCarousel />
+              </div>
+            </div>
+          </section>
+
+          <section className="venue-mobile-panel venue-mobile-panel-practical">
+            <div className="venue-mobile-panel-inner">
+              <div className="card-luxe card-luxe-text venue-mobile-info-card">
+                <h3 className="type-card-title">Getting There &amp; Parking</h3>
+                <div className="type-card-body">
+                  <p>
+                    Caversham House
+                    <br />
+                    Swan Valley, Perth
+                  </p>
+                  <div className="h-px w-full bg-[var(--color-divider)] opacity-90" />
+                  <p>
+                    Parking is available at the Main House car park. Please follow signage upon arrival.
+                  </p>
+                  <p>
+                    We recommend arriving 20&ndash;30 minutes before the ceremony to allow time to settle into the
+                    gardens.
+                  </p>
+                </div>
+                <div className="mobile-venue-actions">
+                  <a href={googleDirectionsUrl} target="_blank" rel="noopener noreferrer">
+                    <MapPin className="h-4 w-4" />
+                    Open Maps
+                  </a>
+                  <a href="#venue-map">
+                    <MapPin className="h-4 w-4" />
+                    View Map
+                  </a>
+                  <button type="button" onClick={handleCopyVenueAddress}>
+                    {hasCopiedVenueAddress ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {hasCopiedVenueAddress ? "Copied" : "Copy Address"}
+                  </button>
+                </div>
+              </div>
+
+              <div id="venue-map" className="card-luxe-map card-luxe-hover venue-mobile-map relative">
+                <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
+                <iframe
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3384.9999!2d115.9905802!3d-31.8777983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2a32b77920209d99%3A0xeb200b707ad3d95d!2sCaversham%20House%2C%20141%20Caversham%20Ave%2C%20Caversham%20WA%206055!5e0!3m2!1sen!2sau!4v1620000000000"
+                  width="100%"
+                  height="450"
+                  className="block saturate-[0.72] contrast-[0.96] blur-[0.15px]"
+                  style={{ border: 0 }}
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+            </div>
+          </section>
         </div>
       </SoftSection>
 
@@ -1968,7 +2131,7 @@ export default function WeddingWebsiteStarter() {
           title="Guest FAQ"
           subtitle="A simple place for guests to quickly find the details without messaging you both separately."
         />
-        <div className="grid gap-4">
+        <div className="faq-list grid gap-4">
           {faqs.map((item, index) => (
             <FaqItem key={item.question} item={item} index={index} />
           ))}
