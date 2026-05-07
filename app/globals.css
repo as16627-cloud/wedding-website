@@ -655,6 +655,12 @@ a[class*="uppercase"] {
   left: calc(100vw - 3.75rem);
 }
 
+.mobile-nav-kicker,
+.mobile-nav-item,
+.mobile-section-marker {
+  display: none;
+}
+
 .ambient-audio-toggle {
   left: auto;
   right: max(1rem, env(safe-area-inset-right));
@@ -1161,6 +1167,41 @@ footer span {
     scroll-padding-top: 72px;
   }
 
+  html.invite-editorial-scroll {
+    scroll-snap-type: y proximity;
+  }
+
+  html.inner-circle-editorial-scroll {
+    scroll-snap-type: y proximity;
+  }
+
+  .invite-page .editorial-panel {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+  }
+
+  .inner-circle-page .inner-editorial-panel {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+  }
+
+  .inner-circle-hero {
+    display: grid;
+    min-height: 88svh;
+    align-items: center;
+  }
+
+  .inner-private-section {
+    padding-top: clamp(3.75rem, 8svh, 5rem);
+    padding-bottom: clamp(3.75rem, 8svh, 5rem);
+  }
+
+  #lookbooks.inner-private-section {
+    min-height: 84svh;
+    display: grid;
+    align-items: center;
+  }
+
   /*
    * Diagnostic: the mobile bottom action bar and journey dots were active JSX
    * plus active media-query CSS, so they overrode the editorial mobile pass and
@@ -1243,6 +1284,55 @@ footer span {
       linear-gradient(180deg, rgba(255, 250, 247, 0.94) 0%, rgba(250, 244, 241, 0.9) 100%),
       radial-gradient(circle at 20% 0%, rgba(246, 214, 206, 0.2), transparent 42%);
     box-shadow: 0 18px 38px rgba(106, 73, 58, 0.1), inset 0 0 0 1px rgba(221, 191, 183, 0.36);
+  }
+
+  .mobile-nav-kicker {
+    display: block;
+    margin-bottom: 0.85rem;
+    color: var(--color-label);
+    font-family: var(--font-sans);
+    font-size: 0.62rem;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    line-height: 1.2;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .mobile-nav-item {
+    display: grid;
+    grid-template-columns: 2.4rem minmax(0, 1fr);
+    min-height: 44px;
+    align-items: center;
+    gap: 0.55rem;
+    border-radius: 999px;
+    color: var(--color-heading);
+    font-family: var(--font-sans);
+    font-size: 0.73rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    line-height: 1.2;
+    text-transform: uppercase;
+    transition: background-color 220ms ease, color 220ms ease, transform 220ms ease;
+  }
+
+  .mobile-nav-item span:first-child {
+    color: var(--color-label);
+    font-size: 0.64rem;
+    letter-spacing: 0.12em;
+    text-align: right;
+  }
+
+  .mobile-nav-item span:last-child {
+    text-align: left;
+  }
+
+  .mobile-nav-item:hover,
+  .mobile-nav-item:focus-visible {
+    background: rgba(255, 245, 242, 0.72);
+    color: var(--color-navy);
+    transform: translateY(-1px);
+    outline: none;
   }
 
   .card-luxe {
@@ -1518,13 +1608,46 @@ footer span {
   }
 
   .mobile-invite-section {
-    padding: 5rem 1.35rem;
-    scroll-margin-top: 78px;
+    display: grid;
+    min-height: 84svh;
+    align-items: center;
+    padding: clamp(4.25rem, 9svh, 5.5rem) 1.35rem;
+    scroll-margin-top: 18px;
   }
 
-  .mobile-invite-section > div:first-child,
-  .mobile-invite-section > div:nth-child(2) {
+  .mobile-section-fade {
     height: 2.5rem;
+  }
+
+  .mobile-section-marker {
+    position: absolute;
+    top: 1.05rem;
+    left: 50%;
+    z-index: 4;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.55rem;
+    width: max-content;
+    max-width: calc(100% - 2.7rem);
+    padding: 0.42rem 0.72rem;
+    transform: translateX(-50%);
+    border: 1px solid rgba(203, 182, 175, 0.24);
+    border-radius: 999px;
+    background: rgba(255, 250, 247, 0.62);
+    color: var(--color-label);
+    font-family: var(--font-sans);
+    font-size: 0.58rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    line-height: 1;
+    text-transform: uppercase;
+    box-shadow: 0 8px 18px rgba(80, 60, 55, 0.035), inset 0 0 0 1px rgba(255, 248, 244, 0.18);
+    backdrop-filter: blur(10px);
+  }
+
+  .mobile-section-marker span:first-child {
+    color: var(--color-heading);
   }
 
   .mobile-invite-quote {
@@ -1850,6 +1973,22 @@ footer span {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html.invite-editorial-scroll {
+    scroll-snap-type: none;
+  }
+
+  html.inner-circle-editorial-scroll {
+    scroll-snap-type: none;
+  }
+
+  .invite-page .editorial-panel {
+    scroll-snap-align: none;
+  }
+
+  .inner-circle-page .inner-editorial-panel {
+    scroll-snap-align: none;
+  }
+
   .hero-scroll-layer,
   .hero-gate-art {
     transition: none;

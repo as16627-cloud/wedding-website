@@ -50,6 +50,8 @@ type SoftSectionProps = {
   id?: string;
   className?: string;
   contentClassName?: string;
+  panelStep?: string;
+  panelLabel?: string;
 };
 
 const googleCalendarUrl =
@@ -468,15 +470,25 @@ function ItineraryIcon({ title }: { title: string }) {
   return <Clock className="h-5 w-5 text-[var(--color-divider)]" />;
 }
 
+const mobileEditorialNavItems = [
+  { href: "#cover", step: "00", label: "Cover" },
+  { href: "#details", step: "01", label: "Details" },
+  { href: "#dress-code", step: "02", label: "Dress Code" },
+  { href: "#itinerary", step: "03", label: "Itinerary" },
+  { href: "#venue", step: "04", label: "Venue" },
+  { href: "#rsvp", step: "05", label: "RSVP" },
+  { href: "#faq", step: "06", label: "FAQ" },
+];
+
 function FadeInSection({ children, className = "" }: FadeInSectionProps) {
   const shouldReduceMotion = useReducedMotion();
 
   return (
     <motion.div
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 28 }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: shouldReduceMotion ? 0 : 0.75, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: shouldReduceMotion ? 0 : 0.58, ease: [0.22, 1, 0.36, 1] }}
       className={className}
     >
       {children}
@@ -484,14 +496,35 @@ function FadeInSection({ children, className = "" }: FadeInSectionProps) {
   );
 }
 
-function SoftSection({ children, id, className = "", contentClassName = "mx-auto max-w-6xl" }: SoftSectionProps) {
+function SectionProgressCue({ step, label }: { step?: string; label?: string }) {
+  if (!step || !label) {
+    return null;
+  }
+
+  return (
+    <div className="mobile-section-marker" aria-hidden="true">
+      <span>{step}</span>
+      <span>{label}</span>
+    </div>
+  );
+}
+
+function SoftSection({
+  children,
+  id,
+  className = "",
+  contentClassName = "mx-auto max-w-6xl",
+  panelStep,
+  panelLabel,
+}: SoftSectionProps) {
   return (
     <section
       id={id}
-      className={`mobile-invite-section relative overflow-hidden scroll-mt-24 bg-[#fbf7f2] px-6 py-24 md:py-32 ${className}`}
+      className={`editorial-panel mobile-invite-section relative overflow-hidden scroll-mt-24 bg-[#fbf7f2] px-6 py-24 md:py-32 ${className}`}
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
+      <SectionProgressCue step={panelStep} label={panelLabel} />
+      <div className="mobile-section-fade mobile-section-fade-top pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
+      <div className="mobile-section-fade mobile-section-fade-bottom pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,_rgba(232,174,168,0.13),_transparent_32%),radial-gradient(circle_at_82%_76%,_rgba(218,192,138,0.12),_transparent_34%)]" />
       <FadeInSection className={`relative ${contentClassName}`}>{children}</FadeInSection>
     </section>
@@ -850,6 +883,14 @@ export default function WeddingWebsiteStarter() {
   }, [fadeAmbientAudio, isAmbientAudioOn]);
 
   useEffect(() => {
+    document.documentElement.classList.add("invite-editorial-scroll");
+
+    return () => {
+      document.documentElement.classList.remove("invite-editorial-scroll");
+    };
+  }, []);
+
+  useEffect(() => {
     const ambientAudio = ambientAudioRef.current;
 
     return () => {
@@ -1193,7 +1234,7 @@ export default function WeddingWebsiteStarter() {
       <section
         id="cover"
         ref={heroRef}
-        className="hero-section relative isolate overflow-visible bg-[#fbf7f2] text-[var(--color-body)]"
+        className="editorial-panel hero-section relative isolate overflow-visible bg-[#fbf7f2] text-[var(--color-body)]"
       >
         <div className="hero-inner sticky top-0 h-screen overflow-hidden [perspective:1500px]">
         <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#f4ebe4_0%,#fff9f4_38%,#f8eee6_70%,#fbf7f2_100%)]" />
@@ -1277,42 +1318,19 @@ export default function WeddingWebsiteStarter() {
 
           {isMobileNavOpen && (
             <div className="mobile-nav-panel absolute left-5 top-[82px] z-50 w-[calc(100vw-2.5rem)] border-y border-[rgba(232,207,200,0.55)] bg-[#fffaf7]/92 px-5 py-5 shadow-[0_16px_34px_rgba(106,73,58,0.10)] backdrop-blur-md md:hidden">
-              <div className="type-nav grid gap-4 text-center">
-                <a
-                  href="#details"
-                  onClick={() => setIsMobileNavOpen(false)}
-                  className="nav-link"
-                >
-                  Details
-                </a>
-                <a
-                  href="#dress-code"
-                  onClick={() => setIsMobileNavOpen(false)}
-                  className="nav-link"
-                >
-                  Dress Code
-                </a>
-                <a
-                  href="#itinerary"
-                  onClick={() => setIsMobileNavOpen(false)}
-                  className="nav-link"
-                >
-                  Itinerary
-                </a>
-                <a
-                  href="#venue"
-                  onClick={() => setIsMobileNavOpen(false)}
-                  className="nav-link"
-                >
-                  Venue
-                </a>
-                <a
-                  href="#rsvp"
-                  onClick={() => setIsMobileNavOpen(false)}
-                  className="secondary-cta type-button mx-auto px-[18px] py-2.5"
-                >
-                  RSVP
-                </a>
+              <p className="mobile-nav-kicker">Invitation sections</p>
+              <div className="grid gap-1.5">
+                {mobileEditorialNavItems.map((item) => (
+                  <a
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMobileNavOpen(false)}
+                    className="mobile-nav-item"
+                  >
+                    <span>{item.step}</span>
+                    <span>{item.label}</span>
+                  </a>
+                ))}
               </div>
             </div>
           )}
@@ -1453,7 +1471,7 @@ export default function WeddingWebsiteStarter() {
         </div>
       </section>
 
-      <section className="mobile-invite-quote bg-[#fbf7f2] md:px-6 md:py-24">
+      <section className="editorial-panel mobile-invite-quote bg-[#fbf7f2] md:px-6 md:py-24">
         <div className="mx-auto max-w-[600px] text-center">
           <blockquote className="type-quote">
             &ldquo;Whatever our souls are made of, his and mine are the same.&rdquo;
@@ -1464,7 +1482,7 @@ export default function WeddingWebsiteStarter() {
         </div>
       </section>
 
-      <section id="note" className="mobile-invite-note bg-[#fbf7f2]">
+      <section id="note" className="editorial-panel mobile-invite-note bg-[#fbf7f2]">
         <div className="mobile-invite-note-inner">
           <h2 className="mobile-note-title">A Note from Us</h2>
           <div className="mobile-note-body">
@@ -1481,7 +1499,7 @@ export default function WeddingWebsiteStarter() {
         </div>
       </section>
 
-      <SoftSection id="details">
+      <SoftSection id="details" panelStep="01 / 06" panelLabel="Details">
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <p className="heading-micro mb-3">The celebration</p>
           <h2 className="heading-primary">
@@ -1530,6 +1548,8 @@ export default function WeddingWebsiteStarter() {
         id="dress-code"
         className="bg-[linear-gradient(180deg,_#fbf7f2_0%,_rgba(248,235,230,0.36)_50%,_#fbf7f2_100%)]"
         contentClassName="mx-auto max-w-6xl"
+        panelStep="02 / 06"
+        panelLabel="Dress Code"
       >
         <motion.div {...dressRevealMotion(0, 10)} className="mx-auto max-w-3xl text-center">
           <p className="heading-micro mb-4">
@@ -1651,7 +1671,7 @@ export default function WeddingWebsiteStarter() {
         </motion.div>
       </SoftSection>
 
-      <SoftSection id="itinerary" contentClassName="mx-auto max-w-5xl">
+      <SoftSection id="itinerary" contentClassName="mx-auto max-w-5xl" panelStep="03 / 06" panelLabel="Itinerary">
         <div className="mx-auto mb-12 max-w-3xl text-center">
           <h2 className="heading-primary">
             Wedding itinerary
@@ -1725,6 +1745,8 @@ export default function WeddingWebsiteStarter() {
       <SoftSection
         id="venue"
         className="mb-20 mt-24 bg-[linear-gradient(180deg,_#fbf7f2_0%,_rgba(248,235,230,0.46)_48%,_#fbf7f2_100%)] md:mb-24 md:mt-28"
+        panelStep="04 / 06"
+        panelLabel="Venue"
       >
         <div className="mx-auto mb-14 max-w-3xl text-center md:mb-16">
           <p className="heading-micro mb-3">VENUE</p>
@@ -1798,7 +1820,7 @@ export default function WeddingWebsiteStarter() {
         </div>
       </SoftSection>
 
-      <SoftSection id="rsvp" contentClassName="mx-auto max-w-4xl">
+      <SoftSection id="rsvp" contentClassName="mx-auto max-w-4xl" panelStep="05 / 06" panelLabel="RSVP">
         <div className="card-luxe card-luxe-dark px-5 py-10 md:px-10 md:py-12">
           <div className="mx-auto max-w-3xl text-center">
             <p className="heading-micro heading-micro-light mb-3">RSVP</p>
@@ -1985,7 +2007,7 @@ export default function WeddingWebsiteStarter() {
         </div>
       </SoftSection>
 
-      <SoftSection contentClassName="mx-auto max-w-4xl">
+      <SoftSection id="faq" contentClassName="mx-auto max-w-4xl" panelStep="06 / 06" panelLabel="FAQ">
         <SectionHeading
           eyebrow="Good to know"
           title="Guest FAQ"

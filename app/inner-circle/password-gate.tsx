@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { type FormEvent, type ReactNode, useState, useSyncExternalStore } from "react";
+import { type FormEvent, type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
 
 const INNER_CIRCLE_PASSWORD = "garden2026";
 const INNER_CIRCLE_ACCESS_KEY = "inner-circle-access";
@@ -30,6 +30,10 @@ type LookbookCategory = {
     eyebrow: string;
     title: string;
     intro: string;
+    poster?: {
+      src: string;
+      alt: string;
+    };
     notes: Array<{ title: string; copy: string }>;
     footer: string;
   };
@@ -61,6 +65,10 @@ const lookbooks: LookbookCategory[] = [
       eyebrow: "BRIDAL PARTY MORNING GUIDE",
       title: "Getting Ready Lookbook",
       intro: "A soft reference for robes, jewellery, hair, makeup, nails, footwear, and morning-prep details.",
+      poster: {
+        src: "/images/lookbooks/bridal-party-getting-ready.png",
+        alt: "Getting Ready Lookbook for the bridal party with robe, jewellery, hair, makeup, nail, and footwear notes.",
+      },
       notes: [
         { title: "Robes", copy: "Wear your robe on arrival so the morning photos feel cohesive and relaxed." },
         { title: "Jewellery", copy: "Please wear your gifted necklace on the day. For earrings, bracelets, and rings, choose pieces that complement the soft romantic aesthetic." },
@@ -71,26 +79,7 @@ const lookbooks: LookbookCategory[] = [
       ],
       footer: "Final bridal party details will be confirmed separately. This guide is for visual direction and calm morning flow.",
     },
-    images: [
-      {
-        src: "/images/dress-code/pastel-formal-main.jpg",
-        title: "Pastel garden formal",
-        caption: "The soft tonal direction for romantic bridal-party styling.",
-        why: "It keeps the palette airy, elegant, and cohesive without feeling too matched.",
-      },
-      {
-        src: "/images/dress-code/pastel-formal-lavender.jpg",
-        title: "Dusty lavender",
-        caption: "A gentle pastel option with a romantic garden feel.",
-        why: "The tone photographs softly beside blush, sage, champagne, and ivory.",
-      },
-      {
-        src: "/images/dress-code/pastel-formal-saree.jpg",
-        title: "Soft formal drape",
-        caption: "Elegant movement and fabric that feels occasion-ready.",
-        why: "Flow and texture make the look feel special while staying graceful.",
-      },
-    ],
+    images: [],
   },
   {
     id: "grooms-party",
@@ -111,6 +100,10 @@ const lookbooks: LookbookCategory[] = [
       eyebrow: "GROOM PARTY MORNING GUIDE",
       title: "Getting Ready Lookbook",
       intro: "A polished reference for attire, florals, accessories, grooming, footwear, and relaxed morning photos.",
+      poster: {
+        src: "/images/lookbooks/groom-party-getting-ready.png",
+        alt: "Getting Ready Lookbook for the groom party with attire, colour, floral, accessory, grooming, footwear, and photo notes.",
+      },
       notes: [
         { title: "Arrive dressed", copy: "Please arrive fully dressed and photo-ready. Relaxed getting-ready photos will begin shortly after arrival, so everything should already be on." },
         { title: "Colour direction", copy: "The groom party will be in navy tones with blush accents. Please make sure your outfit aligns with this for a cohesive look." },
@@ -123,32 +116,7 @@ const lookbooks: LookbookCategory[] = [
       ],
       footer: "Just show up ready. We will take care of the rest.",
     },
-    images: [
-      {
-        src: "/images/dress-code/classic-formal-navy.jpg",
-        title: "Refined navy",
-        caption: "A polished groom-inspired tone that feels formal without being heavy.",
-        why: "Navy brings structure and depth while still sitting beautifully beside blush and ivory.",
-      },
-      {
-        src: "/images/dress-code/classic-formal-charcoal.jpg",
-        title: "Classic charcoal",
-        caption: "Quiet, timeless tailoring for a formal garden setting.",
-        why: "Charcoal is elegant, versatile, and easy to coordinate with soft accents.",
-      },
-      {
-        src: "/images/dress-code/classic-formal-black.jpg",
-        title: "Black formal",
-        caption: "A crisp, classic option for a polished evening feel.",
-        why: "It keeps the look elevated and timeless when styled cleanly.",
-      },
-      {
-        src: "/images/dress-code/classic-formal-beige.jpg",
-        title: "Warm beige",
-        caption: "A softer tailoring option for daytime garden romance.",
-        why: "Warm neutrals lighten the overall palette without feeling casual.",
-      },
-    ],
+    images: [],
   },
   {
     id: "family-inner-circle",
@@ -169,6 +137,10 @@ const lookbooks: LookbookCategory[] = [
       eyebrow: "GROOM FAMILY MORNING GUIDE",
       title: "Getting Ready Lookbook",
       intro: "A gentle family styling guide for coordinated tones, sarees, suit details, florals, jewellery, and relaxed photo moments.",
+      poster: {
+        src: "/images/lookbooks/groom-family-getting-ready.png",
+        alt: "Getting Ready Lookbook for the groom family with attire, saree, styling, floral, jewellery, hair, makeup, footwear, and photo notes.",
+      },
       notes: [
         { title: "Groom's mom attire", copy: "Please wear a saree in tones that complement the day. Blush, champagne, soft neutrals, or muted pastels are perfect." },
         { title: "Groom's mom styling", copy: "Elegant and timeless draping styles that feel comfortable and refined." },
@@ -185,26 +157,7 @@ const lookbooks: LookbookCategory[] = [
       ],
       footer: "Dress in coordinated tones, be ready for photos when needed, keep it relaxed and comfortable, and enjoy the day together.",
     },
-    images: [
-      {
-        src: "/images/dress-code/pastel-formal-main.jpg",
-        title: "Soft mixed pastels",
-        caption: "A cohesive family palette without needing everyone to match.",
-        why: "It allows individuality while keeping photos calm and beautifully tied together.",
-      },
-      {
-        src: "/images/dress-code/classic-formal-beige.jpg",
-        title: "Warm neutral formal",
-        caption: "A timeless neutral option that works well with the venue and garden.",
-        why: "It feels polished, approachable, and easy to pair with rose-gold accents.",
-      },
-      {
-        src: "/images/dress-code/classic-formal-navy.jpg",
-        title: "Structured navy",
-        caption: "A refined deeper tone for family and close helpers.",
-        why: "It balances the softer palette with a little groom-side structure.",
-      },
-    ],
+    images: [],
   },
   {
     id: "getting-ready",
@@ -220,26 +173,7 @@ const lookbooks: LookbookCategory[] = [
       { name: "Soft taupe", hex: "#BBA9A0" },
       { name: "Sage", hex: "#B9C7AA" },
     ],
-    images: [
-      {
-        src: "/images/venue-card.png",
-        title: "Calm morning mood",
-        caption: "Soft architectural light and quiet garden-house energy.",
-        why: "The getting-ready feel should be pretty, calm, and unhurried.",
-      },
-      {
-        src: "/images/dress-code/pastel-formal-saree.jpg",
-        title: "Soft fabric detail",
-        caption: "Gentle fabric, easy movement, and romantic texture.",
-        why: "These details photograph beautifully in morning prep moments.",
-      },
-      {
-        src: "/images/floral-fixed-top-right.png",
-        title: "Blush floral accents",
-        caption: "A soft floral reference for the morning palette.",
-        why: "It keeps the styling connected to the overall garden romance mood.",
-      },
-    ],
+    images: [],
   },
 ];
 
@@ -382,7 +316,10 @@ function PrivateSection({
   id?: string;
 }) {
   return (
-    <section id={id} className={`relative scroll-mt-8 overflow-hidden bg-[#fbf7f2] px-6 py-16 md:py-20 ${className}`}>
+    <section
+      id={id}
+      className={`inner-editorial-panel inner-private-section relative scroll-mt-8 overflow-hidden bg-[#fbf7f2] px-6 py-16 md:py-20 ${className}`}
+    >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_22%,_rgba(232,174,168,0.10),_transparent_32%),radial-gradient(circle_at_84%_72%,_rgba(218,192,138,0.10),_transparent_34%)]" />
       <div className={`relative ${contentClassName}`}>{children}</div>
@@ -427,6 +364,7 @@ function LookbookGuideCard({
 }) {
   const previewNotes = guide.notes.slice(0, 6);
   const hiddenNoteCount = guide.notes.length - previewNotes.length;
+  const hasPoster = Boolean(guide.poster);
 
   return (
     <button
@@ -446,17 +384,31 @@ function LookbookGuideCard({
           {guide.intro}
         </span>
 
-        <span className="mt-6 grid gap-3 sm:grid-cols-2">
-          {previewNotes.map((note) => (
-            <span key={note.title} className="rounded-2xl border border-[#eaded6]/78 bg-white/58 p-4">
-              <span className="heading-micro block text-[9px]">{note.title}</span>
-              <span className="mt-2 block text-sm leading-6 text-[#6a5d55]">{note.copy}</span>
+        {guide.poster ? (
+          <span className="mt-6 block overflow-hidden rounded-[1.35rem] border border-[#eaded6]/82 bg-[#fffaf7]/82 p-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.55)]">
+            <span className="relative block aspect-[2/3] overflow-hidden rounded-[1rem] bg-[#fbf3ef]">
+              <Image
+                src={guide.poster.src}
+                alt={guide.poster.alt}
+                fill
+                sizes="(max-width: 768px) 100vw, 42vw"
+                className="object-contain"
+              />
             </span>
-          ))}
-        </span>
+          </span>
+        ) : (
+          <span className="mt-6 grid gap-3 sm:grid-cols-2">
+            {previewNotes.map((note) => (
+              <span key={note.title} className="rounded-2xl border border-[#eaded6]/78 bg-white/58 p-4">
+                <span className="heading-micro block text-[9px]">{note.title}</span>
+                <span className="mt-2 block text-sm leading-6 text-[#6a5d55]">{note.copy}</span>
+              </span>
+            ))}
+          </span>
+        )}
 
         <span className="mt-6 inline-flex rounded-full border border-[#dccbc3] bg-white/58 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8f6a63] transition group-hover:border-[#c9aaa0]">
-          Open full guide{hiddenNoteCount > 0 ? ` + ${hiddenNoteCount} more` : ""}
+          Open full guide{!hasPoster && hiddenNoteCount > 0 ? ` + ${hiddenNoteCount} more` : ""}
         </span>
       </span>
     </button>
@@ -476,6 +428,7 @@ function LookbookMoodboard() {
   const activeLookbook = lookbooks.find((lookbook) => lookbook.id === activeLookbookId) ?? lookbooks[0];
   const activeGuide = activeLookbook.guide;
   const [featureImage, ...supportingImages] = activeLookbook.images;
+  const hasLookbookMedia = Boolean(activeGuide || featureImage || supportingImages.length > 0);
 
   return (
     <>
@@ -503,7 +456,7 @@ function LookbookMoodboard() {
           ))}
         </div>
 
-        <div className="grid gap-6 lg:grid-cols-[0.88fr_1.12fr]">
+        <div className={hasLookbookMedia ? "grid gap-6 lg:grid-cols-[0.88fr_1.12fr]" : "mx-auto max-w-3xl"}>
           <SoftCard className="lg:sticky lg:top-6">
             <p className="heading-micro mb-3">{activeLookbook.label}</p>
             <h3 className="heading-secondary">Style brief</h3>
@@ -534,57 +487,61 @@ function LookbookMoodboard() {
             </div>
           </SoftCard>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {activeGuide && (
-              <LookbookGuideCard
-                guide={activeGuide}
-                onOpen={() => setSelectedGuide({ guide: activeGuide, category: activeLookbook.label })}
-              />
-            )}
+          {hasLookbookMedia && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {activeGuide && (
+                <LookbookGuideCard
+                  guide={activeGuide}
+                  onOpen={() => setSelectedGuide({ guide: activeGuide, category: activeLookbook.label })}
+                />
+              )}
 
-            <button
-              type="button"
-              onClick={() => setSelectedImage({ image: featureImage, category: activeLookbook.label })}
-              className="group relative min-h-[28rem] overflow-hidden rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7] text-left shadow-[0_18px_40px_rgba(90,65,50,0.08)] transition duration-500 hover:-translate-y-1 sm:col-span-2"
-            >
-              <Image
-                src={featureImage.src}
-                alt={featureImage.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 58vw"
-                className="object-cover transition duration-700 group-hover:scale-[1.035]"
-              />
-              <span className="absolute inset-0 bg-gradient-to-t from-[#3f302b]/44 via-transparent to-transparent" />
-              <span className="absolute bottom-0 left-0 right-0 p-5 text-[#fff8f4]">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.18em] opacity-85">Feature image</span>
-                <span className="mt-2 block font-serif text-3xl leading-tight">{featureImage.title}</span>
-                <span className="mt-2 block max-w-xl text-sm leading-6 opacity-90">{featureImage.caption}</span>
-              </span>
-            </button>
-
-            {supportingImages.map((image) => (
-              <button
-                key={image.title}
-                type="button"
-                onClick={() => setSelectedImage({ image, category: activeLookbook.label })}
-                className="group overflow-hidden rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7]/82 text-left shadow-[0_12px_30px_rgba(90,65,50,0.055)] transition duration-500 hover:-translate-y-1"
-              >
-                <span className="relative block aspect-[4/3] overflow-hidden">
+              {featureImage && (
+                <button
+                  type="button"
+                  onClick={() => setSelectedImage({ image: featureImage, category: activeLookbook.label })}
+                  className="group relative min-h-[28rem] overflow-hidden rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7] text-left shadow-[0_18px_40px_rgba(90,65,50,0.08)] transition duration-500 hover:-translate-y-1 sm:col-span-2"
+                >
                   <Image
-                    src={image.src}
-                    alt={image.title}
+                    src={featureImage.src}
+                    alt={featureImage.title}
                     fill
-                    sizes="(max-width: 768px) 100vw, 28vw"
-                    className="object-cover transition duration-700 group-hover:scale-[1.05]"
+                    sizes="(max-width: 768px) 100vw, 58vw"
+                    className="object-cover transition duration-700 group-hover:scale-[1.035]"
                   />
-                </span>
-                <span className="block p-4">
-                  <span className="font-serif text-xl text-[#3f302b]">{image.title}</span>
-                  <span className="mt-2 block text-sm leading-6 text-[#6a5d55]">{image.caption}</span>
-                </span>
-              </button>
-            ))}
-          </div>
+                  <span className="absolute inset-0 bg-gradient-to-t from-[#3f302b]/44 via-transparent to-transparent" />
+                  <span className="absolute bottom-0 left-0 right-0 p-5 text-[#fff8f4]">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] opacity-85">Feature image</span>
+                    <span className="mt-2 block font-serif text-3xl leading-tight">{featureImage.title}</span>
+                    <span className="mt-2 block max-w-xl text-sm leading-6 opacity-90">{featureImage.caption}</span>
+                  </span>
+                </button>
+              )}
+
+              {supportingImages.map((image) => (
+                <button
+                  key={image.title}
+                  type="button"
+                  onClick={() => setSelectedImage({ image, category: activeLookbook.label })}
+                  className="group overflow-hidden rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7]/82 text-left shadow-[0_12px_30px_rgba(90,65,50,0.055)] transition duration-500 hover:-translate-y-1"
+                >
+                  <span className="relative block aspect-[4/3] overflow-hidden">
+                    <Image
+                      src={image.src}
+                      alt={image.title}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 28vw"
+                      className="object-cover transition duration-700 group-hover:scale-[1.05]"
+                    />
+                  </span>
+                  <span className="block p-4">
+                    <span className="font-serif text-xl text-[#3f302b]">{image.title}</span>
+                    <span className="mt-2 block text-sm leading-6 text-[#6a5d55]">{image.caption}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </PrivateSection>
 
@@ -604,21 +561,36 @@ function LookbookMoodboard() {
             >
               Close
             </button>
-            <div className="max-h-[92vh] overflow-y-auto p-6 md:p-10">
-              <p className="heading-micro mb-3">{selectedGuide.category}</p>
-              <h3 className="heading-primary">{selectedGuide.guide.title}</h3>
-              <p className="luxe-serif-detail mt-5 max-w-2xl text-[1.25rem]">{selectedGuide.guide.intro}</p>
-              <div className="mt-8 grid gap-4 sm:grid-cols-2">
-                {selectedGuide.guide.notes.map((note) => (
-                  <div key={note.title} className="rounded-2xl border border-[#eaded6] bg-white/62 p-5">
-                    <p className="heading-micro mb-2">{note.title}</p>
-                    <p className="type-card-body">{note.copy}</p>
+            <div className={`grid max-h-[92vh] overflow-y-auto ${selectedGuide.guide.poster ? "lg:grid-cols-[0.9fr_1.1fr]" : ""}`}>
+              {selectedGuide.guide.poster && (
+                <div className="border-b border-[#eaded6] bg-[#fbf3ef]/74 p-4 lg:border-b-0 lg:border-r lg:p-5">
+                  <div className="relative mx-auto aspect-[2/3] w-full max-w-[24rem] overflow-hidden rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7] shadow-[0_16px_36px_rgba(90,65,50,0.09)]">
+                    <Image
+                      src={selectedGuide.guide.poster.src}
+                      alt={selectedGuide.guide.poster.alt}
+                      fill
+                      sizes="(max-width: 1024px) 92vw, 36vw"
+                      className="object-contain"
+                    />
                   </div>
-                ))}
+                </div>
+              )}
+              <div className="p-6 md:p-10">
+                <p className="heading-micro mb-3">{selectedGuide.category}</p>
+                <h3 className="heading-primary">{selectedGuide.guide.title}</h3>
+                <p className="luxe-serif-detail mt-5 max-w-2xl text-[1.25rem]">{selectedGuide.guide.intro}</p>
+                <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                  {selectedGuide.guide.notes.map((note) => (
+                    <div key={note.title} className="rounded-2xl border border-[#eaded6] bg-white/62 p-5">
+                      <p className="heading-micro mb-2">{note.title}</p>
+                      <p className="type-card-body">{note.copy}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="type-card-body mt-8 rounded-2xl border border-[#eaded6] bg-[#fbf3ef]/74 p-5">
+                  {selectedGuide.guide.footer}
+                </p>
               </div>
-              <p className="type-card-body mt-8 rounded-2xl border border-[#eaded6] bg-[#fbf3ef]/74 p-5">
-                {selectedGuide.guide.footer}
-              </p>
             </div>
           </div>
         </div>
@@ -668,9 +640,17 @@ function LookbookMoodboard() {
 }
 
 function InnerCircleContent() {
+  useEffect(() => {
+    document.documentElement.classList.add("inner-circle-editorial-scroll");
+
+    return () => {
+      document.documentElement.classList.remove("inner-circle-editorial-scroll");
+    };
+  }, []);
+
   return (
-    <main className="min-h-screen bg-[#fbf7f2] text-[#4f4641]">
-      <section className="relative isolate overflow-hidden px-6 pb-16 pt-20 text-center md:pb-20 md:pt-28">
+    <main className="inner-circle-page min-h-screen bg-[#fbf7f2] text-[#4f4641]">
+      <section className="inner-circle-hero inner-editorial-panel relative isolate overflow-hidden px-6 pb-16 pt-20 text-center md:pb-20 md:pt-28">
         <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_20%,_rgba(185,130,120,0.13),_transparent_34%),radial-gradient(circle_at_18%_70%,_rgba(203,185,163,0.18),_transparent_30%),radial-gradient(circle_at_86%_68%,_rgba(143,154,125,0.10),_transparent_28%)]" />
         <div className="mx-auto max-w-4xl">
           <p className="heading-micro mb-5">INNER CIRCLE</p>
