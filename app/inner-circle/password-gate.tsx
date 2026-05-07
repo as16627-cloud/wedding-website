@@ -13,7 +13,6 @@ const pageAnchors = [
   { href: "#dates", label: "Dates" },
   { href: "#week", label: "Wedding week" },
   { href: "#roles", label: "Roles" },
-  { href: "#style", label: "Style" },
   { href: "#lookbooks", label: "Lookbooks" },
   { href: "#contact", label: "Contact" },
 ];
@@ -49,18 +48,11 @@ const lookbooks: LookbookCategory[] = [
   {
     id: "bridal-party",
     label: "Bridal Party",
-    brief: "Soft, romantic, garden-formal dressing in blush, champagne, sage, powder blue, nude, and dusty lavender tones.",
+    brief: "",
     weLove: "Flowing fabrics, soft silhouettes, romantic details, subtle texture, and movement.",
     avoid: "Neon colours, loud prints, overly casual fabrics, or anything that clashes with the soft garden palette.",
     comfort: "Choose pieces that move easily through garden paths, photos, hugs, dinner, and dancing.",
-    palette: [
-      { name: "Blush", hex: "#EBC8C4" },
-      { name: "Champagne", hex: "#E7D4B8" },
-      { name: "Soft sage", hex: "#B9C7AA" },
-      { name: "Powder blue", hex: "#B9CBDD" },
-      { name: "Dusty lavender", hex: "#C9B7D6" },
-      { name: "Nude", hex: "#D9BDAE" },
-    ],
+    palette: [],
     guide: {
       eyebrow: "BRIDAL PARTY MORNING GUIDE",
       title: "Getting Ready Lookbook",
@@ -120,7 +112,7 @@ const lookbooks: LookbookCategory[] = [
   },
   {
     id: "family-inner-circle",
-    label: "Family / Inner Circle",
+    label: "Family",
     brief: "Elegant, polished, and cohesive with the garden setting. Soft neutrals, pastels, and classic formal tones are all welcome.",
     weLove: "Outfits that feel timeless, comfortable, and photo-ready.",
     avoid: "Overly bright neon colours or anything too casual.",
@@ -128,7 +120,7 @@ const lookbooks: LookbookCategory[] = [
     palette: [
       { name: "Blush", hex: "#EBC8C4" },
       { name: "Rose beige", hex: "#D8B7AE" },
-      { name: "Ivory", hex: "#FFF8F4" },
+      { name: "Champagne", hex: "#E7D4B8" },
       { name: "Sage", hex: "#AEBE9E" },
       { name: "Navy", hex: "#1F2A44" },
       { name: "Charcoal", hex: "#4B4A49" },
@@ -248,19 +240,6 @@ const dayRoles = [
     title: "Transport helper",
     copy: "Helps confirm the right people are in the right cars at the right time.",
   },
-];
-
-const preferredTones = [
-  "Blush",
-  "Champagne",
-  "Soft sage",
-  "Powder blue",
-  "Dusty lavender",
-  "Nude",
-  "Beige",
-  "Navy",
-  "Charcoal",
-  "Classic black",
 ];
 
 const littleWaysToHelp = [
@@ -460,16 +439,18 @@ function LookbookMoodboard() {
           <SoftCard className="lg:sticky lg:top-6">
             <p className="heading-micro mb-3">{activeLookbook.label}</p>
             <h3 className="heading-secondary">Style brief</h3>
-            <p className="type-card-body mt-4">{activeLookbook.brief}</p>
+            {activeLookbook.brief && <p className="type-card-body mt-4">{activeLookbook.brief}</p>}
 
-            <div className="mt-6 flex flex-wrap gap-2">
-              {activeLookbook.palette.map((tone) => (
-                <span key={tone.name} className="inline-flex items-center gap-2 rounded-full border border-[#eaded6] bg-white/68 py-1.5 pl-2 pr-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#75675f]">
-                  <span className="h-4 w-4 rounded-full border border-[#e3d1c9]" style={{ backgroundColor: tone.hex }} />
-                  {tone.name}
-                </span>
-              ))}
-            </div>
+            {activeLookbook.palette.length > 0 && (
+              <div className="mt-6 flex flex-wrap gap-2">
+                {activeLookbook.palette.map((tone) => (
+                  <span key={tone.name} className="inline-flex items-center gap-2 rounded-full border border-[#eaded6] bg-white/68 py-1.5 pl-2 pr-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#75675f]">
+                    <span className="h-4 w-4 rounded-full border border-[#e3d1c9]" style={{ backgroundColor: tone.hex }} />
+                    {tone.name}
+                  </span>
+                ))}
+              </div>
+            )}
 
             <div className="mt-7 grid gap-4">
               <div>
@@ -752,33 +733,6 @@ function InnerCircleContent() {
             </SoftCard>
           ))}
         </div>
-      </PrivateSection>
-
-      <PrivateSection id="style" contentClassName="mx-auto grid max-w-5xl items-start gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <div>
-          <p className="heading-micro mb-3">DRESS AND STYLING</p>
-          <h2 className="heading-primary">Soft, polished, garden-ready</h2>
-          <div className="type-card-body mt-5 space-y-4">
-            <p>For our inner circle, we&rsquo;d love outfits to feel soft, elegant, and cohesive with the garden setting.</p>
-            <p>
-              Overall feel: polished, romantic, timeless, and comfortable enough to move through the day.
-            </p>
-            <p>
-              Please avoid anything too casual, overly bright neon tones, or anything that clashes with the soft garden palette.
-            </p>
-            <p className="text-[#8c7a72]">Specific bridal party outfit guidance will be confirmed separately.</p>
-          </div>
-        </div>
-        <SoftCard>
-          <p className="heading-micro mb-4">Preferred tones</p>
-          <div className="flex flex-wrap gap-2">
-            {preferredTones.map((tone) => (
-              <span key={tone} className="rounded-full border border-[#eaded6] bg-white/68 px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#7d6b62]">
-                {tone}
-              </span>
-            ))}
-          </div>
-        </SoftCard>
       </PrivateSection>
 
       <LookbookMoodboard />

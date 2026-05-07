@@ -37,7 +37,6 @@ type DressCodeSwatch = {
   id: string;
   label: string;
   color: string;
-  description: string;
 };
 
 type FadeInSectionProps = {
@@ -138,20 +137,20 @@ const dressCode = {
 };
 
 const dressCodePastelPalette: DressCodeSwatch[] = [
-  { id: "pastel-blush-pink", label: "Blush Pink", color: "#e8c4bf", description: "Soft, romantic, and closest to the floral blush palette." },
-  { id: "pastel-soft-sage", label: "Soft Sage", color: "#c8d0be", description: "A garden green that feels fresh without becoming too bold." },
-  { id: "pastel-dusty-lavender", label: "Dusty Lavender", color: "#cfc5d6", description: "Muted and gentle, ideal for a refined pastel formal look." },
-  { id: "pastel-powder-blue", label: "Powder Blue", color: "#c9d5e5", description: "Cooler, airy, and best kept soft rather than bright." },
-  { id: "pastel-nude", label: "Nude", color: "#e4d4c9", description: "A warm neutral that pairs beautifully with garden pastels." },
-  { id: "pastel-champagne", label: "Champagne", color: "#e8d7bd", description: "Lightly golden and elegant, without reading bridal white." },
+  { id: "pastel-blush-pink", label: "Blush Pink", color: "#e8c4bf" },
+  { id: "pastel-soft-sage", label: "Soft Sage", color: "#c8d0be" },
+  { id: "pastel-dusty-lavender", label: "Dusty Lavender", color: "#cfc5d6" },
+  { id: "pastel-powder-blue", label: "Powder Blue", color: "#c9d5e5" },
+  { id: "pastel-nude", label: "Nude", color: "#e4d4c9" },
+  { id: "pastel-champagne", label: "Champagne", color: "#e8d7bd" },
 ];
 
 const dressCodeClassicPalette: DressCodeSwatch[] = [
-  { id: "classic-navy", label: "Navy", color: "#2f3e55", description: "A polished groom-inspired accent that keeps the palette grounded." },
-  { id: "classic-charcoal", label: "Charcoal", color: "#4a4a4a", description: "A softer formal alternative to black, especially for tailoring." },
-  { id: "classic-beige", label: "Beige", color: "#d9cbbf", description: "Warm, understated, and easy to pair with blush or champagne accents." },
-  { id: "classic-black", label: "Black", color: "#1f1f1f", description: "Classic formal black is welcome when styled cleanly and elegantly." },
-  { id: "classic-champagne", label: "Champagne", color: "#e6d3b3", description: "A refined light accent for ties, pocket squares, or accessories." },
+  { id: "classic-navy", label: "Navy", color: "#2f3e55" },
+  { id: "classic-charcoal", label: "Charcoal", color: "#4a4a4a" },
+  { id: "classic-beige", label: "Beige", color: "#d9cbbf" },
+  { id: "classic-black", label: "Black", color: "#1f1f1f" },
+  { id: "classic-champagne", label: "Champagne", color: "#e6d3b3" },
 ];
 
 const swatchRowStyle: React.CSSProperties = {
@@ -216,9 +215,9 @@ const faqs = [
       "Your invitation will show the names of everyone included. If you are unsure, please message us before submitting your RSVP.",
   },
   {
-    question: "Are children invited?",
+    question: "Are children allowed?",
     answer:
-      "Children are very welcome to attend the ceremony at the Garden House. The reception at Main House will be adults only, so we kindly ask that little ones are collected or cared for after the ceremony.",
+      "To allow all guests to fully relax and enjoy the celebration, we have chosen for our wedding day to be an adults-only occasion, with the exception of our flower girl.",
   },
   {
     question: "When should I RSVP by?",
@@ -541,32 +540,17 @@ function SectionHeading({ eyebrow, title, subtitle }: SectionHeadingProps) {
   );
 }
 
-function Swatch({
-  swatch,
-  isActive = false,
-  onSelect,
-  detailId,
-}: {
-  swatch: DressCodeSwatch;
-  isActive?: boolean;
-  onSelect?: () => void;
-  detailId: string;
-}) {
+function Swatch({ swatch }: { swatch: DressCodeSwatch }) {
   return (
-    <button
-      type="button"
-      className={`swatchItem ${isActive ? "swatchItemActive" : ""}`}
+    <div
+      className="swatchItem"
       style={swatchItemStyle}
-      onClick={onSelect}
-      aria-pressed={isActive}
-      aria-controls={detailId}
-      aria-label={`Show ${swatch.label} dress code note`}
     >
       <div className="swatchCircle" style={{ ...swatchCircleStyle, backgroundColor: swatch.color }} />
       <span className="type-swatch-label swatchLabel" style={swatchLabelStyle}>
         {swatch.label}
       </span>
-    </button>
+    </div>
   );
 }
 
@@ -818,7 +802,6 @@ export default function WeddingWebsiteStarter() {
   const [isAmbientAudioOn, setIsAmbientAudioOn] = useState(false);
   const [isAudioToggleVisible, setIsAudioToggleVisible] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
-  const [selectedSwatchId, setSelectedSwatchId] = useState(dressCodePastelPalette[0].id);
   const [hasCopiedVenueAddress, setHasCopiedVenueAddress] = useState(false);
 
   const fadeAmbientAudio = useCallback((targetVolume: number, pauseWhenDone = false) => {
@@ -1207,10 +1190,6 @@ export default function WeddingWebsiteStarter() {
       heroRevealTiming.dividerDuration,
     ),
   };
-  const selectedDressSwatch =
-    [...dressCodePastelPalette, ...dressCodeClassicPalette].find((swatch) => swatch.id === selectedSwatchId) ??
-    dressCodePastelPalette[0];
-  const selectedSwatchDetailId = "selected-swatch-detail";
   const dressRevealMotion = (delay = 0, y = 16) => ({
     initial: shouldReduceMotion ? false : { opacity: 0, y },
     whileInView: { opacity: 1, y: 0 },
@@ -1570,7 +1549,7 @@ export default function WeddingWebsiteStarter() {
 
         <motion.article
           {...dressRevealMotion(0.04, 10)}
-          className="mt-20 pb-2"
+          className="mt-16 pb-2"
         >
           <div className="mx-auto max-w-3xl text-center">
             <h3 className="heading-secondary">Pastel Formal</h3>
@@ -1585,9 +1564,6 @@ export default function WeddingWebsiteStarter() {
                 <Swatch
                   key={swatch.id}
                   swatch={swatch}
-                  isActive={selectedSwatchId === swatch.id}
-                  detailId={selectedSwatchDetailId}
-                  onSelect={() => setSelectedSwatchId(swatch.id)}
                 />
               ))}
             </div>
@@ -1595,7 +1571,7 @@ export default function WeddingWebsiteStarter() {
 
         </motion.article>
 
-        <motion.div {...dressRevealMotion(0.04, 8)} className="mx-auto mt-12 flex w-full max-w-[86px] items-center justify-center gap-2">
+        <motion.div {...dressRevealMotion(0.04, 8)} className="mx-auto mt-10 flex w-full max-w-[86px] items-center justify-center gap-2">
           <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
           <span className="h-1 w-1 rotate-45 bg-[var(--color-divider)] opacity-90" />
           <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
@@ -1615,48 +1591,23 @@ export default function WeddingWebsiteStarter() {
                 <Swatch
                   key={swatch.id}
                   swatch={swatch}
-                  isActive={selectedSwatchId === swatch.id}
-                  detailId={selectedSwatchDetailId}
-                  onSelect={() => setSelectedSwatchId(swatch.id)}
                 />
               ))}
             </div>
-            <p className="type-meta mt-5">
-              Structured tones to ground the palette
-            </p>
           </div>
 
         </motion.article>
 
-        <motion.div
-          {...dressRevealMotion(0.06, 8)}
-          id={selectedSwatchDetailId}
-          aria-live="polite"
-          className="swatch-detail-card card-luxe card-luxe-text mx-auto mt-10 max-w-xl text-center"
+        <motion.p
+          {...dressRevealMotion(0.06, 6)}
+          className="dress-palette-guidance luxe-serif-detail mx-auto mt-8 max-w-[34ch] text-center"
         >
-          <motion.div
-            key={selectedDressSwatch.id}
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 6, filter: "blur(2px)" }}
-            animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: shouldReduceMotion ? 0 : 0.34, ease: gateOpenEase }}
-            className="swatch-detail-content"
-          >
-            <p className="type-swatch-label swatch-detail-kicker">Selected shade</p>
-            <div className="swatch-detail-heading">
-              <span
-                className="swatch-detail-dot"
-                style={{ backgroundColor: selectedDressSwatch.color }}
-                aria-hidden="true"
-              />
-              <p className="swatch-detail-name">{selectedDressSwatch.label}</p>
-            </div>
-            <p className="type-card-body mx-auto mt-3 max-w-[30ch]">{selectedDressSwatch.description}</p>
-          </motion.div>
-        </motion.div>
+          Soft romantic neutrals inspired by the floral palette.
+        </motion.p>
 
         <motion.div
           {...dressRevealMotion(0.08, 8)}
-          className="mobile-editorial-callout mx-auto mt-12 max-w-2xl text-center"
+          className="mobile-editorial-callout mx-auto mt-10 max-w-2xl text-center"
         >
           <h3 className="type-card-title">A small note</h3>
           <p className="type-card-body mx-auto mt-3 max-w-[600px]">
