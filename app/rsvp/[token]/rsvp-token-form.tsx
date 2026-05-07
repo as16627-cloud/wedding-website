@@ -255,7 +255,7 @@ export default function TokenRsvpForm({ token }: { token: string }) {
   }
 
   return (
-    <main className="min-h-screen bg-[#fbf7f2] px-5 py-10 text-[#4f4641] md:px-8 md:py-14">
+    <main className="guest-rsvp-page min-h-screen bg-[#fbf7f2] px-5 py-10 text-[#4f4641] md:px-8 md:py-14">
       <section className="mx-auto max-w-4xl">
         <div className="mb-9 text-center">
           <Link href="/" className="type-nav text-[var(--color-muted-taupe)]">
@@ -267,7 +267,7 @@ export default function TokenRsvpForm({ token }: { token: string }) {
           </p>
         </div>
 
-        <div className="rounded-[2.25rem] border border-[#eaded6] bg-[#fffaf7]/86 p-6 shadow-[0_22px_60px_rgba(90,65,50,0.08)] md:p-9">
+        <div className="guest-rsvp-card rounded-[2.25rem] border border-[#eaded6] bg-[#fffaf7]/86 p-6 shadow-[0_22px_60px_rgba(90,65,50,0.08)] md:p-9">
           {status === "loading" && (
             <div className="flex min-h-[320px] flex-col items-center justify-center text-center">
               <Loader2 aria-hidden="true" className="h-7 w-7 animate-spin text-[#b98278]" />

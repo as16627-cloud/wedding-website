@@ -327,7 +327,7 @@ function SectionHeading({
 function SoftCard({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={`rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7]/82 p-6 text-[#4f4641] shadow-[0_14px_38px_rgba(90,65,50,0.055)] backdrop-blur ${className}`}
+      className={`inner-soft-card rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7]/82 p-6 text-[#4f4641] shadow-[0_14px_38px_rgba(90,65,50,0.055)] backdrop-blur ${className}`}
     >
       {children}
     </div>
@@ -349,7 +349,7 @@ function LookbookGuideCard({
     <button
       type="button"
       onClick={onOpen}
-      className="group relative overflow-hidden rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7] p-6 text-left shadow-[0_18px_40px_rgba(90,65,50,0.075)] transition duration-500 hover:-translate-y-1 sm:col-span-2"
+      className="inner-lookbook-guide-card group relative overflow-hidden rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7] p-6 text-left shadow-[0_18px_40px_rgba(90,65,50,0.075)] transition duration-500 hover:-translate-y-1 sm:col-span-2"
     >
       <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_16%,rgba(235,200,196,0.42),transparent_28%),radial-gradient(circle_at_86%_10%,rgba(255,248,244,0.9),transparent_32%),linear-gradient(135deg,rgba(255,250,247,0.92),rgba(248,239,233,0.68))]" />
       <span className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full border border-[#e7cbc3]/70 bg-[#f4e3de]/42 blur-[1px] transition duration-700 group-hover:scale-105" />
@@ -418,13 +418,13 @@ function LookbookMoodboard() {
           copy="A little visual guide for the people standing closest to us. These are here to help everyone understand the overall mood, colours, and level of formality - not to make anyone feel boxed in."
         />
 
-        <div className="mx-auto mb-8 flex max-w-4xl flex-wrap justify-center gap-2 rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/78 p-2 shadow-[0_12px_34px_rgba(90,65,50,0.045)]">
+        <div className="inner-lookbook-tabs mx-auto mb-8 flex max-w-4xl flex-wrap justify-center gap-2 rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/78 p-2 shadow-[0_12px_34px_rgba(90,65,50,0.045)]">
           {lookbooks.map((lookbook) => (
             <button
               key={lookbook.id}
               type="button"
               onClick={() => setActiveLookbookId(lookbook.id)}
-              className={`min-h-10 rounded-full px-4 text-[11px] font-semibold uppercase tracking-[0.12em] transition ${
+              className={`inner-lookbook-tab min-h-10 rounded-full px-4 text-[11px] font-semibold uppercase tracking-[0.12em] transition ${
                 activeLookbook.id === lookbook.id
                   ? "bg-[var(--color-navy)] text-[var(--color-cta-text)] shadow-[0_10px_24px_rgba(31,42,68,0.16)]"
                   : "text-[#7d6b62] hover:bg-white/78 hover:text-[#8f6a63]"
@@ -481,7 +481,7 @@ function LookbookMoodboard() {
                 <button
                   type="button"
                   onClick={() => setSelectedImage({ image: featureImage, category: activeLookbook.label })}
-                  className="group relative min-h-[28rem] overflow-hidden rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7] text-left shadow-[0_18px_40px_rgba(90,65,50,0.08)] transition duration-500 hover:-translate-y-1 sm:col-span-2"
+                  className="inner-lookbook-media-card group relative min-h-[28rem] overflow-hidden rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7] text-left shadow-[0_18px_40px_rgba(90,65,50,0.08)] transition duration-500 hover:-translate-y-1 sm:col-span-2"
                 >
                   <Image
                     src={featureImage.src}
@@ -504,7 +504,7 @@ function LookbookMoodboard() {
                   key={image.title}
                   type="button"
                   onClick={() => setSelectedImage({ image, category: activeLookbook.label })}
-                  className="group overflow-hidden rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7]/82 text-left shadow-[0_12px_30px_rgba(90,65,50,0.055)] transition duration-500 hover:-translate-y-1"
+                  className="inner-lookbook-support-card group overflow-hidden rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7]/82 text-left shadow-[0_12px_30px_rgba(90,65,50,0.055)] transition duration-500 hover:-translate-y-1"
                 >
                   <span className="relative block aspect-[4/3] overflow-hidden">
                     <Image
@@ -534,18 +534,18 @@ function LookbookMoodboard() {
             className="absolute inset-0 cursor-default"
             onClick={() => setSelectedGuide(null)}
           />
-          <div className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-[2rem] border border-[#eaded6] bg-[#fffaf7] shadow-[0_28px_80px_rgba(40,30,26,0.3)]">
+          <div className="inner-lookbook-modal relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-[2rem] border border-[#eaded6] bg-[#fffaf7] shadow-[0_28px_80px_rgba(40,30,26,0.3)]">
             <button
               type="button"
               onClick={() => setSelectedGuide(null)}
-              className="absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[#d8bd96]"
+              className="inner-lookbook-close absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[#d8bd96]"
             >
               Close
             </button>
             <div className={`grid max-h-[92vh] overflow-y-auto ${selectedGuide.guide.poster ? "lg:grid-cols-[0.9fr_1.1fr]" : ""}`}>
               {selectedGuide.guide.poster && (
                 <div className="border-b border-[#eaded6] bg-[#fbf3ef]/74 p-4 lg:border-b-0 lg:border-r lg:p-5">
-                  <div className="relative mx-auto aspect-[2/3] w-full max-w-[24rem] overflow-hidden rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7] shadow-[0_16px_36px_rgba(90,65,50,0.09)]">
+                  <div className="inner-lookbook-modal-media relative mx-auto aspect-[2/3] w-full max-w-[24rem] overflow-hidden rounded-[1.35rem] border border-[#eaded6] bg-[#fffaf7] shadow-[0_16px_36px_rgba(90,65,50,0.09)]">
                     <Image
                       src={selectedGuide.guide.poster.src}
                       alt={selectedGuide.guide.poster.alt}
@@ -562,13 +562,13 @@ function LookbookMoodboard() {
                 <p className="luxe-serif-detail mt-5 max-w-2xl text-[1.25rem]">{selectedGuide.guide.intro}</p>
                 <div className="mt-8 grid gap-4 sm:grid-cols-2">
                   {selectedGuide.guide.notes.map((note) => (
-                    <div key={note.title} className="rounded-2xl border border-[#eaded6] bg-white/62 p-5">
+                    <div key={note.title} className="inner-lookbook-note-card rounded-2xl border border-[#eaded6] bg-white/62 p-5">
                       <p className="heading-micro mb-2">{note.title}</p>
                       <p className="type-card-body">{note.copy}</p>
                     </div>
                   ))}
                 </div>
-                <p className="type-card-body mt-8 rounded-2xl border border-[#eaded6] bg-[#fbf3ef]/74 p-5">
+                <p className="inner-lookbook-note-card type-card-body mt-8 rounded-2xl border border-[#eaded6] bg-[#fbf3ef]/74 p-5">
                   {selectedGuide.guide.footer}
                 </p>
               </div>
@@ -585,11 +585,11 @@ function LookbookMoodboard() {
             className="absolute inset-0 cursor-default"
             onClick={() => setSelectedImage(null)}
           />
-          <div className="relative max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-[2rem] border border-[#eaded6] bg-[#fffaf7] shadow-[0_28px_80px_rgba(40,30,26,0.3)]">
+          <div className="inner-lookbook-modal relative max-h-[92vh] w-full max-w-5xl overflow-hidden rounded-[2rem] border border-[#eaded6] bg-[#fffaf7] shadow-[0_28px_80px_rgba(40,30,26,0.3)]">
             <button
               type="button"
               onClick={() => setSelectedImage(null)}
-              className="absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[#d8bd96]"
+              className="inner-lookbook-close absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[#d8bd96]"
             >
               Close
             </button>
