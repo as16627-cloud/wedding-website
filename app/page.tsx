@@ -53,8 +53,12 @@ type SoftSectionProps = {
   panelLabel?: string;
 };
 
+const googleCalendarDetails = encodeURIComponent(
+  "We can’t wait to celebrate with you.\nPlease arrive from 3:00 PM for a 4:00 PM ceremony in the Garden House, followed by dinner and dancing in the Main House.",
+);
+
 const googleCalendarUrl =
-  "https://calendar.google.com/calendar/render?action=TEMPLATE&text=Sumaya%20%26%20Aditya%E2%80%99s%20Wedding&dates=20261101T160000/20261101T230000&ctz=Australia%2FPerth&location=Caversham%20House%2C%20141%20Caversham%20Avenue%2C%20Caversham%20WA%206055%2C%20Australia&details=We%20can%E2%80%99t%20wait%20to%20celebrate%20with%20you.%20Ceremony%20begins%20at%204%3A00%20PM%20at%20Garden%20House%2C%20followed%20by%20reception%20at%20Main%20House";
+  `https://calendar.google.com/calendar/render?action=TEMPLATE&text=Sumaya%20%26%20Aditya%E2%80%99s%20Wedding&dates=20261101T160000/20261101T230000&ctz=Australia%2FPerth&location=Caversham%20House%2C%20141%20Caversham%20Avenue%2C%20Caversham%20WA%206055%2C%20Australia&details=${googleCalendarDetails}`;
 
 const googleDirectionsUrl =
   "https://www.google.com/maps/dir/?api=1&destination=Caversham%20House%2C%20141%20Caversham%20Avenue%2C%20Caversham%20WA%206055%2C%20Australia";
@@ -72,7 +76,7 @@ const venueManualPauseDelay = 6000;
 const venueSwipeThreshold = 40;
 const gateOpenEase = [0.16, 1, 0.3, 1] as const;
 const invitationRevealEase = [0.22, 1, 0.36, 1] as const;
-const ambientAudioSrc = "/audio/romantic-garden-instrumental.mp3";
+const ambientAudioSrc = "/audio/until-i-found-you-violin-piano-wedding-version.mp3";
 const ambientAudioTargetVolume = 0.22;
 const ambientAudioFadeDuration = 1800;
 
