@@ -26,6 +26,13 @@ type LookbookCategory = {
   avoid: string;
   comfort: string;
   palette: Array<{ name: string; hex: string }>;
+  guide?: {
+    eyebrow: string;
+    title: string;
+    intro: string;
+    notes: Array<{ title: string; copy: string }>;
+    footer: string;
+  };
   images: Array<{
     src: string;
     title: string;
@@ -50,6 +57,20 @@ const lookbooks: LookbookCategory[] = [
       { name: "Dusty lavender", hex: "#C9B7D6" },
       { name: "Nude", hex: "#D9BDAE" },
     ],
+    guide: {
+      eyebrow: "BRIDAL PARTY MORNING GUIDE",
+      title: "Getting Ready Lookbook",
+      intro: "A soft reference for robes, jewellery, hair, makeup, nails, footwear, and morning-prep details.",
+      notes: [
+        { title: "Robes", copy: "Wear your robe on arrival so the morning photos feel cohesive and relaxed." },
+        { title: "Jewellery", copy: "Please wear your gifted necklace on the day. For earrings, bracelets, and rings, choose pieces that complement the soft romantic aesthetic." },
+        { title: "Hair", copy: "Come with clean, dry hair unless the hair team confirms otherwise." },
+        { title: "Makeup", copy: "Makeup before getting-ready photos so the morning gallery feels polished." },
+        { title: "Nails", copy: "Soft neutral, blush, or French tones are preferred." },
+        { title: "Footwear", copy: "Nude or neutral slippers or sandals will keep the morning look soft and photo-ready." },
+      ],
+      footer: "Final bridal party details will be confirmed separately. This guide is for visual direction and calm morning flow.",
+    },
     images: [
       {
         src: "/images/dress-code/pastel-formal-main.jpg",
@@ -86,6 +107,22 @@ const lookbooks: LookbookCategory[] = [
       { name: "Champagne", hex: "#E7D4B8" },
       { name: "Blush accent", hex: "#C08A7A" },
     ],
+    guide: {
+      eyebrow: "GROOM PARTY MORNING GUIDE",
+      title: "Getting Ready Lookbook",
+      intro: "A polished reference for attire, florals, accessories, grooming, footwear, and relaxed morning photos.",
+      notes: [
+        { title: "Arrive dressed", copy: "Please arrive fully dressed and photo-ready. Relaxed getting-ready photos will begin shortly after arrival, so everything should already be on." },
+        { title: "Colour direction", copy: "The groom party will be in navy tones with blush accents. Please make sure your outfit aligns with this for a cohesive look." },
+        { title: "Grooms lady look", copy: "Please come dressed in your coordinated outfit for the day. Keep styling soft and complementary to the navy and blush palette. Corsage will be provided." },
+        { title: "Florals", copy: "Florals will be provided on the day. The groom and groomsman will wear boutonnieres, and the groomslady will wear a corsage. These will be handed out just before the ceremony." },
+        { title: "Accessories", copy: "Watches and personal accessories are welcome. Keep them clean, minimal, and in line with the overall look." },
+        { title: "Grooming", copy: "Please arrive groomed and ready. Hair should be styled or close to final." },
+        { title: "Footwear", copy: "Black or dark brown formal shoes, clean and polished." },
+        { title: "Photo note", copy: "Getting-ready photos will focus on relaxed moments. No outfit changes are required." },
+      ],
+      footer: "Just show up ready. We will take care of the rest.",
+    },
     images: [
       {
         src: "/images/dress-code/classic-formal-navy.jpg",
@@ -128,6 +165,26 @@ const lookbooks: LookbookCategory[] = [
       { name: "Navy", hex: "#1F2A44" },
       { name: "Charcoal", hex: "#4B4A49" },
     ],
+    guide: {
+      eyebrow: "GROOM FAMILY MORNING GUIDE",
+      title: "Getting Ready Lookbook",
+      intro: "A gentle family styling guide for coordinated tones, sarees, suit details, florals, jewellery, and relaxed photo moments.",
+      notes: [
+        { title: "Groom's mom attire", copy: "Please wear a saree in tones that complement the day. Blush, champagne, soft neutrals, or muted pastels are perfect." },
+        { title: "Groom's mom styling", copy: "Elegant and timeless draping styles that feel comfortable and refined." },
+        { title: "Groom's mom florals", copy: "A corsage will be provided on the day and added just before the ceremony." },
+        { title: "Groom's mom jewellery", copy: "Gold, pearl, or soft-toned jewellery works beautifully." },
+        { title: "Groom's sister attire", copy: "Please wear a saree that complements the overall palette. Soft blush, champagne, or neutral tones are ideal." },
+        { title: "Groom's sister hair", copy: "Soft waves, a low bun, or a romantic styled look will suit the overall aesthetic." },
+        { title: "Groom's sister makeup", copy: "Keep makeup soft and polished to match the overall aesthetic." },
+        { title: "Groom's dad attire", copy: "A suit in navy or classic dark tones, aligned with the groom party." },
+        { title: "Groom's dad florals", copy: "A boutonniere will be provided and placed just before the ceremony." },
+        { title: "Groom's dad details", copy: "Tie or pocket square can incorporate blush or soft neutral accents." },
+        { title: "Groom's dad footwear", copy: "Formal shoes, clean and polished." },
+        { title: "Photo note", copy: "We will capture a few relaxed family moments during the morning and after the ceremony." },
+      ],
+      footer: "Dress in coordinated tones, be ready for photos when needed, keep it relaxed and comfortable, and enjoy the day together.",
+    },
     images: [
       {
         src: "/images/dress-code/pastel-formal-main.jpg",
@@ -361,13 +418,63 @@ function SoftCard({ children, className = "" }: { children: ReactNode; className
   );
 }
 
+function LookbookGuideCard({
+  guide,
+  onOpen,
+}: {
+  guide: NonNullable<LookbookCategory["guide"]>;
+  onOpen: () => void;
+}) {
+  const previewNotes = guide.notes.slice(0, 6);
+  const hiddenNoteCount = guide.notes.length - previewNotes.length;
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className="group relative overflow-hidden rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7] p-6 text-left shadow-[0_18px_40px_rgba(90,65,50,0.075)] transition duration-500 hover:-translate-y-1 sm:col-span-2"
+    >
+      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_16%,rgba(235,200,196,0.42),transparent_28%),radial-gradient(circle_at_86%_10%,rgba(255,248,244,0.9),transparent_32%),linear-gradient(135deg,rgba(255,250,247,0.92),rgba(248,239,233,0.68))]" />
+      <span className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full border border-[#e7cbc3]/70 bg-[#f4e3de]/42 blur-[1px] transition duration-700 group-hover:scale-105" />
+      <span className="pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 rounded-full border border-[#eaded6]/80 bg-[#fff2ec]/62" />
+      <span className="relative block">
+        <span className="heading-micro block">{guide.eyebrow}</span>
+        <span className="mt-3 block font-serif text-[2.35rem] leading-none text-[#8f6a63] md:text-[3rem]">
+          {guide.title}
+        </span>
+        <span className="mt-4 block max-w-2xl text-sm leading-6 text-[#6a5d55] md:text-base">
+          {guide.intro}
+        </span>
+
+        <span className="mt-6 grid gap-3 sm:grid-cols-2">
+          {previewNotes.map((note) => (
+            <span key={note.title} className="rounded-2xl border border-[#eaded6]/78 bg-white/58 p-4">
+              <span className="heading-micro block text-[9px]">{note.title}</span>
+              <span className="mt-2 block text-sm leading-6 text-[#6a5d55]">{note.copy}</span>
+            </span>
+          ))}
+        </span>
+
+        <span className="mt-6 inline-flex rounded-full border border-[#dccbc3] bg-white/58 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8f6a63] transition group-hover:border-[#c9aaa0]">
+          Open full guide{hiddenNoteCount > 0 ? ` + ${hiddenNoteCount} more` : ""}
+        </span>
+      </span>
+    </button>
+  );
+}
+
 function LookbookMoodboard() {
   const [activeLookbookId, setActiveLookbookId] = useState(lookbooks[0].id);
   const [selectedImage, setSelectedImage] = useState<{
     image: LookbookCategory["images"][number];
     category: string;
   } | null>(null);
+  const [selectedGuide, setSelectedGuide] = useState<{
+    guide: NonNullable<LookbookCategory["guide"]>;
+    category: string;
+  } | null>(null);
   const activeLookbook = lookbooks.find((lookbook) => lookbook.id === activeLookbookId) ?? lookbooks[0];
+  const activeGuide = activeLookbook.guide;
   const [featureImage, ...supportingImages] = activeLookbook.images;
 
   return (
@@ -428,6 +535,13 @@ function LookbookMoodboard() {
           </SoftCard>
 
           <div className="grid gap-4 sm:grid-cols-2">
+            {activeGuide && (
+              <LookbookGuideCard
+                guide={activeGuide}
+                onOpen={() => setSelectedGuide({ guide: activeGuide, category: activeLookbook.label })}
+              />
+            )}
+
             <button
               type="button"
               onClick={() => setSelectedImage({ image: featureImage, category: activeLookbook.label })}
@@ -473,6 +587,42 @@ function LookbookMoodboard() {
           </div>
         </div>
       </PrivateSection>
+
+      {selectedGuide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#3f302b]/64 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={`${selectedGuide.guide.title} guide`}>
+          <button
+            type="button"
+            aria-label="Close lookbook guide"
+            className="absolute inset-0 cursor-default"
+            onClick={() => setSelectedGuide(null)}
+          />
+          <div className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-[2rem] border border-[#eaded6] bg-[#fffaf7] shadow-[0_28px_80px_rgba(40,30,26,0.3)]">
+            <button
+              type="button"
+              onClick={() => setSelectedGuide(null)}
+              className="absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[#d8bd96]"
+            >
+              Close
+            </button>
+            <div className="max-h-[92vh] overflow-y-auto p-6 md:p-10">
+              <p className="heading-micro mb-3">{selectedGuide.category}</p>
+              <h3 className="heading-primary">{selectedGuide.guide.title}</h3>
+              <p className="luxe-serif-detail mt-5 max-w-2xl text-[1.25rem]">{selectedGuide.guide.intro}</p>
+              <div className="mt-8 grid gap-4 sm:grid-cols-2">
+                {selectedGuide.guide.notes.map((note) => (
+                  <div key={note.title} className="rounded-2xl border border-[#eaded6] bg-white/62 p-5">
+                    <p className="heading-micro mb-2">{note.title}</p>
+                    <p className="type-card-body">{note.copy}</p>
+                  </div>
+                ))}
+              </div>
+              <p className="type-card-body mt-8 rounded-2xl border border-[#eaded6] bg-[#fbf3ef]/74 p-5">
+                {selectedGuide.guide.footer}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedImage && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#3f302b]/64 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={`${selectedImage.image.title} lookbook image`}>
