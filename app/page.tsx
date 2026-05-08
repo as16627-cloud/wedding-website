@@ -178,7 +178,6 @@ const swatchCircleStyle: React.CSSProperties = {
   flexShrink: 0,
   opacity: 1,
   visibility: "visible",
-  boxShadow: "0 12px 30px rgba(101,75,62,0.045)",
 };
 
 const swatchLabelStyle: React.CSSProperties = {
@@ -1531,8 +1530,8 @@ export default function WeddingWebsiteStarter() {
             A garden ceremony, an intimate dinner, and an evening to remember
           </motion.h2>
           <motion.p className="heading-copy mt-4" {...cinematicRevealMotion(0.3, 14, 0.92, 0.44)}>
-            Our day has been designed to feel romantic, relaxed, and full of warmth — with garden moments, beautiful
-            food, music, and time to celebrate with the people we love most.
+            Our day has been designed to feel romantic, relaxed, and full of warmth &mdash; with beautiful food, music,
+            and an evening shared together at Caversham House.
           </motion.p>
         </div>
         <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
