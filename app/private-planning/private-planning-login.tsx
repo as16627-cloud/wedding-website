@@ -46,14 +46,14 @@ export default function PrivatePlanningLogin() {
   }
 
   return (
-    <main className="min-h-screen bg-[#fbf7f2] px-6 py-16 text-[#4f4641]">
-      <section className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl flex-col items-center justify-center text-center">
+    <main className="private-planning-page min-h-screen bg-[#fbf7f2] px-6 py-16 text-[#4f4641]">
+      <section className="mx-auto flex min-h-[calc(100svh-8rem)] max-w-xl flex-col items-center justify-center text-center">
         <div className="mb-6 flex h-12 w-12 items-center justify-center rounded-full border border-[#eaded6] bg-[#fffaf7] shadow-[0_12px_30px_rgba(90,65,50,0.06)]">
           <LockKeyhole className="h-5 w-5 text-[#b98278]" />
         </div>
         <p className="heading-micro mb-5">Private Planning</p>
         <h1 className="heading-primary">Sumaya &amp; Adi</h1>
-        <p className="mt-6 text-base leading-8 text-[#6a5d55]">
+        <p className="heading-copy mx-auto mt-6 max-w-md">
           A private planning space for vendors, timelines, and upcoming wedding decisions.
         </p>
 
@@ -74,7 +74,7 @@ export default function PrivatePlanningLogin() {
               className="w-full rounded-2xl border border-[#eaded6] bg-white/70 px-4 py-3 text-sm text-[#4f4641] outline-none transition focus:border-[#c79a94] focus:ring-2 focus:ring-[#eaded6]"
             />
           </label>
-          {error && <p className="mt-4 text-left text-sm leading-6 text-[#9b6f68]">{error}</p>}
+          {error && <p className="type-helper mt-4 text-left text-[#9b6f68]">{error}</p>}
           <button
             type="submit"
             disabled={isSubmitting}

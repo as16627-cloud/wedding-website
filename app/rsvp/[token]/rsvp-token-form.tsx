@@ -429,7 +429,7 @@ export default function TokenRsvpForm({ token }: { token: string }) {
               />
 
               {message && (
-                <div className="rounded-2xl border border-[#e6c8c2] bg-[#fff4f2] px-5 py-4 text-sm leading-6 text-[#8b5f58]">
+                <div className="type-card-body rounded-2xl border border-[#e6c8c2] bg-[#fff4f2] px-5 py-4 text-[#8b5f58]">
                   {message}
                 </div>
               )}

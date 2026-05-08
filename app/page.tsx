@@ -178,7 +178,7 @@ const swatchCircleStyle: React.CSSProperties = {
   flexShrink: 0,
   opacity: 1,
   visibility: "visible",
-  boxShadow: "0 10px 28px rgba(90,65,50,0.08)",
+  boxShadow: "0 12px 30px rgba(101,75,62,0.045)",
 };
 
 const swatchLabelStyle: React.CSSProperties = {
@@ -507,7 +507,7 @@ function SoftSection({
       <SectionProgressCue step={panelStep} label={panelLabel} />
       <div className="mobile-section-fade mobile-section-fade-top pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
       <div className="mobile-section-fade mobile-section-fade-bottom pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,_rgba(232,174,168,0.13),_transparent_32%),radial-gradient(circle_at_82%_76%,_rgba(218,192,138,0.12),_transparent_34%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,_rgba(232,174,168,0.11),_transparent_32%),radial-gradient(circle_at_82%_76%,_rgba(232,207,200,0.12),_transparent_34%)]" />
       <div className={`relative ${contentClassName}`}>{children}</div>
     </section>
   );
@@ -1019,11 +1019,11 @@ export default function WeddingWebsiteStarter() {
 
       gateTimer = window.setTimeout(() => {
         setIsMobileGateOpened(true);
-      }, 180);
+      }, 260);
 
       copyTimer = window.setTimeout(() => {
         setIsMobileHeroCopyVisible(true);
-      }, 980);
+      }, 1280);
     });
 
     return () => {
@@ -1082,13 +1082,13 @@ export default function WeddingWebsiteStarter() {
   const mobileScrollProgress = shouldReduceMotion || !isHeroMobile ? 0 : visualScrollProgress;
   const mobileGateRevealProgress = isHeroMobile && !shouldReduceMotion ? (isMobileGateOpened ? 1 : 0) : 1;
   const gateOpacity = isHeroMobile
-    ? 0.86 - 0.14 * mobileGateRevealProgress - 0.06 * mobileScrollProgress
-    : 0.84 * (1 - heavyScrollProgress);
-  const gateScale = isHeroMobile ? 0.99 - 0.09 * mobileGateRevealProgress : 1.08;
-  const leftGateOffset = isHeroMobile ? 160 * (1 - mobileGateRevealProgress) : -40 * 0.8 * heavyScrollProgress;
-  const rightGateOffset = isHeroMobile ? -160 * (1 - mobileGateRevealProgress) : 40 * 0.8 * heavyScrollProgress;
-  const leftGateRotateY = isHeroMobile ? -5 - 16 * mobileGateRevealProgress : -18;
-  const rightGateRotateY = isHeroMobile ? 5 + 16 * mobileGateRevealProgress : 18;
+    ? 0.9 - 0.13 * mobileGateRevealProgress - 0.06 * mobileScrollProgress
+    : 0.86 * (1 - heavyScrollProgress);
+  const gateScale = isHeroMobile ? 1.005 - 0.095 * mobileGateRevealProgress : 1.08;
+  const leftGateOffset = isHeroMobile ? 176 * (1 - mobileGateRevealProgress) : -40 * 0.8 * heavyScrollProgress;
+  const rightGateOffset = isHeroMobile ? -176 * (1 - mobileGateRevealProgress) : 40 * 0.8 * heavyScrollProgress;
+  const leftGateRotateY = isHeroMobile ? -3 - 13 * mobileGateRevealProgress : -18;
+  const rightGateRotateY = isHeroMobile ? 3 + 13 * mobileGateRevealProgress : 18;
   const houseFadeProgress = isHeroMobile ? mobileScrollProgress * 0.14 : heavyScrollProgress;
   const houseTranslateY = isHeroMobile ? 0 : -20 * 0.6 * heavyScrollProgress;
   const backgroundWashOpacity = isHeroMobile ? mobileScrollProgress * 0.35 : visualScrollProgress;
@@ -1098,25 +1098,25 @@ export default function WeddingWebsiteStarter() {
   const leftGateInitial = shouldReduceMotion
     ? false
     : isHeroMobile
-      ? { opacity: 0.86, x: 160, rotateY: -5, scale: 0.99 }
-      : { opacity: 0.58, x: 26, rotateY: -60, scale: gateScale };
+      ? { opacity: 0.9, x: 176, rotateY: -3, scale: 1.005 }
+      : { opacity: 0.7, x: 18, rotateY: -34, scale: gateScale };
   const rightGateInitial = shouldReduceMotion
     ? false
     : isHeroMobile
-      ? { opacity: 0.86, x: -160, rotateY: 5, scale: 0.99 }
-      : { opacity: 0.58, x: -26, rotateY: 60, scale: gateScale };
+      ? { opacity: 0.9, x: -176, rotateY: 3, scale: 1.005 }
+      : { opacity: 0.7, x: -18, rotateY: 34, scale: gateScale };
   const gateMotionTransition: Transition = isHeroMobile
     ? {
-        opacity: { duration: shouldReduceMotion ? 0 : 1.2, delay: shouldReduceMotion ? 0 : 0.18, ease: gateOpenEase },
-        x: { duration: shouldReduceMotion ? 0 : 2.05, delay: shouldReduceMotion ? 0 : 0.12, ease: gateOpenEase },
-        rotateY: { duration: shouldReduceMotion ? 0 : 2.05, delay: shouldReduceMotion ? 0 : 0.12, ease: gateOpenEase },
-        scale: { duration: shouldReduceMotion ? 0 : 2.05, delay: shouldReduceMotion ? 0 : 0.12, ease: gateOpenEase },
+        opacity: { duration: shouldReduceMotion ? 0 : 1.75, delay: shouldReduceMotion ? 0 : 0.2, ease: gateOpenEase },
+        x: { duration: shouldReduceMotion ? 0 : 2.65, delay: shouldReduceMotion ? 0 : 0.18, ease: gateOpenEase },
+        rotateY: { duration: shouldReduceMotion ? 0 : 2.65, delay: shouldReduceMotion ? 0 : 0.18, ease: gateOpenEase },
+        scale: { duration: shouldReduceMotion ? 0 : 2.65, delay: shouldReduceMotion ? 0 : 0.18, ease: gateOpenEase },
       }
     : {
-        opacity: { duration: 0.4, ease: gateOpenEase },
-        x: { duration: 0.4, ease: gateOpenEase },
-        rotateY: { duration: shouldReduceMotion ? 0 : 1.6, delay: shouldReduceMotion ? 0 : 0.2, ease: gateOpenEase },
-        scale: { duration: 0.4, ease: gateOpenEase },
+        opacity: { duration: shouldReduceMotion ? 0 : 1.2, ease: gateOpenEase },
+        x: { duration: shouldReduceMotion ? 0 : 1.6, ease: gateOpenEase },
+        rotateY: { duration: shouldReduceMotion ? 0 : 2.1, delay: shouldReduceMotion ? 0 : 0.12, ease: gateOpenEase },
+        scale: { duration: shouldReduceMotion ? 0 : 1.4, ease: gateOpenEase },
       };
   const audioToggleRevealClass = isAudioToggleVisible
     ? "translate-y-0 opacity-70 sm:opacity-100"
@@ -1127,8 +1127,8 @@ export default function WeddingWebsiteStarter() {
   const heroRevealTiming = isHeroMobile
     ? {
         textDuration: 1.08,
-        namesDuration: 1.12,
-        dividerDuration: 1.05,
+        namesDuration: 1.2,
+        dividerDuration: 1.12,
         ctaDuration: 1.08,
         textY: 0,
         namesY: 0,
@@ -1136,12 +1136,12 @@ export default function WeddingWebsiteStarter() {
         blur: 1.5,
         delays: {
           eyebrow: 0,
-          names: 0.18,
-          divider: 0.36,
-          dateVenue: 0.54,
-          timeLocation: 0.72,
-          cta: 1.22,
-          scrollCue: 1.34,
+          names: 0.24,
+          divider: 0.48,
+          dateVenue: 0.7,
+          timeLocation: 0.88,
+          cta: 1.42,
+          scrollCue: 1.56,
         },
       }
     : {
@@ -1858,7 +1858,7 @@ export default function WeddingWebsiteStarter() {
             {...cinematicRevealMotion(0.22, 18, 0.95, 0.22)}
           >
             <div className="relative isolate h-full">
-              <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-[radial-gradient(circle_at_center,_rgba(218,192,138,0.34),_rgba(244,226,190,0.18)_44%,_transparent_72%)] blur-3xl" />
+              <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-[radial-gradient(circle_at_center,_rgba(232,207,200,0.22),_rgba(255,248,244,0.14)_44%,_transparent_72%)] blur-3xl" />
               <VenueCarousel />
             </div>
             <div className="mx-auto flex h-full w-full max-w-[480px] md:max-w-none">
@@ -1932,7 +1932,7 @@ export default function WeddingWebsiteStarter() {
               </div>
 
               <div className="venue-mobile-carousel relative isolate">
-                <div className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-[radial-gradient(circle_at_center,_rgba(218,192,138,0.24),_rgba(244,226,190,0.12)_45%,_transparent_72%)] blur-2xl" />
+                <div className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-[radial-gradient(circle_at_center,_rgba(232,207,200,0.18),_rgba(255,248,244,0.12)_45%,_transparent_72%)] blur-2xl" />
                 <VenueCarousel />
               </div>
             </div>
@@ -2049,7 +2049,7 @@ export default function WeddingWebsiteStarter() {
                   className="min-h-12 rounded-2xl border border-[var(--color-border-blush)] bg-white px-4 text-[var(--color-body)] outline-none transition placeholder:text-[var(--color-label)] read-only:bg-[#fbf7f2] focus:border-[var(--color-heading)]"
                 />
                 {guestLookupMessage && (
-                  <span className="type-card-body text-[0.85rem]">{guestLookupMessage}</span>
+                  <span className="type-helper">{guestLookupMessage}</span>
                 )}
               </label>
 
@@ -2130,7 +2130,7 @@ export default function WeddingWebsiteStarter() {
                       placeholder="Their full name"
                       className="min-h-12 rounded-2xl border border-[var(--color-border-blush)] bg-white/85 px-4 text-[var(--color-body)] outline-none transition placeholder:text-[var(--color-label)] focus:border-[var(--color-heading)]"
                     />
-                    <span className="type-card-body mt-2 text-[0.85rem]">
+                    <span className="type-helper mt-2">
                       This helps us keep the guest list and seating plan beautifully organised.
                     </span>
                   </label>

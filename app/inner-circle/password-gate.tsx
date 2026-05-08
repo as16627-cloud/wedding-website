@@ -302,7 +302,7 @@ function PrivateSection({
       className={`inner-editorial-panel inner-private-section relative scroll-mt-8 overflow-hidden bg-[#fbf7f2] px-6 py-16 md:py-20 ${className}`}
     >
       <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_22%,_rgba(232,174,168,0.10),_transparent_32%),radial-gradient(circle_at_84%_72%,_rgba(218,192,138,0.10),_transparent_34%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_22%,_rgba(232,174,168,0.09),_transparent_32%),radial-gradient(circle_at_84%_72%,_rgba(232,207,200,0.12),_transparent_34%)]" />
       <div className={`relative ${contentClassName}`}>{children}</div>
     </section>
   );
@@ -329,7 +329,7 @@ function SectionHeading({
     <div className="mx-auto mb-10 max-w-3xl text-center">
       {eyebrow && <motion.p className="heading-micro mb-3" {...reveal(0, 10)}>{eyebrow}</motion.p>}
       <motion.h2 className="heading-primary" {...reveal(0.12, 16)}>{title}</motion.h2>
-      {copy && <motion.p className="heading-copy mx-auto mt-4 max-w-[620px] text-[16px]" {...reveal(0.24, 14)}>{copy}</motion.p>}
+      {copy && <motion.p className="heading-copy mx-auto mt-4 max-w-[620px]" {...reveal(0.24, 14)}>{copy}</motion.p>}
     </div>
   );
 }
@@ -375,7 +375,7 @@ function LookbookGuideCard({
         <span className="mt-3 block font-serif text-[2.35rem] leading-none text-[#8f6a63] md:text-[3rem]">
           {guide.title}
         </span>
-        <span className="mt-4 block max-w-2xl text-sm leading-6 text-[#6a5d55] md:text-base">
+        <span className="type-card-body mt-4 block max-w-2xl md:text-[1.08rem]">
           {guide.intro}
         </span>
 
@@ -396,7 +396,7 @@ function LookbookGuideCard({
             {previewNotes.map((note) => (
               <span key={note.title} className="rounded-2xl border border-[#eaded6]/78 bg-white/58 p-4">
                 <span className="heading-micro block text-[9px]">{note.title}</span>
-                <span className="mt-2 block text-sm leading-6 text-[#6a5d55]">{note.copy}</span>
+                <span className="type-card-body mt-2 block">{note.copy}</span>
               </span>
             ))}
           </span>
@@ -506,11 +506,11 @@ function LookbookMoodboard() {
                     sizes="(max-width: 768px) 100vw, 58vw"
                     className="object-cover transition duration-700 group-hover:scale-[1.035]"
                   />
-                  <span className="absolute inset-0 bg-gradient-to-t from-[#3f302b]/44 via-transparent to-transparent" />
+                  <span className="absolute inset-0 bg-[linear-gradient(to_top,rgba(62,49,45,0.34),rgba(62,49,45,0.06)_48%,transparent)]" />
                   <span className="absolute bottom-0 left-0 right-0 p-5 text-[#fff8f4]">
                     <span className="text-[10px] font-semibold uppercase tracking-[0.18em] opacity-85">Feature image</span>
                     <span className="mt-2 block font-serif text-3xl leading-tight">{featureImage.title}</span>
-                    <span className="mt-2 block max-w-xl text-sm leading-6 opacity-90">{featureImage.caption}</span>
+                    <span className="type-caption mt-2 block max-w-xl text-[#fff8f4]/90">{featureImage.caption}</span>
                   </span>
                 </button>
               )}
@@ -533,7 +533,7 @@ function LookbookMoodboard() {
                   </span>
                   <span className="block p-4">
                     <span className="font-serif text-xl text-[#3f302b]">{image.title}</span>
-                    <span className="mt-2 block text-sm leading-6 text-[#6a5d55]">{image.caption}</span>
+                    <span className="type-card-body mt-2 block">{image.caption}</span>
                   </span>
                 </button>
               ))}
@@ -543,7 +543,7 @@ function LookbookMoodboard() {
       </PrivateSection>
 
       {selectedGuide && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#3f302b]/64 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={`${selectedGuide.guide.title} guide`}>
+        <div className="inner-lookbook-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={`${selectedGuide.guide.title} guide`}>
           <button
             type="button"
             aria-label="Close lookbook guide"
@@ -554,7 +554,7 @@ function LookbookMoodboard() {
             <button
               type="button"
               onClick={() => setSelectedGuide(null)}
-              className="inner-lookbook-close absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[#d8bd96]"
+              className="inner-lookbook-close absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[var(--color-divider)]"
             >
               Close
             </button>
@@ -594,7 +594,7 @@ function LookbookMoodboard() {
       )}
 
       {selectedImage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#3f302b]/64 p-4 backdrop-blur-sm" role="dialog" aria-modal="true" aria-label={`${selectedImage.image.title} lookbook image`}>
+        <div className="inner-lookbook-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={`${selectedImage.image.title} lookbook image`}>
           <button
             type="button"
             aria-label="Close lookbook image"
@@ -605,7 +605,7 @@ function LookbookMoodboard() {
             <button
               type="button"
               onClick={() => setSelectedImage(null)}
-              className="inner-lookbook-close absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[#d8bd96]"
+              className="inner-lookbook-close absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[var(--color-divider)]"
             >
               Close
             </button>
@@ -655,7 +655,7 @@ function InnerCircleContent() {
   return (
     <main className="inner-circle-page min-h-screen bg-[#fbf7f2] text-[#4f4641]">
       <section className="inner-circle-hero inner-editorial-panel relative isolate overflow-hidden px-6 pb-16 pt-20 text-center md:pb-20 md:pt-28">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_20%,_rgba(185,130,120,0.13),_transparent_34%),radial-gradient(circle_at_18%_70%,_rgba(203,185,163,0.18),_transparent_30%),radial-gradient(circle_at_86%_68%,_rgba(143,154,125,0.10),_transparent_28%)]" />
+        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_20%,_rgba(232,174,168,0.10),_transparent_34%),radial-gradient(circle_at_18%_70%,_rgba(232,207,200,0.15),_transparent_30%),radial-gradient(circle_at_86%_68%,_rgba(255,248,244,0.28),_transparent_28%)]" />
         <div className="mx-auto max-w-4xl">
           <motion.p className="heading-micro mb-5" {...heroReveal(0, 10)}>
             INNER CIRCLE
@@ -675,7 +675,7 @@ function InnerCircleContent() {
             <a
               key={anchor.href}
               href={anchor.href}
-              className="rounded-full border border-[#eaded6] bg-[#fffaf7]/76 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8c7a72] shadow-[0_8px_20px_rgba(90,65,50,0.04)] transition hover:border-[#d8bd96] hover:text-[#8f6a63]"
+              className="rounded-full border border-[#eaded6] bg-[#fffaf7]/76 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8c7a72] shadow-[0_8px_20px_rgba(90,65,50,0.04)] transition hover:border-[var(--color-divider)] hover:text-[#8f6a63]"
             >
               {anchor.label}
             </a>
@@ -752,7 +752,7 @@ function InnerCircleContent() {
           {dayRoles.map((role) => (
             <SoftCard key={role.title}>
               <div className="mb-5 flex items-center gap-3">
-                <span className="h-px w-10 bg-[#d8bd96]" />
+                <span className="h-px w-10 bg-[var(--color-divider)]" />
                 <span className="h-2 w-2 rotate-45 bg-[#cbb6af]" />
               </div>
               <h3 className="type-card-title">{role.title}</h3>
@@ -785,14 +785,14 @@ function InnerCircleContent() {
           <p className="heading-copy mt-5">
             Closer to the wedding, we&rsquo;ll add the best person to contact for different things so Sumaya and Adi aren&rsquo;t fielding every question on the day.
           </p>
-          <p className="mt-4 text-sm leading-6 text-[#8c7a72]">
+          <p className="type-card-body mt-4 text-[#8c7a72]">
             No phone numbers are listed here yet. We&rsquo;ll only add real contact details when we are comfortable with how this page is being shared.
           </p>
         </div>
         <SoftCard>
           <div className="space-y-4">
             {contactPlaceholders.map((item) => (
-              <div key={item} className="rounded-2xl border border-[#eaded6] bg-white/52 px-4 py-3 text-sm font-medium text-[#4f4641]">
+              <div key={item} className="rounded-2xl border border-[#eaded6] bg-white/52 px-4 py-3 font-serif text-[1rem] leading-6 tracking-[0.01em] text-[#4f4641]">
                 {item}
               </div>
             ))}
@@ -844,7 +844,7 @@ export default function InnerCircleGate() {
 
   return (
     <main className="min-h-screen bg-[#fbf7f2] px-6 py-16 text-[#4f4641]">
-      <section className="mx-auto flex min-h-[calc(100vh-8rem)] max-w-xl flex-col items-center justify-center text-center">
+      <section className="mx-auto flex min-h-[calc(100svh-8rem)] max-w-xl flex-col items-center justify-center text-center">
         <p className="heading-micro mb-5">Sumaya & Aditya</p>
         <h1 className="heading-primary">Inner Circle</h1>
         <p className="heading-copy mx-auto mt-6 max-w-lg">
@@ -866,7 +866,7 @@ export default function InnerCircleGate() {
             />
           </label>
 
-          {error && <p className="mt-4 text-left text-sm leading-6 text-[#9b6f68]">{error}</p>}
+          {error && <p className="type-card-body mt-4 text-left text-[#9b6f68]">{error}</p>}
 
           <button
             type="submit"

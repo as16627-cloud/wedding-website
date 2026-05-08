@@ -4801,7 +4801,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   }, [activeTab, events, notes, quickNotes, runsheet, setEvents, setNotes, setQuickNotes, setRunsheet, setTasks, setTimeline, setVendors, tasks, timeline, vendors]);
 
   return (
-    <main className="min-h-screen bg-[#fbf7f2] px-5 py-8 text-[#4f4641] sm:px-6 lg:px-8">
+    <main className="private-planning-page min-h-screen bg-[#fbf7f2] px-5 py-8 text-[#4f4641] sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl">
         <motion.header {...reveal} className="relative overflow-hidden rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/82 px-6 py-10 shadow-[0_18px_45px_rgba(90,65,50,0.06)] md:px-10 md:py-12">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(232,174,168,0.14),transparent_32%),radial-gradient(circle_at_86%_70%,rgba(232,215,189,0.20),transparent_34%)]" />
@@ -4809,7 +4809,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
             <div>
               <p className="heading-micro mb-4">Private Planning</p>
               <h1 className="heading-primary">Sumaya &amp; Adi</h1>
-              <p className="mt-5 max-w-2xl text-[16px] leading-8 text-[#6a5d55]">
+              <p className="heading-copy mt-5 max-w-2xl">
                 A private space for managing vendors, timelines, and upcoming plans.
               </p>
             </div>
