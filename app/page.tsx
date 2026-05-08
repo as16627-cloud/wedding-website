@@ -1495,10 +1495,20 @@ export default function WeddingWebsiteStarter() {
             A Note from Us
           </motion.h2>
           <motion.div className="mobile-note-body" {...cinematicRevealMotion(0.16, 14, 0.96, 0.44)}>
-            <p>We are so grateful to be celebrating this day with the people who have been part of our story.</p>
             <p>
-              More details will be shared closer to the day, but for now, we would love for you to join us at Caversham
-              House for a romantic garden celebration.
+              We&rsquo;re so grateful to celebrate this next chapter surrounded by the people who have shaped our lives in
+              meaningful ways.
+            </p>
+            <p>
+              From the very beginning, we imagined a day that felt warm, romantic, and deeply personal &mdash; an evening
+              where everyone could simply slow down, enjoy the atmosphere, and celebrate alongside us.
+            </p>
+            <p>
+              Caversham House felt like the perfect setting for that vision: timeless gardens, music, and the people we
+              love most gathered together in one place.
+            </p>
+            <p>
+              Thank you for being part of something so special to us. We truly cannot wait to share it with you.
             </p>
           </motion.div>
           <motion.div
