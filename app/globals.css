@@ -62,6 +62,9 @@
   --motion-cinematic-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-cinematic-duration: 720ms;
   --motion-cinematic-slow: 1120ms;
+  --signature-fragment-blush: rgba(232, 207, 200, 0.22);
+  --signature-fragment-ivory: rgba(255, 248, 244, 0.34);
+  --signature-fragment-warm: rgba(244, 232, 228, 0.24);
   --atmosphere-paper-grain: radial-gradient(circle at 1px 1px, rgba(143, 106, 99, 0.13) 0.45px, transparent 0.85px);
   --atmosphere-warm-haze:
     radial-gradient(ellipse at 18% 8%, rgba(244, 232, 228, 0.34), transparent 42%),
@@ -130,6 +133,38 @@ body::before {
 
   100% {
     transform: translate(-50%, -38%) translate3d(0, -4px, 0) scale(1.012);
+  }
+}
+
+@keyframes signature-ambient-drift {
+  0% {
+    opacity: 0.28;
+    transform: translate3d(0, 0, 0) rotate(-0.4deg) scale(1);
+  }
+
+  50% {
+    opacity: 0.36;
+  }
+
+  100% {
+    opacity: 0.3;
+    transform: translate3d(10px, -14px, 0) rotate(0.8deg) scale(1.035);
+  }
+}
+
+@keyframes signature-fragment-drift {
+  0% {
+    opacity: 0.1;
+    transform: translate3d(0, 0, 0) rotate(-2deg);
+  }
+
+  45% {
+    opacity: 0.17;
+  }
+
+  100% {
+    opacity: 0.12;
+    transform: translate3d(-12px, -18px, 0) rotate(2deg);
   }
 }
 
@@ -780,6 +815,46 @@ a[class*="uppercase"] {
   height: 135svh;
 }
 
+.hero-inner {
+  isolation: isolate;
+}
+
+.hero-inner::before,
+.hero-inner::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.hero-inner::before {
+  inset: 0;
+  z-index: 7;
+  background:
+    radial-gradient(ellipse at 34% 34%, rgba(255, 248, 244, 0.34) 0%, rgba(255, 248, 244, 0.12) 32%, transparent 66%),
+    radial-gradient(ellipse at 68% 52%, rgba(244, 232, 228, 0.2) 0%, rgba(244, 232, 228, 0.08) 34%, transparent 70%),
+    radial-gradient(ellipse at 50% 84%, rgba(203, 182, 175, 0.12) 0%, transparent 58%);
+  filter: blur(10px);
+  mix-blend-mode: screen;
+  opacity: 0.28;
+  animation: signature-ambient-drift 34s var(--motion-cinematic-soft) infinite alternate;
+  will-change: transform, opacity;
+}
+
+.hero-inner::after {
+  inset: 11% -4% 20%;
+  z-index: 9;
+  background:
+    radial-gradient(ellipse 28px 11px at 18% 32%, var(--signature-fragment-blush) 0%, transparent 76%),
+    radial-gradient(ellipse 20px 8px at 76% 26%, var(--signature-fragment-ivory) 0%, transparent 78%),
+    radial-gradient(ellipse 32px 12px at 84% 58%, rgba(232, 207, 200, 0.16) 0%, transparent 74%),
+    radial-gradient(ellipse 18px 7px at 24% 70%, var(--signature-fragment-warm) 0%, transparent 78%),
+    radial-gradient(ellipse 16px 6px at 58% 18%, rgba(255, 248, 244, 0.2) 0%, transparent 80%);
+  filter: blur(10px);
+  opacity: 0.12;
+  animation: signature-fragment-drift 42s var(--motion-cinematic-soft) infinite alternate;
+  will-change: transform, opacity;
+}
+
 .hero-estate-layer {
   isolation: isolate;
   overflow: visible;
@@ -1197,10 +1272,53 @@ footer span {
 }
 
 footer {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   border-color: rgba(203, 182, 175, 0.34) !important;
   background:
     linear-gradient(180deg, rgba(252, 248, 245, 0) 0%, rgba(250, 244, 241, 0.72) 100%),
     radial-gradient(circle at 50% 0%, rgba(246, 214, 206, 0.18), transparent 42%);
+}
+
+footer::before,
+footer::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+footer::before {
+  inset: -42% -16% -18%;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse at 50% 18%, rgba(255, 248, 244, 0.54), transparent 38%),
+    radial-gradient(ellipse at 18% 74%, rgba(244, 232, 228, 0.18), transparent 34%),
+    radial-gradient(ellipse at 86% 64%, rgba(203, 182, 175, 0.14), transparent 38%);
+  opacity: 0.54;
+  animation: signature-ambient-drift 38s var(--motion-cinematic-soft) infinite alternate;
+  will-change: transform, opacity;
+}
+
+footer::after {
+  left: 50%;
+  top: 50%;
+  z-index: 0;
+  width: clamp(150px, 20vw, 220px);
+  aspect-ratio: 1;
+  opacity: 0.055;
+  transform: translate(-50%, -46%);
+  background:
+    linear-gradient(135deg, rgba(246, 214, 206, 0.92), rgba(192, 138, 122, 0.72)),
+    radial-gradient(circle, rgba(255, 248, 244, 0.72), transparent 68%);
+  -webkit-mask: url("/images/sa-monogram-ornate.png") center / contain no-repeat;
+  mask: url("/images/sa-monogram-ornate.png") center / contain no-repeat;
+  filter: drop-shadow(0 4px 14px rgba(180, 140, 120, 0.1));
+}
+
+footer > * {
+  position: relative;
+  z-index: 1;
 }
 
 .invite-page .editorial-panel:not(.hero-section),
@@ -1713,6 +1831,22 @@ footer {
 
   .hero-section {
     height: 108svh;
+  }
+
+  .hero-inner::before {
+    opacity: 0.22;
+    filter: blur(8px);
+  }
+
+  .hero-inner::after {
+    inset: 8% -10% 26%;
+    opacity: 0.085;
+    filter: blur(9px);
+    background:
+      radial-gradient(ellipse 22px 9px at 12% 38%, rgba(232, 207, 200, 0.17) 0%, transparent 76%),
+      radial-gradient(ellipse 18px 7px at 86% 30%, rgba(255, 248, 244, 0.22) 0%, transparent 78%),
+      radial-gradient(ellipse 24px 9px at 80% 68%, rgba(232, 207, 200, 0.12) 0%, transparent 74%),
+      radial-gradient(ellipse 16px 6px at 20% 74%, rgba(244, 232, 228, 0.16) 0%, transparent 78%);
   }
 
   .hero-inner,
@@ -2838,6 +2972,11 @@ footer {
     padding-top: 2.2rem;
     padding-bottom: calc(2.4rem + env(safe-area-inset-bottom));
   }
+
+  footer::after {
+    width: 132px;
+    opacity: 0.045;
+  }
 }
 
 @media (min-width: 768px) {
@@ -2957,7 +3096,10 @@ footer {
   .inner-circle-page::before,
   .guest-rsvp-page::before,
   .hero-copy::before,
-  .hero-mobile-depth-overlay {
+  .hero-mobile-depth-overlay,
+  .hero-inner::before,
+  .hero-inner::after,
+  footer::before {
     animation: none !important;
     will-change: auto;
   }
