@@ -1500,15 +1500,15 @@ export default function WeddingWebsiteStarter() {
               meaningful ways.
             </p>
             <p>
-              From the very beginning, we imagined a day that felt warm, romantic, and deeply personal &mdash; an evening
-              where everyone could simply slow down, enjoy the atmosphere, and celebrate alongside us.
+              From the very beginning, we imagined a day that felt warm, romantic, and deeply personal &mdash; a
+              celebration where everyone could slow down, enjoy the atmosphere, and simply be present with us.
             </p>
             <p>
-              Caversham House felt like the perfect setting for that vision: timeless gardens, music, and the people we
-              love most gathered together in one place.
+              Caversham House felt like the perfect setting for that vision: timeless gardens, music, and an evening
+              shared together in one beautiful place.
             </p>
             <p>
-              Thank you for being part of something so special to us. We truly cannot wait to share it with you.
+              Thank you for being part of something so special to us. We truly cannot wait to celebrate with you.
             </p>
           </motion.div>
           <motion.div
