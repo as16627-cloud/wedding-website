@@ -135,6 +135,14 @@ export default function TokenRsvpForm({ token }: { token: string }) {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
+    document.documentElement.classList.add("guest-rsvp-editorial-scroll");
+
+    return () => {
+      document.documentElement.classList.remove("guest-rsvp-editorial-scroll");
+    };
+  }, []);
+
+  useEffect(() => {
     let active = true;
 
     async function loadGuest() {

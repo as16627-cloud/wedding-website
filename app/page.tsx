@@ -146,7 +146,7 @@ const dressCodePastelPalette: DressCodeSwatch[] = [
 ];
 
 const dressCodeClassicPalette: DressCodeSwatch[] = [
-  { id: "classic-navy", label: "Navy", color: "#2f3e55" },
+  { id: "classic-navy", label: "Navy", color: "#1C2238" },
   { id: "classic-charcoal", label: "Charcoal", color: "#4a4a4a" },
   { id: "classic-beige", label: "Beige", color: "#d9cbbf" },
   { id: "classic-black", label: "Black", color: "#1f1f1f" },
@@ -1222,7 +1222,7 @@ export default function WeddingWebsiteStarter() {
         aria-pressed={isAmbientAudioOn}
         aria-label={isAmbientAudioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
         onClick={handleAmbientAudioToggle}
-        className={`ambient-audio-toggle type-button fixed bottom-4 right-4 z-50 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[rgba(232,207,200,0.78)] bg-[#fffaf7]/76 px-3 py-1.5 text-[var(--color-navy)] shadow-[0_8px_24px_rgba(90,65,50,0.08)] hover:border-[rgba(31,42,68,0.22)] hover:bg-[#fffdf9]/88 hover:text-[var(--color-navy-dark)] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.45)] sm:bottom-6 sm:right-6 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 ${audioToggleRevealClass} ${audioToggleMotionClass}`}
+        className={`ambient-audio-toggle type-button fixed bottom-4 right-4 z-50 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[rgba(232,207,200,0.78)] bg-[#fffaf7]/76 px-3 py-1.5 text-[var(--color-navy)] shadow-[0_8px_24px_rgba(90,65,50,0.08)] hover:border-[rgba(28,34,56,0.22)] hover:bg-[#fffdf9]/88 hover:text-[var(--color-navy-dark)] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.45)] sm:bottom-6 sm:right-6 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 ${audioToggleRevealClass} ${audioToggleMotionClass}`}
       >
         {isAmbientAudioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
         <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
@@ -1304,7 +1304,7 @@ export default function WeddingWebsiteStarter() {
               aria-label={isMobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={isMobileNavOpen}
               onClick={() => setIsMobileNavOpen((isOpen) => !isOpen)}
-              className="mobile-nav-toggle absolute top-5 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(232,207,200,0.75)] bg-[#fffaf7]/74 text-[var(--color-navy)] shadow-[0_10px_24px_rgba(106,73,58,0.06)] transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[rgba(31,42,68,0.22)] hover:bg-[#fffdf9] md:hidden"
+              className="mobile-nav-toggle absolute top-5 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(232,207,200,0.75)] bg-[#fffaf7]/74 text-[var(--color-navy)] shadow-[0_10px_24px_rgba(106,73,58,0.06)] transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[rgba(28,34,56,0.22)] hover:bg-[#fffdf9] md:hidden"
             >
               {isMobileNavOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>

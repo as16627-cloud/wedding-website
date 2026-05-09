@@ -1219,7 +1219,7 @@ export default function PrivatePlanningGuestsTab() {
                 setAddForm(emptyGuestForm);
                 setDrawerMode("add");
               }}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition hover:bg-[var(--color-navy-hover)]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.2)] transition hover:bg-[var(--color-navy-hover)]"
             >
               <Plus aria-hidden="true" className="h-4 w-4" />
               Add Guest
@@ -1241,7 +1241,7 @@ export default function PrivatePlanningGuestsTab() {
             <button
               type="button"
               onClick={downloadCsv}
-              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition hover:bg-[var(--color-navy-hover)]"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.2)] transition hover:bg-[var(--color-navy-hover)]"
             >
               <Download aria-hidden="true" className="h-4 w-4" />
               CSV
@@ -1648,7 +1648,7 @@ export default function PrivatePlanningGuestsTab() {
                     type="button"
                     onClick={() => void confirmImportGuests()}
                     disabled={busy || importPreview.length === 0}
-                    className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="mt-5 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.2)] transition hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Upload aria-hidden="true" className="h-4 w-4" />
                     Import {importPreview.length} guest{importPreview.length === 1 ? "" : "s"}

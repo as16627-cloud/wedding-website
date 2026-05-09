@@ -1727,7 +1727,7 @@ function VendorsTab({
             setEditingVendorId(null);
             setForm(emptyVendorForm);
           }}
-          className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)]"
+          className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.2)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)]"
         >
           <Plus className="h-4 w-4" />
           Add Vendor
@@ -1801,7 +1801,7 @@ function VendorsTab({
               />
             </label>
             <div className="flex gap-3 md:col-span-2 xl:col-span-4">
-              <button type="submit" className="inline-flex items-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)]">
+              <button type="submit" className="inline-flex items-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.2)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)]">
                 <Save className="h-4 w-4" />
                 {editingVendorId ? "Update Vendor" : "Save Vendor"}
               </button>
@@ -1974,8 +1974,8 @@ function VendorDrawer({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-[rgba(28,31,48,0.24)]">
-      <div className="ml-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto border-l border-[#eaded6] bg-[#fbf7f2] p-5 shadow-[-20px_0_60px_rgba(35,38,58,0.18)] sm:p-7">
+    <div className="fixed inset-0 z-50 bg-[rgba(20,26,44,0.24)]">
+      <div className="ml-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto border-l border-[#eaded6] bg-[#fbf7f2] p-5 shadow-[-20px_0_60px_rgba(20,26,44,0.18)] sm:p-7">
         <div className="flex items-start justify-between gap-4">
           <div>
             <p className="heading-micro">{vendor.category}</p>
@@ -2349,7 +2349,7 @@ function CalendarTab({
                 className="min-h-24 rounded-2xl border border-[#eaded6] bg-white/80 px-4 py-3 text-sm leading-6 outline-none focus:border-[#b98278]"
               />
             </label>
-            <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.2)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)]">
+            <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.2)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)]">
               <Plus className="h-4 w-4" />
               Add Event
             </button>
@@ -3483,7 +3483,7 @@ function RunsheetTab({
               Buffer
             </label>
           </div>
-          <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.18)] transition hover:bg-[var(--color-navy-hover)] md:col-span-2 md:w-fit">
+          <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.18)] transition hover:bg-[var(--color-navy-hover)] md:col-span-2 md:w-fit">
             <Plus className="h-4 w-4" />
             Add item
           </button>
@@ -4276,7 +4276,7 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
             type="button"
             onClick={() => applySuggestion(suggestion, "create")}
             disabled={isApplying}
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.18)] transition hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-55"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.18)] transition hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-55"
           >
             <Plus className="h-4 w-4" />
             Create Vendor
@@ -4353,7 +4353,7 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={!isStorageConfigured || isUploading}
-              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.18)] transition hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-55"
+              className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.18)] transition hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-55"
             >
               <FileUp className="h-4 w-4" />
               {isUploading ? `Uploading ${Math.round(uploadProgress)}%` : "Upload File"}
@@ -4822,7 +4822,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
                   <Download className="h-4 w-4" />
                   Export Planning JSON
                 </button>
-                <button type="button" onClick={() => importInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.18)] transition hover:bg-[var(--color-navy-hover)]">
+                <button type="button" onClick={() => importInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.18)] transition hover:bg-[var(--color-navy-hover)]">
                   <Upload className="h-4 w-4" />
                   Import Planning JSON
                 </button>
@@ -4843,7 +4843,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
                 type="button"
                 onClick={() => setActiveTab(tab)}
                 className={`whitespace-nowrap rounded-full px-4 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] transition duration-300 ease-out ${
-                  activeTab === tab ? "bg-[var(--color-navy)] text-[var(--color-cta-text)] shadow-[0_10px_24px_rgba(35,38,58,0.18)]" : "text-[#6a5d55] hover:bg-[#f4ebe4] hover:text-[#3f302b]"
+                  activeTab === tab ? "bg-[var(--color-navy)] text-[var(--color-cta-text)] shadow-[0_10px_24px_rgba(20,26,44,0.18)]" : "text-[#6a5d55] hover:bg-[#f4ebe4] hover:text-[#3f302b]"
                 }`}
               >
                 {tab}

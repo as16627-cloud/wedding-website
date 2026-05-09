@@ -78,7 +78,7 @@ export default function PrivatePlanningLogin() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="mt-6 w-full rounded-full bg-[var(--color-navy)] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(35,38,58,0.22)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="mt-6 w-full rounded-full bg-[var(--color-navy)] px-7 py-3 text-sm font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.22)] transition duration-300 ease-out hover:-translate-y-[1px] hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isSubmitting ? "Checking..." : "Enter Dashboard"}
           </button>

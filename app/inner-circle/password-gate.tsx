@@ -437,7 +437,7 @@ function LookbookMoodboard() {
               onClick={() => setActiveLookbookId(lookbook.id)}
               className={`inner-lookbook-tab min-h-10 rounded-full px-4 text-[11px] font-semibold uppercase tracking-[0.12em] transition ${
                 activeLookbook.id === lookbook.id
-                  ? "bg-[var(--color-navy)] text-[var(--color-cta-text)] shadow-[0_10px_24px_rgba(31,42,68,0.16)]"
+                  ? "bg-[var(--color-navy)] text-[var(--color-cta-text)] shadow-[0_10px_24px_rgba(28,34,56,0.16)]"
                   : "text-[#7d6b62] hover:bg-white/78 hover:text-[#8f6a63]"
               }`}
             >
