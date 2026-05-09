@@ -77,14 +77,16 @@
   --motion-cinematic-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --motion-cinematic-duration: 720ms;
   --motion-cinematic-slow: 1120ms;
-  --signature-fragment-blush: rgba(232, 207, 200, 0.22);
-  --signature-fragment-ivory: rgba(255, 248, 244, 0.34);
-  --signature-fragment-warm: rgba(244, 232, 228, 0.24);
-  --ambient-dust-blush: rgba(232, 207, 200, 0.28);
-  --ambient-dust-ivory: rgba(255, 248, 244, 0.42);
-  --ambient-dust-champagne: rgba(232, 216, 190, 0.2);
-  --ambient-petal-blush: rgba(226, 194, 188, 0.24);
-  --ambient-petal-ivory: rgba(255, 250, 246, 0.32);
+  --signature-fragment-blush: rgba(232, 207, 200, 0.27);
+  --signature-fragment-ivory: rgba(255, 248, 244, 0.42);
+  --signature-fragment-warm: rgba(244, 232, 228, 0.3);
+  --ambient-dust-blush: rgba(222, 188, 181, 0.36);
+  --ambient-dust-ivory: rgba(255, 251, 247, 0.58);
+  --ambient-dust-champagne: rgba(228, 210, 176, 0.32);
+  --ambient-petal-blush: rgba(216, 176, 170, 0.34);
+  --ambient-petal-ivory: rgba(255, 248, 241, 0.46);
+  --ambient-hero-blush: rgba(214, 172, 166, 0.24);
+  --ambient-hero-champagne: rgba(229, 211, 178, 0.24);
   --atmosphere-paper-grain: radial-gradient(circle at 1px 1px, rgba(143, 106, 99, 0.13) 0.45px, transparent 0.85px);
   --atmosphere-warm-haze:
     radial-gradient(ellipse at 18% 8%, rgba(244, 232, 228, 0.34), transparent 42%),
@@ -142,24 +144,24 @@ body:has(.guest-rsvp-page)::after {
   content: "";
   position: fixed;
   inset: -8% -7%;
-  z-index: 2147482999;
+  z-index: 2147483001;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 11px 20px at 7% 19%, var(--ambient-petal-blush) 0%, transparent 74%),
-    radial-gradient(ellipse 7px 13px at 92% 24%, var(--ambient-petal-ivory) 0%, transparent 76%),
-    radial-gradient(ellipse 13px 22px at 9% 77%, rgba(232, 207, 200, 0.18) 0%, transparent 76%),
-    radial-gradient(ellipse 8px 15px at 88% 82%, var(--ambient-dust-champagne) 0%, transparent 78%),
-    radial-gradient(circle 2.2px at 17% 47%, var(--ambient-dust-blush) 0%, transparent 70%),
-    radial-gradient(circle 1.6px at 83% 42%, var(--ambient-dust-ivory) 0%, transparent 72%),
-    radial-gradient(circle 2.4px at 72% 14%, rgba(232, 207, 200, 0.2) 0%, transparent 72%),
-    radial-gradient(circle 1.8px at 28% 88%, rgba(255, 248, 244, 0.36) 0%, transparent 74%);
-  filter: blur(0.25px);
-  opacity: 0.26;
+    radial-gradient(ellipse 20px 34px at 7% 18%, var(--ambient-hero-blush) 0%, transparent 72%),
+    radial-gradient(ellipse 16px 28px at 92% 25%, var(--ambient-hero-champagne) 0%, transparent 74%),
+    radial-gradient(ellipse 12px 22px at 14% 74%, var(--ambient-petal-blush) 0%, transparent 76%),
+    radial-gradient(ellipse 9px 17px at 88% 80%, var(--ambient-petal-ivory) 0%, transparent 76%),
+    radial-gradient(ellipse 8px 15px at 76% 13%, var(--ambient-dust-champagne) 0%, transparent 76%),
+    radial-gradient(circle 2.7px at 18% 48%, var(--ambient-dust-blush) 0%, transparent 70%),
+    radial-gradient(circle 2.2px at 82% 43%, var(--ambient-dust-ivory) 0%, transparent 72%),
+    radial-gradient(circle 2.4px at 28% 88%, rgba(255, 248, 244, 0.46) 0%, transparent 74%);
+  filter: blur(0.14px);
+  opacity: 0.34;
   transform: translate3d(0, 0, 0);
-  animation: ambient-near-drift 64s var(--motion-cinematic-soft) infinite alternate;
+  animation: ambient-near-drift 54s var(--motion-cinematic-soft) infinite alternate;
   will-change: transform, opacity;
-  -webkit-mask-image: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.06) 34%, rgba(0, 0, 0, 0.6) 62%, #000 100%);
-  mask-image: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.06) 34%, rgba(0, 0, 0, 0.6) 62%, #000 100%);
+  -webkit-mask-image: radial-gradient(ellipse at center, transparent 0%, transparent 38%, rgba(0, 0, 0, 0.04) 58%, rgba(0, 0, 0, 0.68) 78%, #000 100%);
+  mask-image: radial-gradient(ellipse at center, transparent 0%, transparent 38%, rgba(0, 0, 0, 0.04) 58%, rgba(0, 0, 0, 0.68) 78%, #000 100%);
 }
 
 @keyframes cinematic-haze-drift {
@@ -200,49 +202,49 @@ body:has(.guest-rsvp-page)::after {
 
 @keyframes signature-fragment-drift {
   0% {
-    opacity: 0.13;
+    opacity: 0.18;
     transform: translate3d(0, 0, 0) rotate(-2deg);
   }
 
   45% {
-    opacity: 0.21;
+    opacity: 0.28;
   }
 
   100% {
-    opacity: 0.15;
-    transform: translate3d(-12px, -18px, 0) rotate(2deg);
+    opacity: 0.2;
+    transform: translate3d(-14px, -24px, 0) rotate(2.4deg);
   }
 }
 
 @keyframes ambient-near-drift {
   0% {
-    opacity: 0.21;
+    opacity: 0.28;
     transform: translate3d(0, 0, 0) rotate(-0.4deg) scale(1);
   }
 
   42% {
-    opacity: 0.3;
+    opacity: 0.4;
   }
 
   100% {
-    opacity: 0.25;
-    transform: translate3d(16px, -28px, 0) rotate(1.2deg) scale(1.035);
+    opacity: 0.32;
+    transform: translate3d(20px, -38px, 0) rotate(1.45deg) scale(1.045);
   }
 }
 
 @keyframes ambient-distant-drift {
   0% {
-    opacity: 0.2;
+    opacity: 0.25;
     transform: translate3d(0, 0, 0) rotate(0.3deg) scale(1);
   }
 
   50% {
-    opacity: 0.29;
+    opacity: 0.36;
   }
 
   100% {
-    opacity: 0.23;
-    transform: translate3d(-12px, -22px, 0) rotate(-0.8deg) scale(1.025);
+    opacity: 0.28;
+    transform: translate3d(-16px, -30px, 0) rotate(-1deg) scale(1.032);
   }
 }
 
@@ -1073,16 +1075,16 @@ a[class*="uppercase"] {
   inset: 11% -4% 20%;
   z-index: 9;
   background:
-    radial-gradient(ellipse 34px 13px at 14% 30%, var(--ambient-petal-blush) 0%, transparent 77%),
-    radial-gradient(ellipse 22px 9px at 80% 24%, var(--ambient-petal-ivory) 0%, transparent 78%),
-    radial-gradient(ellipse 38px 14px at 88% 58%, rgba(232, 207, 200, 0.2) 0%, transparent 76%),
-    radial-gradient(ellipse 20px 8px at 20% 74%, var(--signature-fragment-warm) 0%, transparent 78%),
-    radial-gradient(ellipse 15px 6px at 62% 16%, rgba(255, 248, 244, 0.28) 0%, transparent 80%),
-    radial-gradient(circle 2px at 34% 48%, var(--ambient-dust-blush) 0%, transparent 72%),
-    radial-gradient(circle 1.5px at 72% 70%, var(--ambient-dust-ivory) 0%, transparent 74%);
-  filter: blur(8px);
-  opacity: 0.145;
-  animation: signature-fragment-drift 46s var(--motion-cinematic-soft) infinite alternate;
+    radial-gradient(ellipse 52px 18px at 13% 31%, var(--ambient-hero-blush) 0%, transparent 76%),
+    radial-gradient(ellipse 42px 16px at 86% 56%, var(--ambient-hero-champagne) 0%, transparent 76%),
+    radial-gradient(ellipse 28px 11px at 80% 24%, var(--ambient-petal-ivory) 0%, transparent 78%),
+    radial-gradient(ellipse 24px 9px at 20% 74%, var(--signature-fragment-warm) 0%, transparent 78%),
+    radial-gradient(ellipse 17px 7px at 62% 16%, rgba(255, 248, 244, 0.36) 0%, transparent 78%),
+    radial-gradient(circle 2.8px at 34% 48%, var(--ambient-dust-blush) 0%, transparent 72%),
+    radial-gradient(circle 2.2px at 72% 70%, var(--ambient-dust-ivory) 0%, transparent 74%);
+  filter: blur(5.5px);
+  opacity: 0.22;
+  animation: signature-fragment-drift 40s var(--motion-cinematic-soft) infinite alternate;
   will-change: transform, opacity;
 }
 
@@ -1667,15 +1669,15 @@ footer > * {
   z-index: 0;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 9px 18px at 8% 18%, var(--ambient-petal-blush) 0%, transparent 76%),
-    radial-gradient(ellipse 7px 13px at 91% 23%, var(--ambient-petal-ivory) 0%, transparent 78%),
-    radial-gradient(ellipse 12px 20px at 12% 84%, rgba(232, 207, 200, 0.16) 0%, transparent 78%),
-    radial-gradient(ellipse 7px 15px at 86% 78%, var(--ambient-dust-champagne) 0%, transparent 78%),
-    radial-gradient(circle 1.8px at 18% 55%, rgba(232, 207, 200, 0.22) 0%, transparent 72%),
-    radial-gradient(circle 1.4px at 79% 48%, rgba(255, 248, 244, 0.34) 0%, transparent 74%);
-  filter: blur(0.25px);
-  opacity: 0.24;
-  animation: ambient-distant-drift 72s var(--motion-cinematic-soft) infinite alternate;
+    radial-gradient(ellipse 23px 40px at 8% 18%, var(--ambient-hero-blush) 0%, transparent 76%),
+    radial-gradient(ellipse 18px 32px at 91% 23%, var(--ambient-hero-champagne) 0%, transparent 78%),
+    radial-gradient(ellipse 13px 24px at 12% 84%, var(--ambient-petal-blush) 0%, transparent 78%),
+    radial-gradient(ellipse 9px 18px at 86% 78%, var(--ambient-petal-ivory) 0%, transparent 78%),
+    radial-gradient(circle 2.4px at 18% 55%, rgba(222, 188, 181, 0.3) 0%, transparent 72%),
+    radial-gradient(circle 1.9px at 79% 48%, rgba(255, 248, 244, 0.48) 0%, transparent 74%);
+  filter: blur(0.16px);
+  opacity: 0.38;
+  animation: ambient-distant-drift 58s var(--motion-cinematic-soft) infinite alternate;
   will-change: transform, opacity;
 }
 
@@ -1876,24 +1878,24 @@ footer > * {
   body:has(.inner-circle-page)::after,
   body:has(.guest-rsvp-page)::after {
     inset: -10% -9%;
-    opacity: 0.32;
+    opacity: 0.42;
     background:
-      radial-gradient(ellipse 13px 24px at 6% 18%, var(--ambient-petal-blush) 0%, transparent 74%),
-      radial-gradient(ellipse 9px 17px at 94% 25%, var(--ambient-petal-ivory) 0%, transparent 76%),
-      radial-gradient(ellipse 15px 27px at 8% 80%, rgba(232, 207, 200, 0.22) 0%, transparent 76%),
-      radial-gradient(ellipse 10px 19px at 90% 82%, var(--ambient-dust-champagne) 0%, transparent 78%),
-      radial-gradient(circle 2.6px at 18% 48%, var(--ambient-dust-blush) 0%, transparent 70%),
-      radial-gradient(circle 2px at 84% 44%, var(--ambient-dust-ivory) 0%, transparent 72%),
-      radial-gradient(circle 2.5px at 73% 13%, rgba(232, 207, 200, 0.22) 0%, transparent 72%),
-      radial-gradient(circle 2px at 27% 89%, rgba(255, 248, 244, 0.38) 0%, transparent 74%);
-    -webkit-mask-image: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.04) 28%, rgba(0, 0, 0, 0.62) 58%, #000 100%);
-    mask-image: radial-gradient(ellipse at center, transparent 0%, rgba(0, 0, 0, 0.04) 28%, rgba(0, 0, 0, 0.62) 58%, #000 100%);
+      radial-gradient(ellipse 22px 38px at 6% 18%, var(--ambient-hero-blush) 0%, transparent 74%),
+      radial-gradient(ellipse 18px 31px at 94% 25%, var(--ambient-hero-champagne) 0%, transparent 76%),
+      radial-gradient(ellipse 16px 29px at 8% 80%, var(--ambient-petal-blush) 0%, transparent 76%),
+      radial-gradient(ellipse 12px 22px at 90% 82%, var(--ambient-petal-ivory) 0%, transparent 78%),
+      radial-gradient(circle 3px at 18% 48%, var(--ambient-dust-blush) 0%, transparent 70%),
+      radial-gradient(circle 2.4px at 84% 44%, var(--ambient-dust-ivory) 0%, transparent 72%),
+      radial-gradient(circle 2.8px at 73% 13%, rgba(222, 188, 181, 0.3) 0%, transparent 72%),
+      radial-gradient(circle 2.2px at 27% 89%, rgba(255, 248, 244, 0.5) 0%, transparent 74%);
+    -webkit-mask-image: radial-gradient(ellipse at center, transparent 0%, transparent 35%, rgba(0, 0, 0, 0.04) 58%, rgba(0, 0, 0, 0.7) 78%, #000 100%);
+    mask-image: radial-gradient(ellipse at center, transparent 0%, transparent 35%, rgba(0, 0, 0, 0.04) 58%, rgba(0, 0, 0, 0.7) 78%, #000 100%);
   }
 
   .invite-page .editorial-panel:not(.hero-section)::after,
   .inner-circle-page .inner-editorial-panel::after,
   .guest-rsvp-page::after {
-    opacity: 0.29;
+    opacity: 0.44;
   }
 
   html.invite-editorial-scroll {
@@ -2249,15 +2251,15 @@ footer > * {
 
   .hero-inner::after {
     inset: 8% -10% 26%;
-    opacity: 0.135;
-    filter: blur(7px);
+    opacity: 0.22;
+    filter: blur(4.5px);
     background:
-      radial-gradient(ellipse 30px 12px at 9% 36%, rgba(232, 207, 200, 0.24) 0%, transparent 76%),
-      radial-gradient(ellipse 21px 9px at 90% 28%, rgba(255, 248, 244, 0.32) 0%, transparent 78%),
-      radial-gradient(ellipse 28px 11px at 84% 70%, rgba(232, 207, 200, 0.18) 0%, transparent 74%),
-      radial-gradient(ellipse 20px 8px at 16% 76%, rgba(244, 232, 228, 0.22) 0%, transparent 78%),
-      radial-gradient(circle 2px at 22% 54%, rgba(232, 207, 200, 0.28) 0%, transparent 72%),
-      radial-gradient(circle 1.6px at 78% 52%, rgba(255, 248, 244, 0.34) 0%, transparent 74%);
+      radial-gradient(ellipse 42px 16px at 9% 36%, var(--ambient-hero-blush) 0%, transparent 76%),
+      radial-gradient(ellipse 34px 13px at 90% 28%, var(--ambient-hero-champagne) 0%, transparent 78%),
+      radial-gradient(ellipse 26px 10px at 84% 70%, rgba(216, 176, 170, 0.26) 0%, transparent 74%),
+      radial-gradient(ellipse 22px 9px at 16% 76%, rgba(244, 232, 228, 0.32) 0%, transparent 78%),
+      radial-gradient(circle 2.8px at 22% 54%, rgba(222, 188, 181, 0.38) 0%, transparent 72%),
+      radial-gradient(circle 2.1px at 78% 52%, rgba(255, 248, 244, 0.5) 0%, transparent 74%);
   }
 
   .hero-inner,
