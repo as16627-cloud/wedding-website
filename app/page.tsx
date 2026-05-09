@@ -58,6 +58,9 @@ const googleCalendarUrl =
 const googleDirectionsUrl =
   "https://www.google.com/maps/dir/?api=1&destination=Caversham%20House%2C%20141%20Caversham%20Avenue%2C%20Caversham%20WA%206055%2C%20Australia";
 
+const googleVenueMapUrl =
+  "https://www.google.com/maps/search/?api=1&query=Caversham%20House%2C%20141%20Caversham%20Avenue%2C%20Caversham%20WA%206055%2C%20Australia";
+
 const venueAddress = "Caversham House, 141 Caversham Avenue, Caversham WA 6055";
 
 const venueImages = [
@@ -1865,16 +1868,30 @@ export default function WeddingWebsiteStarter() {
                     gardens.
                   </p>
                 </div>
-                <div className="mobile-venue-actions mt-6 md:hidden">
-                  <a href={googleDirectionsUrl} target="_blank" rel="noopener noreferrer">
+                <div className="venue-action-group">
+                  <a
+                    className="venue-action venue-action-primary"
+                    href={googleDirectionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <MapPin className="h-4 w-4" />
                     Open Maps
                   </a>
-                  <a href="#venue-map">
+                  <a
+                    className="venue-action venue-action-secondary"
+                    href={googleVenueMapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <MapPin className="h-4 w-4" />
                     View Map
                   </a>
-                  <button type="button" onClick={handleCopyVenueAddress}>
+                  <button
+                    className="venue-action venue-action-secondary"
+                    type="button"
+                    onClick={handleCopyVenueAddress}
+                  >
                     {hasCopiedVenueAddress ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     {hasCopiedVenueAddress ? "Copied" : "Copy Address"}
                   </button>
@@ -1883,18 +1900,6 @@ export default function WeddingWebsiteStarter() {
             </div>
           </motion.div>
 
-          <motion.div className="card-luxe-map card-luxe-hover relative mt-12" {...cinematicRevealMotion(0.12, 14, 0.9, 0.18)}>
-            <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3384.9999!2d115.9905802!3d-31.8777983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2a32b77920209d99%3A0xeb200b707ad3d95d!2sCaversham%20House%2C%20141%20Caversham%20Ave%2C%20Caversham%20WA%206055!5e0!3m2!1sen!2sau!4v1620000000000"
-              width="100%"
-              height="450"
-              className="block saturate-[0.72] contrast-[0.96]"
-              style={{ border: 0 }}
-              allowFullScreen
-              loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
-            />
-          </motion.div>
         </div>
 
         <div className="venue-mobile-panels">
@@ -1922,7 +1927,11 @@ export default function WeddingWebsiteStarter() {
             </div>
           </motion.section>
 
-          <motion.section className="venue-mobile-panel venue-mobile-panel-practical" {...cinematicRevealMotion(0, 14, 0.95, 0.18)}>
+          <motion.section
+            id="venue-parking"
+            className="venue-mobile-panel venue-mobile-panel-practical"
+            {...cinematicRevealMotion(0, 14, 0.95, 0.18)}
+          >
             <div className="venue-mobile-panel-inner">
               <div className="card-luxe card-luxe-text venue-mobile-info-card">
                 <h3 className="type-card-title">Getting There &amp; Parking</h3>
@@ -1941,33 +1950,34 @@ export default function WeddingWebsiteStarter() {
                     gardens.
                   </p>
                 </div>
-                <div className="mobile-venue-actions">
-                  <a href={googleDirectionsUrl} target="_blank" rel="noopener noreferrer">
+                <div className="venue-action-group">
+                  <a
+                    className="venue-action venue-action-primary"
+                    href={googleDirectionsUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <MapPin className="h-4 w-4" />
                     Open Maps
                   </a>
-                  <a href="#venue-map">
+                  <a
+                    className="venue-action venue-action-secondary"
+                    href={googleVenueMapUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
                     <MapPin className="h-4 w-4" />
                     View Map
                   </a>
-                  <button type="button" onClick={handleCopyVenueAddress}>
+                  <button
+                    className="venue-action venue-action-secondary"
+                    type="button"
+                    onClick={handleCopyVenueAddress}
+                  >
                     {hasCopiedVenueAddress ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                     {hasCopiedVenueAddress ? "Copied" : "Copy Address"}
                   </button>
                 </div>
-              </div>
-
-              <div id="venue-map" className="card-luxe-map card-luxe-hover venue-mobile-map relative">
-                <iframe
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3384.9999!2d115.9905802!3d-31.8777983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2a32b77920209d99%3A0xeb200b707ad3d95d!2sCaversham%20House%2C%20141%20Caversham%20Ave%2C%20Caversham%20WA%206055!5e0!3m2!1sen!2sau!4v1620000000000"
-                  width="100%"
-                  height="450"
-                  className="block saturate-[0.72] contrast-[0.96]"
-                  style={{ border: 0 }}
-                  allowFullScreen
-                  loading="lazy"
-                  referrerPolicy="no-referrer-when-downgrade"
-                />
               </div>
             </div>
           </motion.section>
@@ -2185,6 +2195,7 @@ export default function WeddingWebsiteStarter() {
       </SoftSection>
 
       <motion.footer
+        id="site-footer"
         className="border-t border-[color:var(--color-divider-soft)] px-6 py-10 text-center"
         {...cinematicRevealMotion(0, 14, 1.02, 0.24)}
       >
@@ -2201,7 +2212,10 @@ export default function WeddingWebsiteStarter() {
           <Mail className="h-4 w-4" />
           Wedding website and RSVP system in progress
         </motion.div>
-        <motion.div className="mt-8 flex items-center justify-center gap-5" {...cinematicRevealMotion(0.38, 8, 0.72, 0.4)}>
+        <motion.div
+          className="footer-utility-nav mt-8 flex items-center justify-center gap-5"
+          {...cinematicRevealMotion(0.38, 8, 0.72, 0.4)}
+        >
           <a href="/guest-list" className="type-nav text-[var(--color-label)] transition hover:text-[var(--color-heading)]">Guest List</a>
           <span className="text-[var(--color-divider-soft)]">&middot;</span>
           <a href="/inner-circle" className="type-nav text-[var(--color-label)] transition hover:text-[var(--color-heading)]">Inner Circle</a>
