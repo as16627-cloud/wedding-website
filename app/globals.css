@@ -37,6 +37,7 @@
   --mobile-scene-padding: clamp(3.25rem, 7svh, 4.65rem);
   --mobile-scene-padding-compact: clamp(2.35rem, 5.4svh, 3.35rem);
   --mobile-scene-width: min(100%, 348px);
+  --mobile-numbered-header-clearance: clamp(1.25rem, 3.1svh, 1.75rem);
   --mobile-card-radius: 1.7rem;
   --mobile-card-radius-soft: 1.88rem;
   --mobile-card-shadow: 0 22px 62px rgba(101, 75, 62, 0.022), 0 4px 15px rgba(203, 182, 175, 0.04);
@@ -1613,16 +1614,16 @@ footer > * {
   }
 
   .ambient-audio-toggle {
-    right: max(0.82rem, env(safe-area-inset-right));
-    bottom: max(0.82rem, env(safe-area-inset-bottom));
+    right: max(0.46rem, env(safe-area-inset-right));
+    bottom: max(0.46rem, env(safe-area-inset-bottom));
     width: 44px;
     min-height: 44px;
     padding: 0;
-    opacity: 0.56;
+    opacity: 0.4;
     border-color: rgba(200, 170, 160, 0.4);
     background: rgba(255, 250, 247, 0.62);
     color: var(--color-navy);
-    box-shadow: 0 8px 22px rgba(20, 26, 44, 0.08), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    box-shadow: 0 5px 14px rgba(20, 26, 44, 0.042), inset 0 0 0 1px rgba(255, 255, 255, 0.15);
   }
 
   .ambient-audio-toggle span {
@@ -1962,11 +1963,12 @@ footer > * {
   .mobile-invite-section > .relative {
     width: 100%;
     max-width: 100%;
+    padding-top: var(--mobile-numbered-header-clearance);
   }
 
   #details.mobile-invite-section {
-    min-height: 89svh;
-    padding: clamp(2.05rem, 4.85svh, 3rem) var(--mobile-page-gutter);
+    min-height: 86svh;
+    padding: clamp(1.85rem, 4.25svh, 2.7rem) var(--mobile-page-gutter);
     scroll-margin-top: 0;
   }
 
@@ -1976,11 +1978,11 @@ footer > * {
 
   #details .relative > .mx-auto.mb-10 {
     max-width: 326px;
-    margin-bottom: 0.92rem;
+    margin-bottom: 0.78rem;
   }
 
   #details .heading-micro {
-    margin-bottom: 0.62rem;
+    margin-bottom: 0.52rem;
     font-size: var(--mobile-eyebrow-size);
     line-height: 1.2;
     opacity: 0.74;
@@ -1990,20 +1992,20 @@ footer > * {
     max-width: 10.8em;
     margin-inline: auto;
     font-size: clamp(2rem, 8.25vw, 2.58rem);
-    line-height: 1.045;
+    line-height: 1;
   }
 
   #details .heading-copy {
     max-width: 30ch;
-    margin-top: 0.82rem;
+    margin-top: 0.68rem;
     margin-inline: auto;
     font-size: 0.92rem;
-    line-height: 1.52;
+    line-height: 1.48;
   }
 
   #details .relative > .mx-auto.grid {
     max-width: 336px;
-    gap: 0.58rem;
+    gap: 0.5rem;
   }
 
   #dress-code.mobile-invite-section {
@@ -2201,9 +2203,9 @@ footer > * {
   #details .mobile-invite-card {
     display: grid;
     grid-template-columns: auto minmax(0, 1fr);
-    gap: 0.22rem 0.72rem;
+    gap: 0.18rem 0.66rem;
     align-items: start;
-    padding: 0.72rem 0.86rem;
+    padding: 0.64rem 0.82rem;
     border-color: rgba(232, 207, 200, 0.3);
     border-radius: 1.38rem;
     background: linear-gradient(180deg, rgba(252, 248, 245, 0.78) 0%, rgba(250, 244, 241, 0.68) 100%);
@@ -2227,9 +2229,9 @@ footer > * {
   }
 
   #details .mobile-invite-card .type-card-body {
-    margin-top: 0.08rem;
+    margin-top: 0.05rem;
     font-size: 0.83rem;
-    line-height: 1.36;
+    line-height: 1.32;
   }
 
   .mobile-invite-card svg {
@@ -2280,8 +2282,8 @@ footer > * {
 
   #dress-code .dress-code-mobile-panels .swatchRow {
     max-width: 252px;
-    margin-top: 0.84rem;
-    gap: 0.98rem 0.82rem !important;
+    margin-top: 1.82rem;
+    gap: 1.42rem 0.82rem !important;
   }
 
   #dress-code .dress-code-mobile-panels .swatchItem {
@@ -2297,7 +2299,7 @@ footer > * {
 
   #dress-code .dress-code-mobile-panels .swatchLabel {
     max-width: 110px !important;
-    margin-top: 0.52rem !important;
+    margin-top: 0.74rem !important;
     font-size: 0.64rem;
     line-height: 1.2;
   }
