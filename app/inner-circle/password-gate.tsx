@@ -301,8 +301,6 @@ function PrivateSection({
       id={id}
       className={`inner-editorial-panel inner-private-section relative scroll-mt-8 overflow-hidden bg-[#fbf7f2] px-6 py-16 md:py-20 ${className}`}
     >
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_22%,_rgba(232,174,168,0.09),_transparent_32%),radial-gradient(circle_at_84%_72%,_rgba(232,207,200,0.12),_transparent_34%)]" />
       <div className={`relative ${contentClassName}`}>{children}</div>
     </section>
   );
@@ -319,8 +317,8 @@ function SectionHeading({
 }) {
   const shouldReduceMotion = useReducedMotion();
   const reveal = (delay = 0, y = 16) => ({
-    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
-    whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
+    initial: shouldReduceMotion ? false : { opacity: 0, y },
+    whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, amount: 0.42 },
     transition: { duration: shouldReduceMotion ? 0 : 0.9, delay: shouldReduceMotion ? 0 : delay, ease: innerRevealEase },
   });
@@ -339,11 +337,11 @@ function SoftCard({ children, className = "" }: { children: ReactNode; className
 
   return (
     <motion.div
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 16, filter: "blur(2px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.24 }}
       transition={{ duration: shouldReduceMotion ? 0 : 0.86, ease: innerRevealEase }}
-      className={`inner-soft-card rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7]/82 p-6 text-[#4f4641] shadow-[0_14px_38px_rgba(90,65,50,0.055)] backdrop-blur ${className}`}
+      className={`inner-soft-card rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7]/82 p-6 text-[#4f4641] shadow-[0_14px_38px_rgba(90,65,50,0.055)] ${className}`}
     >
       {children}
     </motion.div>
@@ -367,9 +365,6 @@ function LookbookGuideCard({
       onClick={onOpen}
       className="inner-lookbook-guide-card group relative overflow-hidden rounded-[1.75rem] border border-[#eaded6] bg-[#fffaf7] p-6 text-left shadow-[0_18px_40px_rgba(90,65,50,0.075)] transition duration-500 hover:-translate-y-1 sm:col-span-2"
     >
-      <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_16%,rgba(235,200,196,0.42),transparent_28%),radial-gradient(circle_at_86%_10%,rgba(255,248,244,0.9),transparent_32%),linear-gradient(135deg,rgba(255,250,247,0.92),rgba(248,239,233,0.68))]" />
-      <span className="pointer-events-none absolute -right-10 -top-12 h-40 w-40 rounded-full border border-[#e7cbc3]/70 bg-[#f4e3de]/42 blur-[1px] transition duration-700 group-hover:scale-105" />
-      <span className="pointer-events-none absolute -bottom-16 -left-10 h-44 w-44 rounded-full border border-[#eaded6]/80 bg-[#fff2ec]/62" />
       <span className="relative block">
         <span className="heading-micro block">{guide.eyebrow}</span>
         <span className="mt-3 block font-serif text-[2.35rem] leading-none text-[#8f6a63] md:text-[3rem]">
@@ -554,7 +549,7 @@ function LookbookMoodboard() {
             <button
               type="button"
               onClick={() => setSelectedGuide(null)}
-              className="inner-lookbook-close absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[var(--color-divider)]"
+              className="inner-lookbook-close absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[var(--color-divider)]"
             >
               Close
             </button>
@@ -605,7 +600,7 @@ function LookbookMoodboard() {
             <button
               type="button"
               onClick={() => setSelectedImage(null)}
-              className="inner-lookbook-close absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] backdrop-blur transition hover:border-[var(--color-divider)]"
+              className="inner-lookbook-close absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/88 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[var(--color-divider)]"
             >
               Close
             </button>
@@ -639,8 +634,8 @@ function LookbookMoodboard() {
 function InnerCircleContent() {
   const shouldReduceMotion = useReducedMotion();
   const heroReveal = (delay = 0, y = 16) => ({
-    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
-    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    initial: shouldReduceMotion ? false : { opacity: 0, y },
+    animate: { opacity: 1, y: 0 },
     transition: { duration: shouldReduceMotion ? 0 : 0.92, delay: shouldReduceMotion ? 0 : delay, ease: innerRevealEase },
   });
 
@@ -655,7 +650,6 @@ function InnerCircleContent() {
   return (
     <main className="inner-circle-page min-h-screen bg-[#fbf7f2] text-[#4f4641]">
       <section className="inner-circle-hero inner-editorial-panel relative isolate overflow-hidden px-6 pb-16 pt-20 text-center md:pb-20 md:pt-28">
-        <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_50%_20%,_rgba(232,174,168,0.10),_transparent_34%),radial-gradient(circle_at_18%_70%,_rgba(232,207,200,0.15),_transparent_30%),radial-gradient(circle_at_86%_68%,_rgba(255,248,244,0.28),_transparent_28%)]" />
         <div className="mx-auto max-w-4xl">
           <motion.p className="heading-micro mb-5" {...heroReveal(0, 10)}>
             INNER CIRCLE
@@ -853,7 +847,7 @@ export default function InnerCircleGate() {
 
         <form
           onSubmit={handleSubmit}
-          className="mt-9 w-full rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/82 p-6 shadow-[0_18px_45px_rgba(90,65,50,0.07)] backdrop-blur md:p-8"
+          className="mt-9 w-full rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/82 p-6 shadow-[0_18px_45px_rgba(90,65,50,0.07)] md:p-8"
         >
           <label className="grid gap-3 text-left">
             <span className="type-section-eyebrow">Passcode</span>

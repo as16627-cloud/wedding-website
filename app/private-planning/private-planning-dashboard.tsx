@@ -1308,7 +1308,7 @@ function TextAreaField({
 function PlanningCard({ children, className = "" }: { children: ReactNode; className?: string }) {
   return (
     <div
-      className={`rounded-[1.25rem] border border-[#eaded6] bg-[#fffaf7]/86 p-5 text-[#4f4641] shadow-[0_14px_34px_rgba(90,65,50,0.055)] backdrop-blur ${className}`}
+      className={`rounded-[1.25rem] border border-[#eaded6] bg-[#fffaf7] p-5 text-[#4f4641] shadow-[0_14px_34px_rgba(90,65,50,0.055)] ${className}`}
     >
       {children}
     </div>
@@ -1974,7 +1974,7 @@ function VendorDrawer({
   }
 
   return (
-    <div className="fixed inset-0 z-50 bg-[rgba(28,31,48,0.24)] backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 bg-[rgba(28,31,48,0.24)]">
       <div className="ml-auto flex h-full w-full max-w-2xl flex-col overflow-y-auto border-l border-[#eaded6] bg-[#fbf7f2] p-5 shadow-[-20px_0_60px_rgba(35,38,58,0.18)] sm:p-7">
         <div className="flex items-start justify-between gap-4">
           <div>
@@ -2694,7 +2694,7 @@ function TimelineTab({
   return (
     <div className="relative mx-auto max-w-4xl">
       {timelineToast && (
-        <div aria-live="polite" className="fixed bottom-5 left-1/2 z-50 w-[min(calc(100vw-2rem),32rem)] -translate-x-1/2 rounded-full border border-[#eaded6] bg-[#fffaf7]/95 px-5 py-3 shadow-[0_18px_38px_rgba(80,60,55,0.14)] backdrop-blur">
+        <div aria-live="polite" className="fixed bottom-5 left-1/2 z-50 w-[min(calc(100vw-2rem),32rem)] -translate-x-1/2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-5 py-3 shadow-[0_18px_38px_rgba(80,60,55,0.14)]">
           <div className="flex items-center justify-between gap-4">
             <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[#8f6a63]">Moved to Planning Wins</span>
             <button type="button" onClick={() => restoreTask(timelineToast.sectionId, timelineToast.taskId)} className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-navy)]">
@@ -4804,7 +4804,6 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
     <main className="private-planning-page min-h-screen bg-[#fbf7f2] px-5 py-8 text-[#4f4641] sm:px-6 lg:px-8">
       <section className="mx-auto max-w-7xl">
         <motion.header {...reveal} className="relative overflow-hidden rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/82 px-6 py-10 shadow-[0_18px_45px_rgba(90,65,50,0.06)] md:px-10 md:py-12">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_18%,rgba(232,174,168,0.14),transparent_32%),radial-gradient(circle_at_86%_70%,rgba(232,215,189,0.20),transparent_34%)]" />
           <div className="relative grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
             <div>
               <p className="heading-micro mb-4">Private Planning</p>
@@ -4836,7 +4835,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
           </div>
         </motion.header>
 
-        <div className="sticky top-0 z-20 -mx-5 mt-6 bg-[#fbf7f2]/92 px-5 py-4 backdrop-blur sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
+        <div className="sticky top-0 z-20 -mx-5 mt-6 bg-[#fbf7f2] px-5 py-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
           <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto rounded-full border border-[#eaded6] bg-[#fffaf7]/86 p-2 shadow-[0_10px_28px_rgba(90,65,50,0.045)]">
             {tabs.map((tab) => (
               <button

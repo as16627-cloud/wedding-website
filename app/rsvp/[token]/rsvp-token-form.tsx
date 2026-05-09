@@ -190,8 +190,8 @@ export default function TokenRsvpForm({ token }: { token: string }) {
   }, [guest]);
 
   const reveal = (delay = 0, y = 16) => ({
-    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
-    animate: { opacity: 1, y: 0, filter: "blur(0px)" },
+    initial: shouldReduceMotion ? false : { opacity: 0, y },
+    animate: { opacity: 1, y: 0 },
     transition: { duration: shouldReduceMotion ? 0 : 0.9, delay: shouldReduceMotion ? 0 : delay, ease: rsvpRevealEase },
   });
 

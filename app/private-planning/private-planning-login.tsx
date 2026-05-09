@@ -59,7 +59,7 @@ export default function PrivatePlanningLogin() {
 
         <form
           onSubmit={handleSubmit}
-          className="mt-9 w-full rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/86 p-6 shadow-[0_18px_45px_rgba(90,65,50,0.07)] backdrop-blur md:p-8"
+          className="mt-9 w-full rounded-[2rem] border border-[#eaded6] bg-[#fffaf7] p-6 shadow-[0_18px_45px_rgba(90,65,50,0.07)] md:p-8"
         >
           <label className="block text-left">
             <span className="mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-[#9a8780]">

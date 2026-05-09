@@ -504,9 +504,6 @@ function SoftSection({
       className={`editorial-panel mobile-invite-section relative overflow-hidden scroll-mt-24 bg-[#fbf7f2] px-6 py-24 md:py-32 ${className}`}
     >
       <SectionProgressCue step={panelStep} label={panelLabel} />
-      <div className="mobile-section-fade mobile-section-fade-top pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
-      <div className="mobile-section-fade mobile-section-fade-bottom pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_20%_18%,_rgba(232,174,168,0.11),_transparent_32%),radial-gradient(circle_at_82%_76%,_rgba(232,207,200,0.12),_transparent_34%)]" />
       <div className={`relative ${contentClassName}`}>{children}</div>
     </section>
   );
@@ -515,8 +512,8 @@ function SoftSection({
 function SectionHeading({ eyebrow, title, subtitle }: SectionHeadingProps) {
   const shouldReduceMotion = useReducedMotion();
   const reveal = (delay = 0, y = 18) => ({
-    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
-    whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
+    initial: shouldReduceMotion ? false : { opacity: 0, y },
+    whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, amount: 0.5 },
     transition: { duration: shouldReduceMotion ? 0 : 0.92, delay: shouldReduceMotion ? 0 : delay, ease: cinematicRevealEase },
   });
@@ -550,8 +547,8 @@ function FaqItem({ item, index }: { item: Faq; index: number }) {
 
   return (
     <motion.div
-      initial={shouldReduceMotion ? false : { opacity: 0, y: 18, filter: "blur(2px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+      initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.26 }}
       transition={{
         duration: shouldReduceMotion ? 0 : 0.86,
@@ -735,8 +732,6 @@ function VenueCarousel() {
             }`}
           />
         ))}
-        <div className="pointer-events-none absolute inset-0 bg-[rgba(230,210,190,0.08)]" />
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(0,0,0,0)_58%,_rgba(143,106,99,0.05)_100%)]" />
       </div>
 
       <button
@@ -1090,7 +1085,6 @@ export default function WeddingWebsiteStarter() {
   const rightGateRotateY = isHeroMobile ? 3 + 13 * mobileGateRevealProgress : 18;
   const houseFadeProgress = isHeroMobile ? mobileScrollProgress * 0.14 : heavyScrollProgress;
   const houseTranslateY = isHeroMobile ? 0 : -20 * 0.6 * heavyScrollProgress;
-  const backgroundWashOpacity = isHeroMobile ? mobileScrollProgress * 0.35 : visualScrollProgress;
   const heroCopyRevealReady =
     shouldReduceMotion || (hasMeasuredHeroViewport && (!isHeroMobile || isMobileHeroCopyVisible));
   const heroRevealKey = hasMeasuredHeroViewport ? (isHeroMobile ? "mobile" : "desktop") : "pending";
@@ -1132,7 +1126,6 @@ export default function WeddingWebsiteStarter() {
         textY: 0,
         namesY: 0,
         ctaY: 3,
-        blur: 1.5,
         delays: {
           eyebrow: 0,
           names: 0.24,
@@ -1151,7 +1144,6 @@ export default function WeddingWebsiteStarter() {
         textY: 0,
         namesY: 0,
         ctaY: 4,
-        blur: 4,
         delays: {
           eyebrow: 0,
           names: 0.24,
@@ -1168,8 +1160,8 @@ export default function WeddingWebsiteStarter() {
     ease: invitationRevealEase,
   });
   const cinematicRevealMotion = (delay = 0, y = 18, duration = 0.92, amount = 0.28) => ({
-    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
-    whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
+    initial: shouldReduceMotion ? false : { opacity: 0, y },
+    whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, amount },
     transition: { duration: shouldReduceMotion ? 0 : duration, delay: shouldReduceMotion ? 0 : delay, ease: cinematicRevealEase },
   });
@@ -1183,12 +1175,11 @@ export default function WeddingWebsiteStarter() {
     delay = 0,
     y = heroRevealTiming.textY,
     duration = heroRevealTiming.textDuration,
-    blur = heroRevealTiming.blur,
   ) => ({
-    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: `blur(${blur}px)` },
+    initial: shouldReduceMotion ? false : { opacity: 0, y },
     animate: heroCopyRevealReady
-      ? { opacity: 1, y: 0, filter: "blur(0px)" }
-      : { opacity: 0, y, filter: `blur(${blur}px)` },
+      ? { opacity: 1, y: 0 }
+      : { opacity: 0, y },
     transition: heroRevealTransition(delay, duration),
   });
   const heroNamesRevealMotion = {
@@ -1218,8 +1209,8 @@ export default function WeddingWebsiteStarter() {
     ),
   };
   const dressRevealMotion = (delay = 0, y = 16) => ({
-    initial: shouldReduceMotion ? false : { opacity: 0, y, filter: "blur(2px)" },
-    whileInView: { opacity: 1, y: 0, filter: "blur(0px)" },
+    initial: shouldReduceMotion ? false : { opacity: 0, y },
+    whileInView: { opacity: 1, y: 0 },
     viewport: { once: true, amount: 0.18 },
     transition: { duration: shouldReduceMotion ? 0 : 0.92, delay: shouldReduceMotion ? 0 : delay, ease: cinematicRevealEase },
   });
@@ -1231,7 +1222,7 @@ export default function WeddingWebsiteStarter() {
         aria-pressed={isAmbientAudioOn}
         aria-label={isAmbientAudioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
         onClick={handleAmbientAudioToggle}
-        className={`ambient-audio-toggle type-button fixed bottom-4 right-4 z-50 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[rgba(232,207,200,0.78)] bg-[#fffaf7]/76 px-3 py-1.5 text-[var(--color-navy)] shadow-[0_8px_24px_rgba(90,65,50,0.08)] backdrop-blur-[6px] hover:border-[rgba(31,42,68,0.22)] hover:bg-[#fffdf9]/88 hover:text-[var(--color-navy-dark)] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.45)] sm:bottom-6 sm:right-6 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 ${audioToggleRevealClass} ${audioToggleMotionClass}`}
+        className={`ambient-audio-toggle type-button fixed bottom-4 right-4 z-50 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[rgba(232,207,200,0.78)] bg-[#fffaf7]/76 px-3 py-1.5 text-[var(--color-navy)] shadow-[0_8px_24px_rgba(90,65,50,0.08)] hover:border-[rgba(31,42,68,0.22)] hover:bg-[#fffdf9]/88 hover:text-[var(--color-navy-dark)] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.45)] sm:bottom-6 sm:right-6 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 ${audioToggleRevealClass} ${audioToggleMotionClass}`}
       >
         {isAmbientAudioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
         <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
@@ -1243,10 +1234,7 @@ export default function WeddingWebsiteStarter() {
         className="editorial-panel hero-section relative isolate overflow-visible bg-[#fbf7f2] text-[var(--color-body)]"
       >
         <div className="hero-inner sticky top-0 h-screen overflow-hidden [perspective:1500px]">
-        <div className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,#f4ebe4_0%,#fff9f4_38%,#f8eee6_70%,#fbf7f2_100%)]" />
-        <div className="pointer-events-none absolute inset-0 z-[1] bg-[linear-gradient(180deg,rgba(143,106,99,0.07)_0%,rgba(255,250,246,0.02)_36%,rgba(255,255,255,0.44)_100%)]" />
-        <div className="pointer-events-none absolute inset-0 z-[2] bg-[radial-gradient(ellipse_at_center,transparent_44%,rgba(143,106,99,0.06)_100%)]" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-[-1px] z-[3] h-[40vh] bg-[radial-gradient(ellipse_at_center,rgba(255,255,255,0.06)_0%,rgba(251,247,242,0.50)_54%,#fbf7f2_90%)]" />
+        <div className="absolute inset-0 -z-10 bg-[#fbf7f2]" />
         <div
           className="hero-estate-layer hero-scroll-layer pointer-events-none absolute inset-x-0 bottom-[-3vh] z-[4] mx-auto h-[55vh] min-h-[330px] max-w-[1240px] translate-y-[11%] px-4 sm:h-[58vh] md:min-h-[390px] lg:h-[61vh]"
           style={{
@@ -1316,14 +1304,14 @@ export default function WeddingWebsiteStarter() {
               aria-label={isMobileNavOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={isMobileNavOpen}
               onClick={() => setIsMobileNavOpen((isOpen) => !isOpen)}
-              className="mobile-nav-toggle absolute top-5 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(232,207,200,0.75)] bg-[#fffaf7]/74 text-[var(--color-navy)] shadow-[0_10px_24px_rgba(106,73,58,0.06)] backdrop-blur-md transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[rgba(31,42,68,0.22)] hover:bg-[#fffdf9] md:hidden"
+              className="mobile-nav-toggle absolute top-5 inline-flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(232,207,200,0.75)] bg-[#fffaf7]/74 text-[var(--color-navy)] shadow-[0_10px_24px_rgba(106,73,58,0.06)] transition duration-300 ease-out hover:-translate-y-[1px] hover:border-[rgba(31,42,68,0.22)] hover:bg-[#fffdf9] md:hidden"
             >
               {isMobileNavOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             </button>
           </div>
 
           {isMobileNavOpen && (
-            <div className="mobile-nav-panel absolute left-5 top-[82px] z-50 w-[calc(100vw-2.5rem)] border-y border-[rgba(232,207,200,0.55)] bg-[#fffaf7]/92 px-5 py-5 shadow-[0_16px_34px_rgba(106,73,58,0.10)] backdrop-blur-md md:hidden">
+            <div className="mobile-nav-panel absolute left-5 top-[82px] z-50 w-[calc(100vw-2.5rem)] border-y border-[rgba(232,207,200,0.55)] bg-[#fffaf7]/92 px-5 py-5 shadow-[0_16px_34px_rgba(106,73,58,0.10)] md:hidden">
               <p className="mobile-nav-kicker">Invitation sections</p>
               <div className="grid gap-1.5">
                 {mobileEditorialNavItems.map((item) => (
@@ -1384,13 +1372,6 @@ export default function WeddingWebsiteStarter() {
           </>
         )}
 
-        <div className="hero-bottom-fade pointer-events-none absolute inset-x-0 bottom-0 z-20 h-[36vh] bg-[linear-gradient(to_bottom,transparent_0%,rgba(251,247,242,0.56)_64%,#fbf7f2_100%)]" />
-        <div
-          className="hero-scroll-layer pointer-events-none absolute inset-0 z-[22] bg-[linear-gradient(to_bottom,rgba(255,255,255,0)_40%,rgba(251,247,242,1)_100%)]"
-          style={{ opacity: backgroundWashOpacity }}
-        />
-        <div className="hero-mobile-depth-overlay pointer-events-none absolute inset-0 z-[23]" />
-
         <div className="hero-content relative z-30 mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-6 pb-[25vh] pt-[22vh] text-center sm:px-8 sm:pb-[25vh] md:pt-[21vh] lg:pb-[26vh]">
           <div key={heroRevealKey} className="hero-copy max-w-4xl">
             <motion.p
@@ -1443,7 +1424,6 @@ export default function WeddingWebsiteStarter() {
                   heroRevealTiming.delays.cta,
                   heroRevealTiming.ctaY,
                   heroRevealTiming.ctaDuration,
-                  heroRevealTiming.blur,
                 )}
               >
                 <a
@@ -1466,14 +1446,12 @@ export default function WeddingWebsiteStarter() {
                 heroRevealTiming.delays.scrollCue,
                 0,
                 heroRevealTiming.textDuration * 0.78,
-                heroRevealTiming.blur,
               )}
             >
               <span />
             </motion.a>
           </div>
         </div>
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-24 bg-gradient-to-t from-[#fbf7f2] to-transparent" />
         </div>
       </section>
 
@@ -1554,8 +1532,8 @@ export default function WeddingWebsiteStarter() {
           ].map((card, index) => (
             <motion.div
               key={card.title}
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 18, filter: "blur(2px)" }}
-              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.24 }}
               transition={{
                 duration: shouldReduceMotion ? 0 : 0.9,
@@ -1784,8 +1762,8 @@ export default function WeddingWebsiteStarter() {
           {itinerary.map((item, index) => (
             <motion.div
               key={item.title}
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 16, filter: "blur(2px)" }}
-              whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{
                 duration: shouldReduceMotion ? 0 : 0.86,
@@ -1867,7 +1845,6 @@ export default function WeddingWebsiteStarter() {
             {...cinematicRevealMotion(0.22, 18, 0.95, 0.22)}
           >
             <div className="relative isolate h-full">
-              <div className="absolute -inset-8 -z-10 rounded-[3rem] bg-[radial-gradient(circle_at_center,_rgba(232,207,200,0.22),_rgba(255,248,244,0.14)_44%,_transparent_72%)] blur-3xl" />
               <VenueCarousel />
             </div>
             <div className="mx-auto flex h-full w-full max-w-[480px] md:max-w-none">
@@ -1907,12 +1884,11 @@ export default function WeddingWebsiteStarter() {
           </motion.div>
 
           <motion.div className="card-luxe-map card-luxe-hover relative mt-12" {...cinematicRevealMotion(0.12, 14, 0.9, 0.18)}>
-            <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-28 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3384.9999!2d115.9905802!3d-31.8777983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2a32b77920209d99%3A0xeb200b707ad3d95d!2sCaversham%20House%2C%20141%20Caversham%20Ave%2C%20Caversham%20WA%206055!5e0!3m2!1sen!2sau!4v1620000000000"
               width="100%"
               height="450"
-              className="block saturate-[0.72] contrast-[0.96] blur-[0.15px]"
+              className="block saturate-[0.72] contrast-[0.96]"
               style={{ border: 0 }}
               allowFullScreen
               loading="lazy"
@@ -1941,7 +1917,6 @@ export default function WeddingWebsiteStarter() {
               </div>
 
               <div className="venue-mobile-carousel relative isolate">
-                <div className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-[radial-gradient(circle_at_center,_rgba(232,207,200,0.18),_rgba(255,248,244,0.12)_45%,_transparent_72%)] blur-2xl" />
                 <VenueCarousel />
               </div>
             </div>
@@ -1983,12 +1958,11 @@ export default function WeddingWebsiteStarter() {
               </div>
 
               <div id="venue-map" className="card-luxe-map card-luxe-hover venue-mobile-map relative">
-                <div className="pointer-events-none absolute inset-x-0 top-0 z-10 h-20 bg-gradient-to-b from-[#fbf7f2] to-transparent" />
                 <iframe
                   src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3384.9999!2d115.9905802!3d-31.8777983!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2a32b77920209d99%3A0xeb200b707ad3d95d!2sCaversham%20House%2C%20141%20Caversham%20Ave%2C%20Caversham%20WA%206055!5e0!3m2!1sen!2sau!4v1620000000000"
                   width="100%"
                   height="450"
-                  className="block saturate-[0.72] contrast-[0.96] blur-[0.15px]"
+                  className="block saturate-[0.72] contrast-[0.96]"
                   style={{ border: 0 }}
                   allowFullScreen
                   loading="lazy"

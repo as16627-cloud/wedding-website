@@ -1573,7 +1573,7 @@ export default function PrivatePlanningGuestsTab() {
         )}
 
         {drawerMode !== "closed" && (
-          <div className="fixed inset-0 z-50 flex justify-end bg-[#3f302b]/24 backdrop-blur-sm">
+          <div className="fixed inset-0 z-50 flex justify-end bg-[#3f302b]/24">
             <button
               type="button"
               aria-label="Close guest drawer"
