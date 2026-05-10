@@ -82,11 +82,18 @@ const vendorCategories = [
   "DJ / Entertainment",
   "Cake",
   "Hair & Makeup",
+  "Bride wedding dress",
+  "Groom Suit",
+  "Bridesmaid Dress",
+  "Bridesmaid Other",
+  "Wedding Band - Groom",
+  "Wedding Band - Bride",
   "Stationery",
   "Decor / Hire",
   "Transport",
   "Accommodation",
   "Audio Guestbook",
+  "Other",
 ] as const;
 const vendorStatuses = [
   "Researching",
@@ -1582,7 +1589,22 @@ function getBudgetCategoryIdForVendor(vendor: Vendor, categories = defaultBudget
       return true;
     }
 
-    if (/attire|beauty/.test(name) && ["Hair & Makeup"].includes(vendor.category)) {
+    if (
+      /attire|beauty/.test(name) &&
+      [
+        "Hair & Makeup",
+        "Bride wedding dress",
+        "Groom Suit",
+        "Bridesmaid Dress",
+        "Bridesmaid Other",
+        "Wedding Band - Groom",
+        "Wedding Band - Bride",
+      ].includes(vendor.category)
+    ) {
+      return true;
+    }
+
+    if (/contingency|misc/.test(name) && vendor.category === "Other") {
       return true;
     }
 
