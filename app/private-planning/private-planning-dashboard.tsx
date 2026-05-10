@@ -309,7 +309,6 @@ type PlanningNotes = {
 type VendorForm = Omit<Vendor, "id" | "communicationLog">;
 type EventForm = Omit<CalendarEvent, "id">;
 type TaskForm = Omit<PlanningTask, "id">;
-type BudgetCategoryForm = Omit<BudgetCategory, "id">;
 type PaymentRecordForm = Omit<PaymentRecord, "id">;
 type LogForm = Omit<CommunicationLog, "id">;
 type RunsheetItemForm = Omit<RunsheetItem, "id">;
@@ -344,12 +343,6 @@ const emptyEventForm: EventForm = {
   date: "2026-05-20",
   type: "Meeting",
   vendorId: "",
-  notes: "",
-};
-
-const emptyBudgetCategoryForm: BudgetCategoryForm = {
-  name: "",
-  targetBudget: "",
   notes: "",
 };
 
@@ -468,17 +461,71 @@ const defaultVendors: Vendor[] = [
   },
 ];
 
-const defaultBudgetCategories: BudgetCategory[] = [
-  { id: "budget-venue-catering", name: "Venue & Catering", targetBudget: "", notes: "Caversham House, food, beverage, and service costs." },
-  { id: "budget-photo-video", name: "Photography & Videography", targetBudget: "", notes: "Photo, film, albums, coverage, and pre-wedding shoot costs." },
-  { id: "budget-florals-styling", name: "Florals & Styling", targetBudget: "", notes: "Ceremony florals, reception styling, hire items, signage, and decor." },
-  { id: "budget-attire-beauty", name: "Attire & Beauty", targetBudget: "", notes: "Dress, suits, alterations, hair, makeup, accessories, and getting-ready items." },
-  { id: "budget-entertainment", name: "Entertainment", targetBudget: "", notes: "Ceremony music, DJ, band, audio guestbook, and dance-floor details." },
-  { id: "budget-stationery-details", name: "Stationery & Details", targetBudget: "", notes: "Invitations, vow cards, guest book, cake knife, signing pens, and small details." },
-  { id: "budget-transport-travel", name: "Transport & Travel", targetBudget: "", notes: "Cars, accommodation, guest travel notes, and end-of-night transport." },
-  { id: "budget-gifts-favours", name: "Gifts & Favours", targetBudget: "", notes: "Bridal party gifts, bonbonniere, thank-you gifts, and packaging." },
-  { id: "budget-contingency", name: "Contingency", targetBudget: "", notes: "Buffer for unexpected wedding-week or supplier costs." },
-];
+const budgetCategoryNotesByVendorCategory: Record<VendorCategory, string> = {
+  Venue: "Venue, catering, access, service, and venue-led logistics.",
+  Celebrant: "Celebrant, ceremony paperwork, rehearsal, and ceremony support.",
+  Photography: "Photography coverage, albums, portraits, and pre-wedding shoot costs.",
+  Videography: "Film coverage, edits, reels, and cinematic wedding-day capture.",
+  Florist: "Bouquets, ceremony florals, reception florals, and floral delivery.",
+  "DJ / Entertainment": "Ceremony music, cocktail hour, reception entertainment, and dance-floor details.",
+  Cake: "Wedding cake, delivery, setup, cutting details, and dessert styling.",
+  "Hair & Makeup": "Hair, makeup, trials, touch-ups, and beauty-related preparation.",
+  "Bride wedding dress": "Wedding dress, alterations, veil, accessories, and bridal outfit details.",
+  "Groom Suit": "Groom suit, tailoring, shoes, accessories, and formalwear details.",
+  "Bridesmaid Dress": "Bridesmaid dresses, sizing, alterations, and dress delivery.",
+  "Bridesmaid Other": "Bridal party robes, gifts, accessories, and getting-ready items.",
+  "Wedding Band - Groom": "Groom wedding band, sizing, engraving, and ring care.",
+  "Wedding Band - Bride": "Bride wedding band, sizing, engraving, and ring care.",
+  Stationery: "Invitations, signage, vow cards, menus, guest book, and printed details.",
+  "Decor / Hire": "Furniture hire, ceremony setup, reception styling, lighting, and decor.",
+  Transport: "Wedding cars, guest transport, transfers, and end-of-night logistics.",
+  Accommodation: "Accommodation, room blocks, wedding-week stays, and travel support.",
+  "Audio Guestbook": "Audio guestbook hire, delivery, setup, and collection.",
+  Other: "Anything that does not fit a vendor category yet.",
+};
+
+const legacyBudgetCategoryFallbacks: Record<string, VendorCategory> = {
+  "budget-venue-catering": "Venue",
+  "budget-photo-video": "Photography",
+  "budget-florals-styling": "Florist",
+  "budget-attire-beauty": "Bride wedding dress",
+  "budget-entertainment": "DJ / Entertainment",
+  "budget-stationery-details": "Stationery",
+  "budget-transport-travel": "Transport",
+  "budget-gifts-favours": "Bridesmaid Other",
+  "budget-contingency": "Other",
+};
+
+const legacyBudgetCategoryNameFallbacks: Record<string, VendorCategory> = {
+  "venue & catering": "Venue",
+  "photography & videography": "Photography",
+  "florals & styling": "Florist",
+  "attire & beauty": "Bride wedding dress",
+  entertainment: "DJ / Entertainment",
+  "stationery & details": "Stationery",
+  "transport & travel": "Transport",
+  "gifts & favours": "Bridesmaid Other",
+  contingency: "Other",
+};
+
+function slugifyBudgetCategory(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
+function getBudgetCategoryIdForVendorCategory(category: VendorCategory) {
+  return `budget-${slugifyBudgetCategory(category)}`;
+}
+
+const defaultBudgetCategories: BudgetCategory[] = vendorCategories.map((category) => ({
+  id: getBudgetCategoryIdForVendorCategory(category),
+  name: category,
+  targetBudget: "",
+  notes: budgetCategoryNotesByVendorCategory[category],
+}));
 
 const defaultCalendarEvents: CalendarEvent[] = [
   azazieBridesmaidPopupEvent,
@@ -1567,63 +1614,76 @@ function normalizeBudgetCategories(value: unknown): BudgetCategory[] {
     .filter((category): category is Partial<BudgetCategory> & Record<string, unknown> => typeof category === "object" && category !== null)
     .map((category) => normalizeBudgetCategory(category))
     .filter((category) => category.name.trim());
-  const existingNames = new Set(normalized.map((category) => normalizeTimelineKey(category.name)));
-  const missingDefaults = defaultBudgetCategories.filter((category) => !existingNames.has(normalizeTimelineKey(category.name)));
+  const defaultIds = new Set(defaultBudgetCategories.map((category) => category.id));
+  const defaultNames = new Set(defaultBudgetCategories.map((category) => normalizeTimelineKey(category.name)));
+  const legacyIds = new Set(Object.keys(legacyBudgetCategoryFallbacks));
+  const legacyNames = new Set(Object.keys(legacyBudgetCategoryNameFallbacks).map(normalizeTimelineKey));
+  const categoriesById = new Map(normalized.map((category) => [category.id, category]));
+  const categoriesByName = new Map(normalized.map((category) => [normalizeTimelineKey(category.name), category]));
+  const vendorCategoryDefaults = defaultBudgetCategories.map((defaultCategory) => {
+    const saved = categoriesById.get(defaultCategory.id) ?? categoriesByName.get(normalizeTimelineKey(defaultCategory.name));
 
-  return [...normalized, ...missingDefaults];
+    return {
+      ...defaultCategory,
+      targetBudget: saved?.targetBudget ?? defaultCategory.targetBudget,
+      notes: saved?.notes || defaultCategory.notes,
+    };
+  });
+  const customCategories = normalized.filter((category) => {
+    const nameKey = normalizeTimelineKey(category.name);
+
+    return !defaultIds.has(category.id) && !defaultNames.has(nameKey) && !legacyIds.has(category.id) && !legacyNames.has(nameKey);
+  });
+
+  return [...vendorCategoryDefaults, ...customCategories];
 }
 
 function getBudgetCategoryIdForVendor(vendor: Vendor, categories = defaultBudgetCategories) {
-  const candidate = categories.find((category) => {
-    const name = category.name.toLowerCase();
+  const categoryId = getBudgetCategoryIdForVendorCategory(vendor.category);
+  const candidate = categories.find((category) => category.id === categoryId || normalizeTimelineKey(category.name) === normalizeTimelineKey(vendor.category));
 
-    if (/venue|catering/.test(name) && vendor.category === "Venue") {
-      return true;
-    }
+  return candidate?.id ?? categoryId;
+}
 
-    if (/photo/.test(name) && ["Photography", "Videography"].includes(vendor.category)) {
-      return true;
-    }
+function getFallbackVendorCategoryForBudgetCategory(categoryId: string, categories: BudgetCategory[]): VendorCategory | "" {
+  if (legacyBudgetCategoryFallbacks[categoryId]) {
+    return legacyBudgetCategoryFallbacks[categoryId];
+  }
 
-    if (/floral|styling/.test(name) && ["Florist", "Decor / Hire"].includes(vendor.category)) {
-      return true;
-    }
+  const category = categories.find((candidate) => candidate.id === categoryId);
+  const nameKey = normalizeTimelineKey(category?.name ?? "");
 
-    if (
-      /attire|beauty/.test(name) &&
-      [
-        "Hair & Makeup",
-        "Bride wedding dress",
-        "Groom Suit",
-        "Bridesmaid Dress",
-        "Bridesmaid Other",
-        "Wedding Band - Groom",
-        "Wedding Band - Bride",
-      ].includes(vendor.category)
-    ) {
-      return true;
-    }
+  if (legacyBudgetCategoryNameFallbacks[nameKey]) {
+    return legacyBudgetCategoryNameFallbacks[nameKey];
+  }
 
-    if (/contingency|misc/.test(name) && vendor.category === "Other") {
-      return true;
-    }
+  const exactVendorCategory = vendorCategories.find((vendorCategory) => normalizeTimelineKey(vendorCategory) === nameKey);
 
-    if (/entertainment/.test(name) && ["DJ / Entertainment", "Audio Guestbook"].includes(vendor.category)) {
-      return true;
-    }
+  return exactVendorCategory ?? "";
+}
 
-    if (/stationery/.test(name) && ["Stationery", "Cake"].includes(vendor.category)) {
-      return true;
-    }
+function normalizeBudgetCategoryIdForRecord(rawCategoryId: unknown, vendorId: string, vendors: Vendor[], categories: BudgetCategory[]) {
+  const vendor = vendors.find((candidate) => candidate.id === vendorId);
 
-    if (/transport|travel/.test(name) && ["Transport", "Accommodation"].includes(vendor.category)) {
-      return true;
-    }
+  if (vendor) {
+    return getBudgetCategoryIdForVendor(vendor, categories);
+  }
 
-    return name.includes(vendor.category.toLowerCase());
-  });
+  const categoryId = typeof rawCategoryId === "string" ? rawCategoryId : "";
 
-  return candidate?.id ?? "";
+  if (!categoryId) {
+    return "";
+  }
+
+  const existingCategory = categories.find((category) => category.id === categoryId);
+
+  if (existingCategory) {
+    return existingCategory.id;
+  }
+
+  const fallbackVendorCategory = getFallbackVendorCategoryForBudgetCategory(categoryId, categories);
+
+  return fallbackVendorCategory ? getBudgetCategoryIdForVendorCategory(fallbackVendorCategory) : categoryId;
 }
 
 function createLegacyPaymentRecordsFromVendors(vendors: Vendor[], categories = defaultBudgetCategories): PaymentRecord[] {
@@ -1654,12 +1714,14 @@ function createLegacyPaymentRecordsFromVendors(vendors: Vendor[], categories = d
   }, []);
 }
 
-function normalizePaymentRecord(raw: Partial<PaymentRecord> & Record<string, unknown>): PaymentRecord {
+function normalizePaymentRecord(raw: Partial<PaymentRecord> & Record<string, unknown>, vendors: Vendor[], categories: BudgetCategory[]): PaymentRecord {
+  const vendorId = typeof raw.vendorId === "string" ? raw.vendorId : "";
+
   return {
     id: typeof raw.id === "string" ? raw.id : createId("payment"),
     title: typeof raw.title === "string" ? raw.title : "",
-    vendorId: typeof raw.vendorId === "string" ? raw.vendorId : "",
-    budgetCategoryId: typeof raw.budgetCategoryId === "string" ? raw.budgetCategoryId : "",
+    vendorId,
+    budgetCategoryId: normalizeBudgetCategoryIdForRecord(raw.budgetCategoryId, vendorId, vendors, categories),
     amount: typeof raw.amount === "string" ? raw.amount : String(raw.amount ?? ""),
     dueDate: normalizeDateValue(raw.dueDate),
     paidDate: normalizeDateValue(raw.paidDate),
@@ -1676,18 +1738,20 @@ function normalizePayments(value: unknown, vendors: Vendor[], categories: Budget
 
   return value
     .filter((payment): payment is Partial<PaymentRecord> & Record<string, unknown> => typeof payment === "object" && payment !== null)
-    .map((payment) => normalizePaymentRecord(payment))
+    .map((payment) => normalizePaymentRecord(payment, vendors, categories))
     .filter((payment) => payment.title.trim());
 }
 
-function normalizePlanningFileRecord(raw: Partial<PlanningFileRecord> & Record<string, unknown>): PlanningFileRecord {
+function normalizePlanningFileRecord(raw: Partial<PlanningFileRecord> & Record<string, unknown>, vendors: Vendor[], categories: BudgetCategory[]): PlanningFileRecord {
+  const vendorId = typeof raw.vendorId === "string" ? raw.vendorId : "";
+
   return {
     id: typeof raw.id === "string" ? raw.id : createId("file-record"),
     fileId: typeof raw.fileId === "string" ? raw.fileId : "",
     originalFilename: typeof raw.originalFilename === "string" ? raw.originalFilename : "",
     fileType: isOneOf(raw.fileType, documentTypes) ? raw.fileType : "Other",
-    vendorId: typeof raw.vendorId === "string" ? raw.vendorId : "",
-    budgetCategoryId: typeof raw.budgetCategoryId === "string" ? raw.budgetCategoryId : "",
+    vendorId,
+    budgetCategoryId: normalizeBudgetCategoryIdForRecord(raw.budgetCategoryId, vendorId, vendors, categories),
     extractedAmount: typeof raw.extractedAmount === "string" ? raw.extractedAmount : String(raw.extractedAmount ?? ""),
     documentNumber: typeof raw.documentNumber === "string" ? raw.documentNumber : "",
     issueDate: normalizeDateValue(raw.issueDate),
@@ -1699,11 +1763,11 @@ function normalizePlanningFileRecord(raw: Partial<PlanningFileRecord> & Record<s
   };
 }
 
-function normalizeFileRecords(value: unknown): PlanningFileRecord[] {
+function normalizeFileRecords(value: unknown, vendors: Vendor[] = [], categories: BudgetCategory[] = defaultBudgetCategories): PlanningFileRecord[] {
   return Array.isArray(value)
     ? value
         .filter((record): record is Partial<PlanningFileRecord> & Record<string, unknown> => typeof record === "object" && record !== null)
-        .map((record) => normalizePlanningFileRecord(record))
+        .map((record) => normalizePlanningFileRecord(record, vendors, categories))
         .filter((record) => record.fileId)
     : [];
 }
@@ -2209,7 +2273,12 @@ function amountFromExtraction(document?: PrivatePlanningExtractedDocument | null
   return document?.total !== null && document?.total !== undefined ? String(document.total) : "";
 }
 
-function getFileRecord(fileRecords: PlanningFileRecord[], file: PrivatePlanningFileDto) {
+function getFileRecord(
+  fileRecords: PlanningFileRecord[],
+  file: PrivatePlanningFileDto,
+  vendors: Vendor[] = [],
+  categories: BudgetCategory[] = defaultBudgetCategories,
+) {
   return (
     fileRecords.find((record) => record.fileId === file.id) ??
     normalizePlanningFileRecord({
@@ -2219,7 +2288,7 @@ function getFileRecord(fileRecords: PlanningFileRecord[], file: PrivatePlanningF
       vendorId: file.vendorId ?? "",
       linkedPaymentId: file.paymentId ?? "",
       paymentStatus: paymentStatusForDocumentType(inferDocumentTypeFromFilename(file.originalFilename)),
-    })
+    }, vendors, categories)
   );
 }
 
@@ -2539,7 +2608,6 @@ function BudgetTab({
   setPayments: (payments: PaymentRecord[]) => void;
   fileRecords: PlanningFileRecord[];
 }) {
-  const [categoryForm, setCategoryForm] = useState<BudgetCategoryForm>(emptyBudgetCategoryForm);
   const [paymentForm, setPaymentForm] = useState<PaymentRecordForm>(emptyPaymentRecordForm);
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const activePayments = payments.filter(isPaymentActive);
@@ -2552,9 +2620,25 @@ function BudgetTab({
     .filter((payment) => !isPaymentPaid(payment) && payment.dueDate)
     .sort((first, second) => dateSortValue(first.dueDate).localeCompare(dateSortValue(second.dueDate)));
   const categorySummaries = budgetCategories.map((category) => {
-    const categoryPayments = activePayments.filter((payment) => payment.budgetCategoryId === category.id);
-    const categoryFiles = fileRecords.filter((record) => record.budgetCategoryId === category.id);
-    const linkedVendorIds = Array.from(new Set([...categoryPayments.map((payment) => payment.vendorId), ...categoryFiles.map((record) => record.vendorId)].filter(Boolean)));
+    const categoryVendorIds = vendors
+      .filter((vendor) => getBudgetCategoryIdForVendor(vendor, budgetCategories) === category.id)
+      .map((vendor) => vendor.id);
+    const categoryPayments = activePayments.filter((payment) => payment.budgetCategoryId === category.id || categoryVendorIds.includes(payment.vendorId));
+    const categoryFiles = fileRecords.filter((record) => record.budgetCategoryId === category.id || categoryVendorIds.includes(record.vendorId));
+    const linkedVendorIds = Array.from(new Set([...categoryVendorIds, ...categoryPayments.map((payment) => payment.vendorId), ...categoryFiles.map((record) => record.vendorId)].filter(Boolean)));
+    const vendorSummaries = linkedVendorIds.map((vendorId) => {
+      const vendorPayments = categoryPayments.filter((payment) => payment.vendorId === vendorId);
+      const committed = vendorPayments.reduce((total, payment) => total + getPaymentAmount(payment), 0);
+      const paid = vendorPayments.reduce((total, payment) => total + getPaidAmount(payment), 0);
+      const due = vendorPayments.reduce((total, payment) => total + getUnpaidAmount(payment), 0);
+
+      return {
+        vendorId,
+        committed,
+        paid,
+        due,
+      };
+    });
     const target = parseMoney(category.targetBudget);
     const committed = categoryPayments.reduce((total, payment) => total + getPaymentAmount(payment), 0);
     const paid = categoryPayments.reduce((total, payment) => total + getPaidAmount(payment), 0);
@@ -2563,7 +2647,7 @@ function BudgetTab({
     const spendPercent = target > 0 ? Math.min((committed / target) * 100, 120) : committed > 0 ? 100 : 0;
     const paymentPercent = committed > 0 ? Math.min((paid / committed) * 100, 100) : 0;
     const isPaid = categoryPayments.length > 0 && categoryPayments.every(isPaymentPaid);
-    const status = isPaid ? "Paid" : target > 0 && committed > target ? "Over budget" : target > 0 && committed <= target * 0.85 ? "Under budget" : "On track";
+    const status = linkedVendorIds.length === 0 && committed === 0 ? "No records" : isPaid ? "Paid" : target > 0 && committed > target ? "Over budget" : target > 0 && committed <= target * 0.85 ? "Under budget" : "On track";
     const tone: "neutral" | "rose" | "sage" | "champagne" | "navy" =
       status === "Paid" ? "navy" : status === "Over budget" ? "rose" : status === "Under budget" ? "sage" : "neutral";
 
@@ -2572,6 +2656,7 @@ function BudgetTab({
       categoryPayments,
       categoryFiles,
       linkedVendorIds,
+      vendorSummaries,
       target,
       committed,
       paid,
@@ -2582,35 +2667,22 @@ function BudgetTab({
       status,
       tone,
     };
+  }).sort((first, second) => {
+    const firstActive = first.linkedVendorIds.length + first.categoryPayments.length + first.categoryFiles.length + (first.target > 0 ? 1 : 0);
+    const secondActive = second.linkedVendorIds.length + second.categoryPayments.length + second.categoryFiles.length + (second.target > 0 ? 1 : 0);
+
+    return secondActive - firstActive;
   });
   const overBudgetCategories = categorySummaries.filter((summary) => summary.status === "Over budget");
   const paidVendorCount = Array.from(new Set(activePayments.filter(isPaymentPaid).map((payment) => payment.vendorId).filter(Boolean))).length;
+  const unpaidVendorCount = Array.from(new Set(activePayments.filter((payment) => getUnpaidAmount(payment) > 0).map((payment) => payment.vendorId).filter(Boolean))).length;
+  const activeVendorCategoryCount = categorySummaries.filter((summary) => summary.linkedVendorIds.length > 0 || summary.committed > 0 || summary.target > 0).length;
   const budgetUsedPercent = totalTarget > 0 ? Math.min((committedTotal / totalTarget) * 100, 100) : 0;
   const highestSpendingCategories = [...categorySummaries].sort((first, second) => second.committed - first.committed).slice(0, 3);
   const upcomingLargePayments = upcomingPayments.filter((payment) => getPaymentAmount(payment) >= 1000).slice(0, 3);
 
-  function addCategory(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!categoryForm.name.trim()) {
-      return;
-    }
-
-    setBudgetCategories([...budgetCategories, { ...categoryForm, id: createId("budget") }]);
-    setCategoryForm(emptyBudgetCategoryForm);
-  }
-
   function updateCategory(categoryId: string, patch: Partial<BudgetCategory>) {
     setBudgetCategories(budgetCategories.map((category) => (category.id === categoryId ? { ...category, ...patch } : category)));
-  }
-
-  function deleteCategory(categoryId: string) {
-    if (payments.some((payment) => payment.budgetCategoryId === categoryId) || fileRecords.some((record) => record.budgetCategoryId === categoryId)) {
-      window.alert("This category has linked payments or files. Move those records before deleting it.");
-      return;
-    }
-
-    setBudgetCategories(budgetCategories.filter((category) => category.id !== categoryId));
   }
 
   function submitPayment(event: FormEvent<HTMLFormElement>) {
@@ -2647,12 +2719,12 @@ function BudgetTab({
   }
 
   const summaryCards = [
-    { label: "Total Budget", value: formatMoney(String(totalTarget)), detail: "Across all categories", icon: CircleDollarSign, tone: "champagne" as const },
-    { label: "Total Spent", value: formatMoney(String(paidTotal)), detail: `${formatMoney(String(committedTotal))} committed`, icon: CheckCircle2, tone: "sage" as const },
-    { label: "Remaining Budget", value: formatMoney(String(Math.max(varianceTotal, 0))), detail: varianceTotal < 0 ? `${formatMoney(String(Math.abs(varianceTotal)))} over target` : "Before unpaid commitments", icon: ClipboardList, tone: varianceTotal < 0 ? ("rose" as const) : ("neutral" as const) },
-    { label: "Upcoming Payments", value: formatMoney(String(unpaidTotal)), detail: `${upcomingPayments.length} scheduled`, icon: CalendarDays, tone: "champagne" as const },
+    { label: "Total Budget", value: formatMoney(String(totalTarget)), detail: "Across vendor categories", icon: CircleDollarSign, tone: "champagne" as const },
+    { label: "Total Paid", value: formatMoney(String(paidTotal)), detail: `${formatMoney(String(committedTotal))} committed`, icon: CheckCircle2, tone: "sage" as const },
+    { label: "Still To Pay", value: formatMoney(String(unpaidTotal)), detail: `${unpaidVendorCount} vendors with balances`, icon: CalendarDays, tone: "champagne" as const },
+    { label: "Remaining Budget", value: formatMoney(String(Math.max(varianceTotal, 0))), detail: varianceTotal < 0 ? `${formatMoney(String(Math.abs(varianceTotal)))} over target` : "After committed costs", icon: ClipboardList, tone: varianceTotal < 0 ? ("rose" as const) : ("neutral" as const) },
     { label: "Categories Over Budget", value: String(overBudgetCategories.length), detail: overBudgetCategories.map((summary) => summary.category.name).join(", ") || "None currently", icon: FileText, tone: overBudgetCategories.length > 0 ? ("rose" as const) : ("sage" as const) },
-    { label: "Paid Vendors", value: String(paidVendorCount), detail: "With paid shared records", icon: CheckCircle2, tone: "navy" as const },
+    { label: "Vendor Categories", value: String(activeVendorCategoryCount), detail: `${paidVendorCount} vendors with paid records`, icon: CheckCircle2, tone: "navy" as const },
   ];
 
   return (
@@ -2663,12 +2735,12 @@ function BudgetTab({
             <p className="heading-micro">Private Finance</p>
             <h2 className="heading-secondary mt-2">Wedding Budget</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6a5d55]">
-              A private financial overview of vendors, styling, logistics, and celebration planning.
+              A private financial overview grouped by the same categories used for vendors, so paid amounts and remaining balances stay easy to track.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Chip tone="champagne">{payments.length} shared cost records</Chip>
               <Chip tone="sage">{fileRecords.length} linked documents</Chip>
-              <Chip>{budgetCategories.length} categories</Chip>
+              <Chip>{budgetCategories.length} vendor categories</Chip>
             </div>
           </div>
           <div className="mx-auto grid h-48 w-48 place-items-center rounded-full border border-[#eaded6]/80 bg-white/58 p-4 shadow-[0_18px_40px_rgba(90,65,50,0.055)]">
@@ -2774,10 +2846,10 @@ function BudgetTab({
       <PlanningCard>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="heading-micro">Category Spend</p>
-            <h3 className="heading-secondary heading-secondary-compact mt-2">Budget Categories</h3>
+            <p className="heading-micro">Vendor Category Spend</p>
+            <h3 className="heading-secondary heading-secondary-compact mt-2">Vendor Categories</h3>
           </div>
-          <Chip tone="champagne">Expandable cards</Chip>
+          <Chip tone="champagne">Paid + still to pay</Chip>
         </div>
         <div className="mt-6 grid gap-4">
           {categorySummaries.map((summary) => {
@@ -2786,6 +2858,7 @@ function BudgetTab({
             categoryPayments,
             categoryFiles,
             linkedVendorIds,
+            vendorSummaries,
             target,
             committed,
             paid,
@@ -2818,8 +2891,16 @@ function BudgetTab({
                       <p className="mt-1 font-serif text-xl text-[#8f6a63]">{formatMoney(String(target))}</p>
                     </div>
                     <div className="rounded-2xl bg-[#fffaf7]/86 px-4 py-3">
-                      <p className="heading-micro">Current Spend</p>
+                      <p className="heading-micro">Committed</p>
                       <p className="mt-1 font-serif text-xl text-[#8f6a63]">{formatMoney(String(committed))}</p>
+                    </div>
+                    <div className="rounded-2xl bg-[#fffaf7]/86 px-4 py-3">
+                      <p className="heading-micro">Paid</p>
+                      <p className="mt-1 font-serif text-xl text-[#8f6a63]">{formatMoney(String(paid))}</p>
+                    </div>
+                    <div className="rounded-2xl bg-[#fffaf7]/86 px-4 py-3">
+                      <p className="heading-micro">Still to pay</p>
+                      <p className="mt-1 font-serif text-xl text-[#8f6a63]">{formatMoney(String(due))}</p>
                     </div>
                   </div>
                   <div>
@@ -2904,15 +2985,18 @@ function BudgetTab({
                   </div>
 
                   <div className="rounded-2xl bg-[#fffaf7]/74 p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="heading-micro">Vendor Details</p>
-                      <button type="button" onClick={() => deleteCategory(category.id)} className="rounded-full p-1.5 text-[#9b6f68] hover:bg-[#f4ebe4]" aria-label={`Delete ${category.name}`}>
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {linkedVendorIds.length > 0 ? (
-                        linkedVendorIds.map((vendorId) => <Chip key={vendorId}>{getVendorName(vendors, vendorId) || "Linked vendor"}</Chip>)
+                    <p className="heading-micro">Vendor Balances</p>
+                    <div className="mt-3 space-y-3">
+                      {vendorSummaries.length > 0 ? (
+                        vendorSummaries.map((vendorSummary) => (
+                          <div key={vendorSummary.vendorId} className="rounded-2xl bg-white/62 px-4 py-3">
+                            <p className="text-sm font-medium text-[#3f302b]">{getVendorName(vendors, vendorSummary.vendorId) || "Linked vendor"}</p>
+                            <div className="mt-2 grid grid-cols-2 gap-2 text-xs leading-5 text-[#6a5d55]">
+                              <span>Paid {formatMoney(String(vendorSummary.paid))}</span>
+                              <span>To pay {formatMoney(String(vendorSummary.due))}</span>
+                            </div>
+                          </div>
+                        ))
                       ) : (
                         <p className="text-sm leading-7 text-[#6a5d55]">No vendors linked to this category yet.</p>
                       )}
@@ -2924,18 +3008,6 @@ function BudgetTab({
           );
           })}
         </div>
-      </PlanningCard>
-
-      <PlanningCard>
-        <p className="heading-micro">Add Category</p>
-        <form onSubmit={addCategory} className="mt-5 grid gap-3 md:grid-cols-[1fr_180px_auto] md:items-end">
-          <TextField label="Category name" value={categoryForm.name} onChange={(name) => setCategoryForm({ ...categoryForm, name })} />
-          <TextField label="Target budget" value={categoryForm.targetBudget} onChange={(targetBudget) => setCategoryForm({ ...categoryForm, targetBudget })} placeholder="$" />
-          <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-5 text-xs font-semibold uppercase tracking-[0.16em] text-[#6a5d55] transition hover:border-[#b98278]">
-            <Plus className="h-4 w-4" />
-            Add
-          </button>
-        </form>
       </PlanningCard>
 
       <PlanningCard>
@@ -2958,7 +3030,7 @@ function BudgetTab({
                 setPaymentForm({
                   ...paymentForm,
                   vendorId,
-                  budgetCategoryId: paymentForm.budgetCategoryId || (selectedVendor ? getBudgetCategoryIdForVendor(selectedVendor, budgetCategories) : ""),
+                  budgetCategoryId: selectedVendor ? getBudgetCategoryIdForVendor(selectedVendor, budgetCategories) : paymentForm.budgetCategoryId,
                 });
               }}
               className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
@@ -2972,13 +3044,13 @@ function BudgetTab({
             </select>
           </label>
           <label className="grid gap-2">
-            <FieldLabel>Budget category</FieldLabel>
+            <FieldLabel>Vendor category</FieldLabel>
             <select
               value={paymentForm.budgetCategoryId}
               onChange={(event) => setPaymentForm({ ...paymentForm, budgetCategoryId: event.target.value })}
               className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
             >
-              <option value="">No category</option>
+              <option value="">No vendor category</option>
               {budgetCategories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
@@ -3042,7 +3114,7 @@ function BudgetTab({
                     </p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <Chip>{getVendorName(vendors, payment.vendorId) || "No vendor"}</Chip>
-                      <Chip tone="champagne">{getBudgetCategoryName(budgetCategories, payment.budgetCategoryId) || "No budget category"}</Chip>
+                      <Chip tone="champagne">{getBudgetCategoryName(budgetCategories, payment.budgetCategoryId) || "No vendor category"}</Chip>
                       {payment.sourceFileId && <Chip tone="sage">Linked file</Chip>}
                     </div>
                   </div>
@@ -3547,9 +3619,9 @@ function VendorDrawer({
           </div>
           <div className="mt-5 flex flex-wrap gap-2">
             {relatedCategoryIds.length > 0 ? (
-              relatedCategoryIds.map((categoryId) => <Chip key={categoryId}>{getBudgetCategoryName(budgetCategories, categoryId) || "Linked budget"}</Chip>)
+              relatedCategoryIds.map((categoryId) => <Chip key={categoryId}>{getBudgetCategoryName(budgetCategories, categoryId) || "Linked vendor category"}</Chip>)
             ) : (
-              <Chip>No budget category linked</Chip>
+              <Chip>No vendor category linked</Chip>
             )}
           </div>
           <div className="mt-5 grid gap-3">
@@ -5426,16 +5498,19 @@ function FilesTab({
   }
 
   function upsertFileRecord(file: PrivatePlanningFileDto, patch: Partial<PlanningFileRecord>) {
-    const currentRecord = getFileRecord(fileRecords, file);
+    const currentRecord = getFileRecord(fileRecords, file, vendors, budgetCategories);
     const nextVendorId = String(patch.vendorId ?? currentRecord.vendorId ?? "");
-    const nextBudgetCategoryId = (patch.budgetCategoryId ?? currentRecord.budgetCategoryId) || getDefaultBudgetCategoryForVendorId(nextVendorId);
+    const nextBudgetCategoryId =
+      "vendorId" in patch && nextVendorId
+        ? getDefaultBudgetCategoryForVendorId(nextVendorId)
+        : (patch.budgetCategoryId ?? currentRecord.budgetCategoryId) || getDefaultBudgetCategoryForVendorId(nextVendorId);
     const nextRecord = normalizePlanningFileRecord({
       ...currentRecord,
       vendorId: currentRecord.vendorId || file.vendorId || "",
       linkedPaymentId: currentRecord.linkedPaymentId || file.paymentId || "",
       ...patch,
       budgetCategoryId: nextBudgetCategoryId,
-    });
+    }, vendors, budgetCategories);
 
     setFileRecords([nextRecord, ...fileRecords.filter((record) => record.fileId !== file.id)]);
     return nextRecord;
@@ -5465,7 +5540,7 @@ function FilesTab({
     }
 
     const fileType = documentTypeFromExtraction(extractedDocument.documentType);
-    const currentRecord = getFileRecord(fileRecords, file);
+    const currentRecord = getFileRecord(fileRecords, file, vendors, budgetCategories);
     const nextRecord = upsertFileRecord(file, {
       fileType,
       vendorId: currentRecord.vendorId || matchedVendorId || file.vendorId || "",
@@ -5481,7 +5556,7 @@ function FilesTab({
   }
 
   function syncPaymentForFile(file: PrivatePlanningFileDto) {
-    const fileRecord = getFileRecord(fileRecords, file);
+    const fileRecord = getFileRecord(fileRecords, file, vendors, budgetCategories);
 
     if (!fileRecord.extractedAmount.trim()) {
       setStatusMessage("Add an amount before creating a shared payment record.");
@@ -5849,7 +5924,7 @@ function FilesTab({
         vendorId: selectedVendorId,
         budgetCategoryId: getDefaultBudgetCategoryForVendorId(selectedVendorId),
         paymentStatus: paymentStatusForDocumentType(inferredFileType),
-      });
+      }, vendors, budgetCategories);
       setFileRecords([uploadRecord, ...fileRecords.filter((record) => record.fileId !== ticketResult.ticket?.id)]);
       setStatusMessage("Upload complete. Validating file before it appears in the vault...");
       await new Promise((resolve) => {
@@ -5929,7 +6004,7 @@ function FilesTab({
           </div>
           <div className="flex flex-wrap gap-2">
             <Chip tone={fileRecord.vendorId ? "sage" : "neutral"}>{fileRecord.vendorId ? "Linked to vendor" : "No vendor"}</Chip>
-            <Chip tone={fileRecord.budgetCategoryId ? "champagne" : "neutral"}>{fileRecord.budgetCategoryId ? "Linked to budget" : "No budget"}</Chip>
+            <Chip tone={fileRecord.budgetCategoryId ? "champagne" : "neutral"}>{fileRecord.budgetCategoryId ? "Linked to vendor category" : "No vendor category"}</Chip>
             {linkedPayment && <Chip tone="navy">Payment linked</Chip>}
           </div>
         </div>
@@ -5959,13 +6034,13 @@ function FilesTab({
             </select>
           </label>
           <label className="grid gap-2">
-            <FieldLabel>Budget category</FieldLabel>
+            <FieldLabel>Vendor category</FieldLabel>
             <select
               value={fileRecord.budgetCategoryId}
               onChange={(event) => upsertFileRecord(file, { budgetCategoryId: event.target.value })}
               className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
             >
-              <option value="">No budget category</option>
+              <option value="">No vendor category</option>
               {budgetCategories.map((category) => (
                 <option key={category.id} value={category.id}>
                   {category.name}
@@ -6223,7 +6298,7 @@ function FilesTab({
             const extractionStatus = getFileExtractionStatus(file);
             const canRunExtraction = extractionStatus !== "extracting" && extractionStatus !== "review_needed" && extractionStatus !== "linked";
             const scanMessage = fileScanMessages[file.id];
-            const fileRecord = getFileRecord(fileRecords, file);
+            const fileRecord = getFileRecord(fileRecords, file, vendors, budgetCategories);
 
             return (
             <PlanningCard key={file.id}>
@@ -6239,7 +6314,7 @@ function FilesTab({
                       <span>{file.mimeType}</span>
                       <span>{file.uploadedAt ? formatDate(file.uploadedAt.slice(0, 10)) : "Processing"}</span>
                       <span>{fileRecord.vendorId ? vendorNameById.get(fileRecord.vendorId) ?? "Vendor linked" : "No vendor"}</span>
-                      <span>{fileRecord.budgetCategoryId ? categoryNameById.get(fileRecord.budgetCategoryId) ?? "Budget linked" : "No budget"}</span>
+                      <span>{fileRecord.budgetCategoryId ? categoryNameById.get(fileRecord.budgetCategoryId) ?? "Vendor category linked" : "No vendor category"}</span>
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <Chip tone={extractionStatus === "review_needed" ? "rose" : extractionStatus === "linked" ? "sage" : extractionStatus === "failed" ? "champagne" : "neutral"}>
@@ -6331,7 +6406,7 @@ function normalizePlanningPayload(payload?: Partial<PlanningDataPayload> | null,
     vendors,
     budgetCategories,
     payments: normalizePayments(payload?.payments, vendors, budgetCategories),
-    fileRecords: normalizeFileRecords(payload?.fileRecords),
+    fileRecords: normalizeFileRecords(payload?.fileRecords, vendors, budgetCategories),
     events: normalizeEvents(payload?.events),
     tasks: normalizeTasks(payload?.tasks),
     timeline: normalizeTimeline(payload?.timeline),
@@ -6416,7 +6491,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const vendors = useMemo(() => normalizeVendors(storedVendors), [storedVendors]);
   const budgetCategories = useMemo(() => normalizeBudgetCategories(storedBudgetCategories), [storedBudgetCategories]);
   const payments = useMemo(() => normalizePayments(storedPayments, vendors, budgetCategories), [budgetCategories, storedPayments, vendors]);
-  const fileRecords = useMemo(() => normalizeFileRecords(storedFileRecords), [storedFileRecords]);
+  const fileRecords = useMemo(() => normalizeFileRecords(storedFileRecords, vendors, budgetCategories), [budgetCategories, storedFileRecords, vendors]);
   const events = useMemo(() => normalizeEvents(storedEvents), [storedEvents]);
   const tasks = useMemo(() => normalizeTasks(storedTasks), [storedTasks]);
   const timeline = useMemo(() => normalizeTimeline(storedTimeline), [storedTimeline]);
@@ -6426,7 +6501,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const setVendors = useCallback((next: Vendor[]) => setStoredVendors(normalizeVendors(next)), [setStoredVendors]);
   const setBudgetCategories = useCallback((next: BudgetCategory[]) => setStoredBudgetCategories(normalizeBudgetCategories(next)), [setStoredBudgetCategories]);
   const setPayments = useCallback((next: PaymentRecord[]) => setStoredPayments(normalizePayments(next, vendors, budgetCategories)), [budgetCategories, setStoredPayments, vendors]);
-  const setFileRecords = useCallback((next: PlanningFileRecord[]) => setStoredFileRecords(normalizeFileRecords(next)), [setStoredFileRecords]);
+  const setFileRecords = useCallback((next: PlanningFileRecord[]) => setStoredFileRecords(normalizeFileRecords(next, vendors, budgetCategories)), [budgetCategories, setStoredFileRecords, vendors]);
   const setEvents = useCallback((next: CalendarEvent[]) => setStoredEvents(normalizeEvents(next)), [setStoredEvents]);
   const setTasks = useCallback((next: PlanningTask[]) => setStoredTasks(normalizeTasks(next)), [setStoredTasks]);
   const setTimeline = useCallback((next: TimelineSection[]) => setStoredTimeline(normalizeTimeline(next)), [setStoredTimeline]);
@@ -6620,7 +6695,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       setVendors(normalizeVendors(payload.vendors));
       setBudgetCategories(normalizeBudgetCategories(payload.budgetCategories));
       setPayments(normalizePayments(payload.payments, normalizeVendors(payload.vendors), normalizeBudgetCategories(payload.budgetCategories)));
-      setFileRecords(normalizeFileRecords(payload.fileRecords));
+      setFileRecords(normalizeFileRecords(payload.fileRecords, normalizeVendors(payload.vendors), normalizeBudgetCategories(payload.budgetCategories)));
       setEvents(normalizeEvents(payload.events));
       setTasks(normalizeTasks(payload.tasks));
       setTimeline(normalizeTimeline(payload.timeline));
