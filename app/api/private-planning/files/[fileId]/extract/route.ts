@@ -1,18 +1,14 @@
-import { get } from "@vercel/blob";
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { readPrivatePlanningDataPayload } from "@/lib/private-planning-data";
 import {
   createPrivatePlanningFileAuditLog,
-  isPrivatePlanningBlobConfigured,
-  readPrivatePlanningBlobToBuffer,
 } from "@/lib/private-planning-files";
 import {
   canExtractPrivatePlanningMimeType,
-  extractPrivatePlanningFileDetails,
+  extractPrivatePlanningDetailsFromText,
   findPrivatePlanningVendorMatches,
-  isPrivatePlanningExtractionConfigured,
-  PRIVATE_PLANNING_EXTRACTION_MODEL,
+  PRIVATE_PLANNING_EXTRACTION_SOURCE,
   toPrivatePlanningFileExtractionDto,
   type PrivatePlanningVendorRecord,
 } from "@/lib/private-planning-vendor-extraction";
@@ -31,23 +27,9 @@ function getPlanningVendors(value: unknown): PrivatePlanningVendorRecord[] {
 
 function getExtractionFailureMessage(error: unknown) {
   const message = error instanceof Error ? error.message : "Extraction failed.";
-  const lowerMessage = message.toLowerCase();
 
-  if (
-    lowerMessage.includes("api key") ||
-    lowerMessage.includes("unauthorized") ||
-    lowerMessage.includes("authentication") ||
-    lowerMessage.includes("401")
-  ) {
-    return "OpenAI rejected the extraction credentials. Recheck OPENAI_API_KEY in Vercel, then redeploy.";
-  }
-
-  if (lowerMessage.includes("rate limit") || lowerMessage.includes("429")) {
-    return "OpenAI rate-limited extraction. Please wait a minute, then run extraction again.";
-  }
-
-  if (lowerMessage.includes("quota") || lowerMessage.includes("billing")) {
-    return "OpenAI extraction is unavailable because the API project needs billing or quota attention.";
+  if (/no readable text/i.test(message)) {
+    return "No readable text found — download only";
   }
 
   return "Could not extract details from this file. Please try again or enter the vendor manually.";
@@ -72,18 +54,14 @@ export async function POST(
     return mutation.response;
   }
 
-  const body = (await request.json().catch(() => null)) as { force?: unknown } | null;
+  const body = (await request.json().catch(() => null)) as {
+    force?: unknown;
+    extractedText?: unknown;
+    extractionMethod?: unknown;
+  } | null;
   const force = body?.force === true;
-
-  if (!isPrivatePlanningExtractionConfigured()) {
-    await createPrivatePlanningFileAuditLog(request, "extraction_failed", fileId, { reason: "OPENAI_API_KEY missing or invalid" });
-    return privatePlanningJson({ ok: false, error: "Document extraction is not configured yet." }, { status: 503 });
-  }
-
-  if (!isPrivatePlanningBlobConfigured()) {
-    await createPrivatePlanningFileAuditLog(request, "extraction_failed", fileId, { reason: "BLOB_READ_WRITE_TOKEN missing" });
-    return privatePlanningJson({ ok: false, error: "Private file storage is not configured yet." }, { status: 503 });
-  }
+  const extractedText = typeof body?.extractedText === "string" ? body.extractedText : "";
+  const extractionMethod = typeof body?.extractionMethod === "string" ? body.extractionMethod.trim().slice(0, 80) : "local-text";
 
   const existingExtraction = await prisma.privatePlanningFileExtraction.findUnique({
     where: { fileId },
@@ -123,6 +101,8 @@ export async function POST(
     mimeType: file.mimeType,
     size: file.size,
     force,
+    method: extractionMethod,
+    textLength: extractedText.length,
   });
 
   const extraction = await prisma.privatePlanningFileExtraction.upsert({
@@ -130,32 +110,25 @@ export async function POST(
     create: {
       fileId: file.id,
       extractionStatus: "extracting",
-      sourceModel: PRIVATE_PLANNING_EXTRACTION_MODEL,
+      sourceModel: PRIVATE_PLANNING_EXTRACTION_SOURCE,
     },
     update: {
       extractionStatus: "extracting",
       errorMessage: null,
-      sourceModel: PRIVATE_PLANNING_EXTRACTION_MODEL,
+      sourceModel: PRIVATE_PLANNING_EXTRACTION_SOURCE,
       dismissedAt: null,
       reviewedAt: null,
     },
   });
 
   try {
-    const storedFile = await get(file.storageKey, { access: "private", useCache: false });
-
-    if (!storedFile || storedFile.statusCode !== 200) {
-      throw new Error("Stored file could not be read.");
-    }
-
-    const fileBuffer = await readPrivatePlanningBlobToBuffer(storedFile.stream);
-    const extractionResult = await extractPrivatePlanningFileDetails({
-      fileBuffer,
-      filename: file.originalFilename,
-      mimeType: file.mimeType,
-    });
     const { payload } = await readPrivatePlanningDataPayload();
-    const possibleMatches = findPrivatePlanningVendorMatches(extractionResult.vendor, getPlanningVendors(payload.vendors));
+    const vendors = getPlanningVendors(payload.vendors);
+    const extractionResult = extractPrivatePlanningDetailsFromText({
+      text: extractedText,
+      vendors,
+    });
+    const possibleMatches = findPrivatePlanningVendorMatches(extractionResult.vendor, vendors);
     const matchedVendorId = possibleMatches[0]?.id ?? null;
     const updatedExtraction = await prisma.privatePlanningFileExtraction.update({
       where: { id: extraction.id },
@@ -167,7 +140,7 @@ export async function POST(
         warnings: extractionResult.warnings,
         errorMessage: null,
         matchedVendorId,
-        sourceModel: PRIVATE_PLANNING_EXTRACTION_MODEL,
+        sourceModel: PRIVATE_PLANNING_EXTRACTION_SOURCE,
         reviewedAt: null,
         appliedAt: null,
         dismissedAt: null,
@@ -190,7 +163,8 @@ export async function POST(
     await createPrivatePlanningFileAuditLog(request, "extraction_completed", file.id, {
       suggestionId: suggestion.id,
       matchedVendorId,
-      model: PRIVATE_PLANNING_EXTRACTION_MODEL,
+      source: PRIVATE_PLANNING_EXTRACTION_SOURCE,
+      method: extractionMethod,
     });
 
     return privatePlanningJson({
@@ -209,12 +183,13 @@ export async function POST(
 
     await createPrivatePlanningFileAuditLog(request, "extraction_failed", file.id, {
       reason: message,
-      model: PRIVATE_PLANNING_EXTRACTION_MODEL,
+      source: PRIVATE_PLANNING_EXTRACTION_SOURCE,
+      method: extractionMethod,
     });
 
     return privatePlanningJson(
-      { ok: false, error: "Could not extract details from this file.", extraction: toPrivatePlanningFileExtractionDto(failedExtraction) },
-      { status: 500 },
+      { ok: false, error: message, extraction: toPrivatePlanningFileExtractionDto(failedExtraction) },
+      { status: /no readable text/i.test(message) ? 422 : 500 },
     );
   }
 }

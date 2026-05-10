@@ -120,6 +120,18 @@ body {
   }
 }
 
+@keyframes guest-drawer-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(18px, 0, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 .invite-page,
 .inner-circle-page,
 .guest-rsvp-page {
@@ -2021,8 +2033,9 @@ footer > * {
   }
 
   #details.mobile-invite-section {
-    min-height: 86svh;
-    padding: clamp(1.85rem, 4.25svh, 2.7rem) var(--mobile-page-gutter);
+    min-height: 100svh;
+    align-items: center;
+    padding: clamp(1.45rem, 3.2svh, 2.12rem) var(--mobile-page-gutter) clamp(1.28rem, 2.85svh, 1.92rem);
     scroll-margin-top: 0;
   }
 
@@ -2720,8 +2733,10 @@ footer > * {
   }
 
   #rsvp.mobile-invite-section {
-    min-height: var(--mobile-scene-min-feature);
-    padding: clamp(1.65rem, 4.4svh, 2.35rem) var(--mobile-page-gutter);
+    min-height: 100svh;
+    align-items: center;
+    padding: clamp(1.36rem, 3.25svh, 2.05rem) var(--mobile-page-gutter) clamp(1.22rem, 2.82svh, 1.82rem);
+    scroll-margin-top: 0;
   }
 
   #rsvp .card-luxe-dark {
@@ -2933,6 +2948,7 @@ footer > * {
   .invite-page .mobile-invite-quote,
   .invite-page .mobile-invite-note,
   .invite-page #details.mobile-invite-section,
+  .invite-page #rsvp.mobile-invite-section,
   .invite-page .venue-mobile-panel-intro,
   .invite-page > footer {
     scroll-snap-align: center;
@@ -2943,7 +2959,6 @@ footer > * {
   .invite-page .dress-code-mobile-panel,
   .invite-page #itinerary.mobile-invite-section,
   .invite-page .venue-mobile-panel-practical,
-  .invite-page #rsvp.mobile-invite-section,
   .invite-page #faq.mobile-invite-section {
     scroll-snap-align: start;
     scroll-snap-stop: normal;

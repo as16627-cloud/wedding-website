@@ -2,23 +2,13 @@ import assert from "node:assert/strict";
 import {
   buildPrivatePlanningVendorFromSuggestion,
   coercePrivatePlanningVendorCategory,
+  extractPrivatePlanningDetailsFromText,
   findPrivatePlanningVendorMatches,
   isPrivatePlanningExtractionConfigured,
   sanitizePrivatePlanningExtraction,
 } from "../lib/private-planning-vendor-extraction";
 
-const originalOpenAiApiKey = process.env.OPENAI_API_KEY;
-
-process.env.OPENAI_API_KEY = "OPENAI_API_KEY";
-assert.equal(isPrivatePlanningExtractionConfigured(), false, "placeholder API key values should not enable extraction");
-process.env.OPENAI_API_KEY = "sk-proj-test";
-assert.equal(isPrivatePlanningExtractionConfigured(), true, "sk-prefixed API keys should enable extraction");
-
-if (originalOpenAiApiKey === undefined) {
-  delete process.env.OPENAI_API_KEY;
-} else {
-  process.env.OPENAI_API_KEY = originalOpenAiApiKey;
-}
+assert.equal(isPrivatePlanningExtractionConfigured(), true, "local extraction should not depend on provider API keys");
 
 const extracted = sanitizePrivatePlanningExtraction({
   vendor: {
@@ -72,6 +62,41 @@ const matches = findPrivatePlanningVendorMatches(extracted.vendor, [
 
 assert.equal(matches[0]?.id, "vendor-bloom", "duplicate vendor matching should prefer exact contact/domain matches");
 assert.ok(matches[0].score >= 1, "matched vendor should have a strong score");
+
+const deterministicExtraction = extractPrivatePlanningDetailsFromText({
+  text: `
+    Bloom & Branch Floral Ltd
+    ABN 11 222 333 444
+    Tax Invoice
+    Invoice No: INV-8352
+    Invoice Date: 06 May 2026
+    Due Date: 20 May 2026
+    hello@bloombranch.com
+    www.bloombranch.com
+    Phone 0400 111 222
+    Subtotal $1,000.00
+    GST $100.00
+    Amount Due $1,100.00
+  `,
+  vendors: [
+    {
+      id: "vendor-bloom",
+      vendorName: "Bloom and Branch Floral",
+      category: "Florist",
+      email: "hello@bloombranch.com",
+      phone: "+61 400 111 222",
+      website: "bloombranch.com",
+    },
+  ],
+});
+
+assert.equal(deterministicExtraction.vendor.name, "Bloom and Branch Floral");
+assert.equal(deterministicExtraction.vendor.category, "Florist");
+assert.equal(deterministicExtraction.vendor.email, "hello@bloombranch.com");
+assert.equal(deterministicExtraction.document.documentType, "invoice");
+assert.equal(deterministicExtraction.document.invoiceNumber, "INV-8352");
+assert.equal(deterministicExtraction.document.total, 1100);
+assert.ok(deterministicExtraction.warnings.some((warning) => /ABN detected/i.test(warning)), "ABN should be detected but not stored");
 
 const sensitive = sanitizePrivatePlanningExtraction({
   vendor: {

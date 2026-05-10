@@ -1,9 +1,10 @@
 "use client";
 
-import { type ChangeEvent, type FormEvent, useEffect, useMemo, useState } from "react";
+import { type ChangeEvent, type FormEvent, type ReactNode, useEffect, useId, useMemo, useState } from "react";
 import {
   CheckCircle2,
   CheckSquare,
+  ChevronDown,
   Copy,
   Download,
   ExternalLink,
@@ -170,6 +171,16 @@ const messageTemplates = [
 type QuickFilter = (typeof quickFilters)[number];
 type MessageTemplate = (typeof messageTemplates)[number];
 type DrawerMode = "closed" | "add" | "edit" | "import";
+
+const guestFieldLabelClass = "text-[10px] font-medium uppercase tracking-[0.22em] text-[#8c7a72]";
+const guestInputClass =
+  "min-h-12 rounded-[1.05rem] border border-[#eaded6]/80 bg-white/82 px-4 text-sm text-[#3f302b] shadow-[inset_0_1px_0_rgba(255,255,255,0.42)] outline-none transition duration-300 ease-out hover:border-[#dcc9bf] focus:border-[#b98278] focus:bg-white focus:shadow-[0_0_0_3px_rgba(185,130,120,0.08)]";
+const guestTextareaClass =
+  "min-h-[5.25rem] rounded-[1.05rem] border border-[#eaded6]/80 bg-white/82 px-4 py-3 text-sm leading-6 text-[#3f302b] shadow-[inset_0_1px_0_rgba(255,255,255,0.42)] outline-none transition-[min-height,border-color,box-shadow,background-color] duration-300 ease-out hover:border-[#dcc9bf] focus:min-h-[7rem] focus:border-[#b98278] focus:bg-white focus:shadow-[0_0_0_3px_rgba(185,130,120,0.08)]";
+const guestSecondaryButtonClass =
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/72 px-5 text-xs font-semibold uppercase tracking-[0.13em] text-[#3f302b] transition duration-300 ease-out hover:border-[#d8bd96] hover:bg-white disabled:cursor-not-allowed disabled:opacity-60";
+const guestPrimaryButtonClass =
+  "inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.13em] text-[var(--color-cta-text)] shadow-[0_10px_24px_rgba(20,26,44,0.16)] transition duration-300 ease-out hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60";
 
 function booleanToAttendance(value: boolean | null): AttendanceValue {
   if (value === null) {
@@ -455,13 +466,13 @@ function TextField({
   type?: string;
 }) {
   return (
-    <label className="grid gap-2">
-      <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#8c7a72]">{label}</span>
+    <label className="grid gap-2.5">
+      <span className={guestFieldLabelClass}>{label}</span>
       <input
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="min-h-11 rounded-xl border border-[#eaded6] bg-white/85 px-4 text-sm text-[#3f302b] outline-none transition focus:border-[#b98278]"
+        className={guestInputClass}
         placeholder={placeholder}
       />
     </label>
@@ -480,13 +491,13 @@ function TextAreaField({
   placeholder?: string;
 }) {
   return (
-    <label className="grid gap-2">
-      <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#8c7a72]">{label}</span>
+    <label className="grid gap-2.5">
+      <span className={guestFieldLabelClass}>{label}</span>
       <textarea
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        rows={3}
-        className="rounded-xl border border-[#eaded6] bg-white/85 px-4 py-3 text-sm text-[#3f302b] outline-none transition focus:border-[#b98278]"
+        rows={2}
+        className={guestTextareaClass}
         placeholder={placeholder}
       />
     </label>
@@ -505,18 +516,33 @@ function SelectField<T extends string>({
   onChange: (value: T) => void;
 }) {
   return (
-    <label className="grid gap-2">
-      <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-[#8c7a72]">{label}</span>
+    <label className="grid gap-2.5">
+      <span className={guestFieldLabelClass}>{label}</span>
       <select
         value={value}
         onChange={(event) => onChange(event.target.value as T)}
-        className="min-h-11 rounded-xl border border-[#eaded6] bg-white/85 px-4 text-sm text-[#3f302b] outline-none transition focus:border-[#b98278]"
+        className={`${guestInputClass} appearance-none bg-[linear-gradient(45deg,transparent_50%,#9c7a73_50%),linear-gradient(135deg,#9c7a73_50%,transparent_50%)] bg-[length:6px_6px,6px_6px] bg-[position:calc(100%-20px)_52%,calc(100%-14px)_52%] bg-no-repeat pr-10`}
       >
         {options.map((option) => (
           <option key={option}>{option}</option>
         ))}
       </select>
     </label>
+  );
+}
+
+function GuestFormSection({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rounded-[1.35rem] border border-[#eaded6]/58 bg-white/38 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.42)] sm:p-5">
+      <p className="heading-micro text-[#8c7a72]">{title}</p>
+      <div className="mt-4 grid gap-4 md:grid-cols-2">{children}</div>
+    </section>
   );
 }
 
@@ -537,85 +563,153 @@ function GuestEditor({
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
   onCancel?: () => void;
 }) {
+  const [additionalDetailsOpen, setAdditionalDetailsOpen] = useState(false);
+  const additionalDetailsId = useId();
+  const isEditMode = submitLabel === "Save";
+  const helperText = isEditMode
+    ? "Update this guest profile, RSVPs, and household details privately."
+    : "Create a guest profile, manage RSVPs, and organise household details privately.";
+  const actionLabel = busy ? "Saving..." : submitLabel;
+  const submitIcon = isEditMode ? <Save aria-hidden="true" className="h-4 w-4" /> : <Plus aria-hidden="true" className="h-4 w-4" />;
+  const cancelButton = onCancel ? (
+    <button
+      type="button"
+      onClick={onCancel}
+      className={guestSecondaryButtonClass}
+    >
+      <X aria-hidden="true" className="h-4 w-4" />
+      Cancel
+    </button>
+  ) : null;
+  const submitButton = (
+    <button
+      type="submit"
+      disabled={busy}
+      className={guestPrimaryButtonClass}
+    >
+      {submitIcon}
+      {actionLabel}
+    </button>
+  );
+
   return (
-    <form onSubmit={onSubmit} className="rounded-2xl border border-[#eaded6] bg-[#fffaf7]/82 p-5">
-      <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="heading-secondary heading-secondary-compact">{title}</h2>
-        <div className="flex flex-wrap gap-2">
-          {onCancel && (
+    <form onSubmit={onSubmit} className="min-h-full bg-[#fbf7f2]">
+      <div className="flex min-h-full flex-col">
+        <header className="border-b border-[#eaded6]/70 bg-[#fbf7f2]/96 px-5 pb-6 pt-6 sm:px-7 sm:pt-8">
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="heading-micro">Guest Profile</p>
+              <h2 className="heading-secondary heading-secondary-compact mt-2">{title}</h2>
+              <p className="mt-3 max-w-[34rem] text-sm leading-7 text-[#6a5d55]">{helperText}</p>
+            </div>
+            <div className="hidden shrink-0 flex-wrap justify-end gap-3 sm:flex">
+              {cancelButton}
+              {submitButton}
+            </div>
+          </div>
+        </header>
+
+        <div className="flex-1 space-y-5 px-5 py-6 pb-28 sm:px-7 sm:py-7 sm:pb-8">
+          <GuestFormSection title="Guest Identity">
+            <TextField label="Full name" value={form.fullName} onChange={(value) => onChange("fullName", value)} />
+            <TextField label="Household" value={form.householdName} onChange={(value) => onChange("householdName", value)} placeholder="The Sharma Family" />
+            <TextField label="Side" value={form.side} onChange={(value) => onChange("side", value)} placeholder="Bride, groom, family..." />
+          </GuestFormSection>
+
+          <GuestFormSection title="Attendance">
+            <SelectField
+              label="RSVP"
+              value={form.rsvpResponse}
+              options={["Not responded", "Responded"] as const}
+              onChange={(value) => onChange("rsvpResponse", value)}
+            />
+            <SelectField
+              label="Ceremony"
+              value={form.attendingCeremony}
+              options={attendanceOptions}
+              onChange={(value) => onChange("attendingCeremony", value)}
+            />
+            <SelectField
+              label="Reception"
+              value={form.attendingReception}
+              options={attendanceOptions}
+              onChange={(value) => onChange("attendingReception", value)}
+            />
+            <SelectField
+              label="Plus one allowed"
+              value={form.plusOneAllowed}
+              options={["No", "Yes"] as const}
+              onChange={(value) => onChange("plusOneAllowed", value)}
+            />
+          </GuestFormSection>
+
+          <section className="overflow-hidden rounded-[1.35rem] border border-[#eaded6]/58 bg-white/30 shadow-[inset_0_1px_0_rgba(255,255,255,0.42)]">
             <button
               type="button"
-              onClick={onCancel}
-              className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#eaded6] bg-white/75 px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8bd96]"
+              aria-expanded={additionalDetailsOpen}
+              aria-controls={additionalDetailsId}
+              onClick={() => setAdditionalDetailsOpen((current) => !current)}
+              className="flex w-full items-center justify-between gap-4 px-4 py-4 text-left transition duration-300 ease-out hover:bg-white/28 sm:px-5"
             >
-              <X aria-hidden="true" className="h-4 w-4" />
-              Cancel
+              <span>
+                <span className="heading-micro block text-[#8c7a72]">Additional Details</span>
+                <span className="mt-1 block text-sm leading-6 text-[#6a5d55]">Contact information, notes, dietary details, and messages.</span>
+              </span>
+              <ChevronDown
+                aria-hidden="true"
+                className={`h-4 w-4 shrink-0 text-[#9b6f68] transition duration-500 ease-out ${additionalDetailsOpen ? "rotate-180" : ""}`}
+              />
             </button>
-          )}
-          <button
-            type="submit"
-            disabled={busy}
-            className="inline-flex min-h-10 items-center gap-2 rounded-full bg-[var(--color-navy)] px-4 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-cta-text)] transition hover:bg-[var(--color-navy-hover)] disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {submitLabel === "Save" ? <Save aria-hidden="true" className="h-4 w-4" /> : <Plus aria-hidden="true" className="h-4 w-4" />}
-            {busy ? "Saving..." : submitLabel}
-          </button>
+
+            <div
+              id={additionalDetailsId}
+              aria-hidden={!additionalDetailsOpen}
+              inert={!additionalDetailsOpen ? true : undefined}
+              className={`grid transition-[grid-template-rows,opacity] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+                additionalDetailsOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+              }`}
+            >
+              <div className="overflow-hidden">
+                <div className="space-y-5 border-t border-[#eaded6]/50 px-4 py-5 sm:px-5">
+                  <GuestFormSection title="Contact Details">
+                    <TextField label="Phone" value={form.phoneNumber} onChange={(value) => onChange("phoneNumber", value)} />
+                    <TextField label="Email" type="email" value={form.email} onChange={(value) => onChange("email", value)} />
+                    <TextField label="Household address" value={form.householdAddress} onChange={(value) => onChange("householdAddress", value)} placeholder="Mailing address" />
+                  </GuestFormSection>
+
+                  <GuestFormSection title="Notes">
+                    <SelectField
+                      label="Plus one"
+                      value={form.bringingPlusOne}
+                      options={["No", "Yes"] as const}
+                      onChange={(value) => onChange("bringingPlusOne", value)}
+                    />
+                    {form.bringingPlusOne === "Yes" && (
+                      <TextField label="Plus one name" value={form.plusOneName} onChange={(value) => onChange("plusOneName", value)} />
+                    )}
+                    <TextField
+                      label="Dietary"
+                      value={form.dietaryRequirements}
+                      onChange={(value) => onChange("dietaryRequirements", value)}
+                      placeholder="Allergies or dietary requirements"
+                    />
+                    <TextField label="Song" value={form.songRequest} onChange={(value) => onChange("songRequest", value)} />
+                    <TextAreaField label="Guest message" value={form.message} onChange={(value) => onChange("message", value)} />
+                    <TextAreaField label="Private notes" value={form.notes} onChange={(value) => onChange("notes", value)} />
+                    <TextAreaField label="Household notes" value={form.householdNotes} onChange={(value) => onChange("householdNotes", value)} />
+                  </GuestFormSection>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
-      </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <TextField label="Full name" value={form.fullName} onChange={(value) => onChange("fullName", value)} />
-        <TextField label="Household" value={form.householdName} onChange={(value) => onChange("householdName", value)} placeholder="The Sharma Family" />
-        <TextField label="Phone" value={form.phoneNumber} onChange={(value) => onChange("phoneNumber", value)} />
-        <TextField label="Email" type="email" value={form.email} onChange={(value) => onChange("email", value)} />
-        <TextField label="Side" value={form.side} onChange={(value) => onChange("side", value)} placeholder="Bride, groom, family..." />
-        <TextField label="Household address" value={form.householdAddress} onChange={(value) => onChange("householdAddress", value)} placeholder="Mailing address" />
-        <SelectField
-          label="RSVP"
-          value={form.rsvpResponse}
-          options={["Not responded", "Responded"] as const}
-          onChange={(value) => onChange("rsvpResponse", value)}
-        />
-        <SelectField
-          label="Ceremony"
-          value={form.attendingCeremony}
-          options={attendanceOptions}
-          onChange={(value) => onChange("attendingCeremony", value)}
-        />
-        <SelectField
-          label="Reception"
-          value={form.attendingReception}
-          options={attendanceOptions}
-          onChange={(value) => onChange("attendingReception", value)}
-        />
-        <SelectField
-          label="Plus one allowed"
-          value={form.plusOneAllowed}
-          options={["No", "Yes"] as const}
-          onChange={(value) => onChange("plusOneAllowed", value)}
-        />
-        <SelectField
-          label="Plus one"
-          value={form.bringingPlusOne}
-          options={["No", "Yes"] as const}
-          onChange={(value) => onChange("bringingPlusOne", value)}
-        />
-        {form.bringingPlusOne === "Yes" && (
-          <TextField label="Plus one name" value={form.plusOneName} onChange={(value) => onChange("plusOneName", value)} />
-        )}
-        <TextField
-          label="Dietary"
-          value={form.dietaryRequirements}
-          onChange={(value) => onChange("dietaryRequirements", value)}
-          placeholder="Allergies or dietary requirements"
-        />
-        <TextField label="Song" value={form.songRequest} onChange={(value) => onChange("songRequest", value)} />
-      </div>
-
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
-        <TextAreaField label="Guest message" value={form.message} onChange={(value) => onChange("message", value)} />
-        <TextAreaField label="Private notes" value={form.notes} onChange={(value) => onChange("notes", value)} />
-        <TextAreaField label="Household notes" value={form.householdNotes} onChange={(value) => onChange("householdNotes", value)} />
+        <div className="sticky bottom-0 z-10 border-t border-[#eaded6]/70 bg-[#fbf7f2]/92 px-5 py-4 shadow-[0_-16px_34px_rgba(80,60,55,0.08)] backdrop-blur-xl sm:hidden">
+          <div className="grid grid-cols-2 gap-3">
+            {cancelButton}
+            {submitButton}
+          </div>
+        </div>
       </div>
     </form>
   );
@@ -1573,7 +1667,7 @@ export default function PrivatePlanningGuestsTab() {
         )}
 
         {drawerMode !== "closed" && (
-          <div className="fixed inset-0 z-50 flex justify-end bg-[#3f302b]/24">
+          <div className="fixed inset-0 z-50 flex justify-end bg-[#3f302b]/22 backdrop-blur-[3px]">
             <button
               type="button"
               aria-label="Close guest drawer"
@@ -1583,7 +1677,7 @@ export default function PrivatePlanningGuestsTab() {
                 setEditingGuestId("");
               }}
             />
-            <aside className="relative h-full w-full max-w-3xl overflow-y-auto border-l border-[#eaded6] bg-[#fbf7f2] p-4 shadow-[-18px_0_42px_rgba(80,60,55,0.16)] sm:p-6">
+            <aside className="relative h-full w-full max-w-[44rem] overflow-y-auto border-l border-[#eaded6]/70 bg-[#fbf7f2] shadow-[-22px_0_54px_rgba(80,60,55,0.14)] motion-safe:animate-[guest-drawer-enter_420ms_cubic-bezier(0.22,1,0.36,1)_both]">
               {drawerMode === "add" && (
                 <GuestEditor
                   title="Add Guest"

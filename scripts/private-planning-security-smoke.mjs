@@ -272,19 +272,17 @@ try {
   });
   assert.equal(missingExtractionCsrf.status, 403, "file extraction without CSRF should fail");
 
-  if (!process.env.OPENAI_API_KEY) {
-    const extractionWithoutKey = await fetch(`${baseUrl}/api/private-planning/files/not-a-file/extract`, {
-      method: "POST",
-      headers: {
-        "content-type": "application/json",
-        origin,
-        cookie,
-        "x-private-planning-csrf": "1",
-      },
-      body: JSON.stringify({}),
-    });
-    assert.equal(extractionWithoutKey.status, 503, "extraction should fail closed without OPENAI_API_KEY");
-  }
+  const extractionMissingFile = await fetch(`${baseUrl}/api/private-planning/files/not-a-file/extract`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      origin,
+      cookie,
+      "x-private-planning-csrf": "1",
+    },
+    body: JSON.stringify({ extractedText: "Invoice INV-1 Total $10.00", extractionMethod: "local-text" }),
+  });
+  assert.equal(extractionMissingFile.status, 404, "local extraction should still require an existing private file");
 
   const missingSuggestionCsrf = await fetch(`${baseUrl}/api/private-planning/vendor-suggestions/not-a-suggestion/apply`, {
     method: "POST",

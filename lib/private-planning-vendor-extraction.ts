@@ -1,8 +1,7 @@
-import OpenAI from "openai";
-import type { Response, ResponseCreateParamsNonStreaming, ResponseInputContent } from "openai/resources/responses/responses";
 import { privatePlanningAllowedMimeTypes } from "@/lib/private-planning-file-rules";
 
-export const PRIVATE_PLANNING_EXTRACTION_MODEL = process.env.OPENAI_EXTRACTION_MODEL || "gpt-4.1-mini";
+export const PRIVATE_PLANNING_EXTRACTION_SOURCE = "local-text-extraction-v1";
+export const PRIVATE_PLANNING_MIN_EXTRACTED_TEXT_LENGTH = 24;
 
 export const privatePlanningVendorCategories = [
   "Venue",
@@ -150,86 +149,8 @@ type GeneratedVendorInput = {
   sourceFilename?: string;
 };
 
-const extractionJsonSchema = {
-  type: "object",
-  additionalProperties: false,
-  required: ["vendor", "document", "confidence", "warnings"],
-  properties: {
-    vendor: {
-      type: "object",
-      additionalProperties: false,
-      required: ["name", "category", "contactName", "email", "phone", "website", "address"],
-      properties: {
-        name: { type: ["string", "null"] },
-        category: { type: ["string", "null"] },
-        contactName: { type: ["string", "null"] },
-        email: { type: ["string", "null"] },
-        phone: { type: ["string", "null"] },
-        website: { type: ["string", "null"] },
-        address: { type: ["string", "null"] },
-      },
-    },
-    document: {
-      type: "object",
-      additionalProperties: false,
-      required: ["documentType", "invoiceNumber", "receiptNumber", "invoiceDate", "dueDate", "subtotal", "tax", "total", "currency"],
-      properties: {
-        documentType: { type: "string", enum: ["invoice", "receipt", "quote", "contract", "unknown"] },
-        invoiceNumber: { type: ["string", "null"] },
-        receiptNumber: { type: ["string", "null"] },
-        invoiceDate: { type: ["string", "null"] },
-        dueDate: { type: ["string", "null"] },
-        subtotal: { type: ["number", "null"] },
-        tax: { type: ["number", "null"] },
-        total: { type: ["number", "null"] },
-        currency: { type: ["string", "null"] },
-      },
-    },
-    confidence: {
-      type: "object",
-      additionalProperties: false,
-      required: ["vendor", "contact", "amounts", "dates"],
-      properties: {
-        vendor: { type: "number", minimum: 0, maximum: 1 },
-        contact: { type: "number", minimum: 0, maximum: 1 },
-        amounts: { type: "number", minimum: 0, maximum: 1 },
-        dates: { type: "number", minimum: 0, maximum: 1 },
-      },
-    },
-    warnings: {
-      type: "array",
-      items: { type: "string" },
-      maxItems: 10,
-    },
-  },
-} as const;
-
-let openAiClient: OpenAI | null = null;
-let openAiClientKey: string | null = null;
-
-export function getPrivatePlanningOpenAiApiKey() {
-  const apiKey = process.env.OPENAI_API_KEY?.trim() ?? "";
-
-  return apiKey.startsWith("sk-") ? apiKey : "";
-}
-
 export function isPrivatePlanningExtractionConfigured() {
-  return Boolean(getPrivatePlanningOpenAiApiKey());
-}
-
-function getOpenAiClient() {
-  const apiKey = getPrivatePlanningOpenAiApiKey();
-
-  if (!apiKey) {
-    throw new Error("OPENAI_API_KEY is not configured.");
-  }
-
-  if (!openAiClient || openAiClientKey !== apiKey) {
-    openAiClient = new OpenAI({ apiKey });
-    openAiClientKey = apiKey;
-  }
-
-  return openAiClient;
+  return true;
 }
 
 function safeString(value: unknown) {
@@ -312,6 +233,21 @@ export function sanitizePrivatePlanningExtraction(raw: unknown): PrivatePlanning
 
 export function canExtractPrivatePlanningMimeType(mimeType: string) {
   return (privatePlanningAllowedMimeTypes as readonly string[]).includes(mimeType);
+}
+
+function cleanExtractedText(value: string) {
+  return value
+    .replace(/\u0000/g, " ")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .trim();
+}
+
+export function hasReadablePrivatePlanningExtractedText(value: string) {
+  const text = cleanExtractedText(value);
+
+  return text.length >= PRIVATE_PLANNING_MIN_EXTRACTED_TEXT_LENGTH && /[a-z]/i.test(text);
 }
 
 function normalizeText(value?: string | null) {
@@ -470,6 +406,309 @@ export function coercePrivatePlanningVendorCategory(category?: string | null): V
   return keywordMap.find(([pattern]) => pattern.test(normalized))?.[1] ?? "Venue";
 }
 
+const datePattern =
+  /\b(?:\d{4}[/-]\d{1,2}[/-]\d{1,2}|\d{1,2}[./-]\d{1,2}[./-]\d{2,4}|\d{1,2}\s+(?:jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december)\s+\d{2,4}|(?:jan|january|feb|february|mar|march|apr|april|may|jun|june|jul|july|aug|august|sep|sept|september|oct|october|nov|november|dec|december)\s+\d{1,2},?\s+\d{2,4})\b/i;
+
+const moneyPattern = /(?:AUD\s*)?\$?\s*(-?\d{1,3}(?:,\d{3})*(?:\.\d{2})|-?\d+(?:\.\d{2}))/gi;
+const abnPattern = /\bABN\s*[:#-]?\s*(\d{2}\s?\d{3}\s?\d{3}\s?\d{3})\b/i;
+
+function extractedLines(text: string) {
+  return cleanExtractedText(text)
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s{2,}/g, " ").trim())
+    .filter(Boolean);
+}
+
+function firstPatternMatch(text: string, patterns: RegExp[]) {
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    const value = match?.[1]?.trim();
+
+    if (value) {
+      return value.replace(/^[#:\-\s]+|[.,;:\s]+$/g, "").slice(0, 120);
+    }
+  }
+
+  return null;
+}
+
+function firstDateByLabel(lines: string[], labels: RegExp[]) {
+  for (const label of labels) {
+    for (let index = 0; index < lines.length; index += 1) {
+      const line = lines[index];
+
+      if (!label.test(line)) {
+        continue;
+      }
+
+      const sameLine = line.match(datePattern)?.[0];
+      const nextLine = lines[index + 1]?.match(datePattern)?.[0];
+
+      if (sameLine || nextLine) {
+        return (sameLine ?? nextLine ?? "").trim();
+      }
+    }
+  }
+
+  return null;
+}
+
+function parseMoneyValue(value: string) {
+  const amount = Number.parseFloat(value.replace(/,/g, ""));
+
+  return Number.isFinite(amount) ? amount : null;
+}
+
+function amountsInLine(line: string) {
+  return Array.from(line.matchAll(moneyPattern))
+    .map((match) => parseMoneyValue(match[1] ?? ""))
+    .filter((amount): amount is number => amount !== null);
+}
+
+function firstAmountByLabel(lines: string[], labels: RegExp[]) {
+  for (const label of labels) {
+    const matches: number[] = [];
+
+    for (let index = 0; index < lines.length; index += 1) {
+      const line = lines[index];
+
+      if (!label.test(line)) {
+        continue;
+      }
+
+      matches.push(...amountsInLine(line));
+
+      if (matches.length === 0 && lines[index + 1]) {
+        matches.push(...amountsInLine(lines[index + 1]));
+      }
+    }
+
+    if (matches.length > 0) {
+      return matches[matches.length - 1] ?? null;
+    }
+  }
+
+  return null;
+}
+
+function detectDocumentType(text: string): PrivatePlanningExtractedDocument["documentType"] {
+  if (/\breceipt\b/i.test(text)) {
+    return "receipt";
+  }
+
+  if (/\bquote|quotation\b/i.test(text)) {
+    return "quote";
+  }
+
+  if (/\bcontract|agreement\b/i.test(text)) {
+    return "contract";
+  }
+
+  if (/\binvoice|tax invoice|\binv[-\s#:/]/i.test(text)) {
+    return "invoice";
+  }
+
+  return "unknown";
+}
+
+function detectEmail(text: string) {
+  return text.match(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i)?.[0] ?? null;
+}
+
+function detectWebsite(text: string) {
+  const matches = Array.from(
+    text.matchAll(/\b(?:https?:\/\/|www\.)[^\s<>()]+|\b[a-z0-9-]+\.(?:com\.au|com|net\.au|net|org\.au|org|au)(?:\/[^\s<>()]*)?/gi),
+  );
+  const match = matches.find((candidate) => {
+    const index = candidate.index ?? 0;
+    return text[index - 1] !== "@";
+  })?.[0];
+
+  return match ? match.replace(/[.,;:)]+$/g, "") : null;
+}
+
+function detectPhone(text: string) {
+  const match = text.match(/\b(?:\+?61|0)[\s().-]*(?:\d[\s().-]*){8,10}\b/);
+
+  return match?.[0]?.replace(/\s{2,}/g, " ").trim() ?? null;
+}
+
+function detectAddress(lines: string[]) {
+  return (
+    lines.find((line) =>
+      /\d/.test(line) &&
+      /\b(?:street|st|road|rd|avenue|ave|lane|ln|drive|dr|place|pl|terrace|tce|boulevard|blvd|court|ct|way|highway|hwy)\b/i.test(line) &&
+      !includesSensitiveFinancialIdentifier(line),
+    ) ?? null
+  );
+}
+
+function detectKnownVendor(text: string, vendors: PrivatePlanningVendorRecord[]) {
+  const normalizedText = normalizeText(text);
+
+  return vendors
+    .map((vendor) => {
+      const vendorName = safeString(vendor.vendorName);
+      const normalizedName = normalizeText(vendorName);
+
+      return {
+        vendor,
+        vendorName,
+        normalizedName,
+        score: normalizedName && normalizedText.includes(normalizedName) ? normalizedName.length : 0,
+      };
+    })
+    .filter((candidate) => candidate.score > 0)
+    .sort((first, second) => second.score - first.score)[0]?.vendor;
+}
+
+function detectVendorName(lines: string[], text: string, vendors: PrivatePlanningVendorRecord[]) {
+  const knownVendor = detectKnownVendor(text, vendors);
+
+  if (knownVendor?.vendorName) {
+    return safeString(knownVendor.vendorName);
+  }
+
+  const candidate = lines.slice(0, 10).find((line) => {
+    if (line.length < 2 || line.length > 90 || !/[a-z]/i.test(line)) {
+      return false;
+    }
+
+    return !/\b(?:tax invoice|invoice|receipt|quote|contract|abn|gst|total|amount|balance|subtotal|date|due|page|phone|email|www|http)\b/i.test(line);
+  });
+
+  return candidate ?? null;
+}
+
+function inferVendorCategory(text: string, knownVendor?: PrivatePlanningVendorRecord) {
+  if (knownVendor?.category) {
+    return safeString(knownVendor.category);
+  }
+
+  const normalized = normalizeText(text);
+  const keywordMap: Array<[RegExp, VendorCategory]> = [
+    [/venue|catering|function/, "Venue"],
+    [/celebrant|officiant/, "Celebrant"],
+    [/photo|portrait/, "Photography"],
+    [/video|film|cinemat/, "Videography"],
+    [/flor|flower|bloom|bouquet/, "Florist"],
+    [/dj|music|band|entertain/, "DJ / Entertainment"],
+    [/cake|dessert|bakery/, "Cake"],
+    [/hair|makeup|beauty|mua/, "Hair & Makeup"],
+    [/stationer|invite|print|paper/, "Stationery"],
+    [/decor|hire|rental|styling|furniture/, "Decor / Hire"],
+    [/transport|car|bus|limo/, "Transport"],
+    [/accommodation|hotel|stay/, "Accommodation"],
+    [/audio|guestbook|phone/, "Audio Guestbook"],
+  ];
+
+  return keywordMap.find(([pattern]) => pattern.test(normalized))?.[1] ?? null;
+}
+
+function detectCurrency(text: string) {
+  if (/\bAUD\b|\$/i.test(text)) {
+    return "AUD";
+  }
+
+  return null;
+}
+
+function textExtractionWarnings(text: string, result: PrivatePlanningExtractionResult) {
+  const warnings: string[] = [];
+
+  if (abnPattern.test(text)) {
+    warnings.push("ABN detected and intentionally not stored in the vendor profile.");
+  }
+
+  if (/\b(?:bsb|account number|sort code|iban|swift|card number|credit card)\b/i.test(text)) {
+    warnings.push("Sensitive payment details were detected and ignored.");
+  }
+
+  if (!result.vendor.name) {
+    warnings.push("Vendor name could not be confidently detected.");
+  }
+
+  if (result.document.total === null) {
+    warnings.push("Total amount could not be confidently detected.");
+  }
+
+  return warnings.slice(0, 10);
+}
+
+export function extractPrivatePlanningDetailsFromText({
+  text,
+  vendors = [],
+}: {
+  text: string;
+  vendors?: PrivatePlanningVendorRecord[];
+}): PrivatePlanningExtractionResult {
+  if (!hasReadablePrivatePlanningExtractedText(text)) {
+    throw new Error("No readable text found -- download only.");
+  }
+
+  const cleanedText = cleanExtractedText(text).slice(0, 120_000);
+  const lines = extractedLines(cleanedText);
+  const knownVendor = detectKnownVendor(cleanedText, vendors);
+  const vendorName = detectVendorName(lines, cleanedText, vendors);
+  const email = detectEmail(cleanedText);
+  const phone = detectPhone(cleanedText);
+  const website = detectWebsite(cleanedText);
+  const invoiceNumber = firstPatternMatch(cleanedText, [
+    /\b(?:invoice|inv)\s*(?:number|no\.?|#)\s*[:#-]?\s*([A-Z0-9][A-Z0-9/_-]{1,})\b/i,
+    /\bINV[-\s#:/]*([A-Z0-9][A-Z0-9/_-]{2,})\b/i,
+  ]);
+  const receiptNumber = firstPatternMatch(cleanedText, [
+    /\breceipt\s*(?:number|no\.?|#)\s*[:#-]?\s*([A-Z0-9][A-Z0-9/_-]{1,})\b/i,
+    /\bRCPT[-\s#:/]*([A-Z0-9][A-Z0-9/_-]{2,})\b/i,
+  ]);
+  const invoiceDate = firstDateByLabel(lines, [/\binvoice\s*date\b/i, /\bdate\s*issued\b/i, /\bissue\s*date\b/i, /\bdate\b/i]);
+  const dueDate = firstDateByLabel(lines, [/\bdue\s*date\b/i, /\bpayment\s*due\b/i, /\bdue\b/i]);
+  const subtotal = firstAmountByLabel(lines, [/\bsub\s*total\b/i, /\bsubtotal\b/i]);
+  const tax = firstAmountByLabel(lines, [/\bgst\b/i, /\btax\b/i]);
+  const total = firstAmountByLabel(lines, [
+    /\bamount\s*due\b/i,
+    /\bbalance\s*due\b/i,
+    /\binvoice\s*total\b/i,
+    /\bgrand\s*total\b/i,
+    /\bgst\s*total\b/i,
+    /\btotal\s*(?:aud)?\b/i,
+  ]);
+  const result = sanitizePrivatePlanningExtraction({
+    vendor: {
+      name: vendorName,
+      category: inferVendorCategory(`${cleanedText} ${vendorName ?? ""}`, knownVendor),
+      contactName: firstPatternMatch(cleanedText, [/\b(?:attn|attention|contact)\s*[:#-]\s*([A-Z][A-Z .'-]{1,80})/i]),
+      email,
+      phone,
+      website,
+      address: detectAddress(lines),
+    },
+    document: {
+      documentType: detectDocumentType(cleanedText),
+      invoiceNumber,
+      receiptNumber,
+      invoiceDate,
+      dueDate,
+      subtotal,
+      tax,
+      total,
+      currency: detectCurrency(cleanedText),
+    },
+    confidence: {
+      vendor: knownVendor ? 0.86 : vendorName ? 0.58 : 0,
+      contact: Math.min(1, [email, phone, website].filter(Boolean).length / 3 + 0.15),
+      amounts: total !== null ? 0.78 : subtotal !== null || tax !== null ? 0.42 : 0,
+      dates: invoiceDate || dueDate ? 0.72 : 0,
+    },
+    warnings: [],
+  });
+
+  return {
+    ...result,
+    warnings: textExtractionWarnings(cleanedText, result),
+  };
+}
+
 function chooseContactMethod(vendor: PrivatePlanningExtractedVendor): ContactMethod {
   if (vendor.email) {
     return "Email";
@@ -581,65 +820,4 @@ export function toPrivatePlanningFileExtractionDto(
     dismissedAt: extraction.dismissedAt?.toISOString() ?? null,
     suggestion: suggestion ? toPrivatePlanningVendorSuggestionDto(suggestion) : null,
   };
-}
-
-export async function extractPrivatePlanningFileDetails({
-  fileBuffer,
-  filename,
-  mimeType,
-}: {
-  fileBuffer: Buffer;
-  filename: string;
-  mimeType: string;
-}) {
-  if (!canExtractPrivatePlanningMimeType(mimeType)) {
-    throw new Error("Unsupported file type for extraction.");
-  }
-
-  const base64 = fileBuffer.toString("base64");
-  const isImage = mimeType.startsWith("image/");
-  const filePart: ResponseInputContent = isImage
-    ? {
-        type: "input_image",
-        image_url: `data:${mimeType};base64,${base64}`,
-        detail: "high",
-      }
-    : {
-        type: "input_file",
-        filename,
-        file_data: `data:${mimeType};base64,${base64}`,
-      };
-
-  const response = (await getOpenAiClient().responses.create({
-    model: PRIVATE_PLANNING_EXTRACTION_MODEL,
-    input: [
-      {
-        role: "system",
-        content:
-          "You extract wedding vendor and invoice details from private planning documents. Return only the requested JSON. Do not include or infer bank account numbers, card numbers, sort codes, tax IDs, passport/ID numbers, or medical/legal details.",
-      },
-      {
-        role: "user",
-        content: [
-          {
-            type: "input_text",
-            text:
-              "Extract basic vendor details and document totals from this wedding invoice, receipt, quote, or contract. Use null for missing fields. If sensitive payment identifiers are visible, ignore them and add a generic warning without repeating the value.",
-          },
-          filePart,
-        ],
-      },
-    ],
-    text: {
-      format: {
-        type: "json_schema",
-        name: "private_planning_vendor_extraction",
-        strict: true,
-        schema: extractionJsonSchema,
-      },
-    },
-  } satisfies ResponseCreateParamsNonStreaming)) as Response;
-  const outputText = response.output_text;
-
-  return sanitizePrivatePlanningExtraction(JSON.parse(outputText));
 }

@@ -43,6 +43,7 @@ import {
   PRIVATE_PLANNING_MAX_FILE_BYTES,
   privatePlanningAllowedMimeTypes,
 } from "@/lib/private-planning-file-rules";
+import { extractPrivatePlanningTextLocally } from "@/lib/private-planning-local-extraction-client";
 import PrivatePlanningGuestsTab from "./private-planning-guests-tab";
 
 const VENDORS_KEY = "private-planning-vendors";
@@ -93,7 +94,7 @@ const vendorStatuses = [
 ] as const;
 const priorities = ["Low", "Medium", "High"] as const;
 const contactMethods = ["Email", "Phone", "Instagram", "Website"] as const;
-const eventTypes = ["Meeting", "Payment", "Follow-up", "Deadline", "Appointment"] as const;
+const eventTypes = ["Meeting", "Payment", "Follow-up", "Deadline", "Appointment", "Bridal Party / Fashion"] as const;
 const taskStatuses = ["To do", "In progress", "Waiting", "Done"] as const;
 const runsheetStatuses = ["Draft", "Confirmed", "Needs confirmation", "Optional", "Optional / Needs confirmation"] as const;
 const runsheetGroupNames = [
@@ -290,6 +291,16 @@ const emptyEventForm: EventForm = {
   notes: "",
 };
 
+const azazieBridesmaidPopupEvent: CalendarEvent = {
+  id: "event-azazie-bridesmaid-dress-popup",
+  title: "Azazie Bridesmaid Dress Pop-up Appointment",
+  date: "2026-05-16",
+  type: "Bridal Party / Fashion",
+  vendorId: "",
+  notes:
+    "Time: 2:00 p.m. - 4:00 p.m. Status: Upcoming. Attend Azazie pop-up shop appointment with bridal party to try on and purchase bridesmaid dresses. Tasks during appointment: try shortlisted dress styles; compare fabric and colour options; review fit and sizing for each bridesmaid; take reference photos; finalise preferred dress direction; purchase dresses if ready.",
+};
+
 const emptyTaskForm: TaskForm = {
   title: "",
   vendorId: "",
@@ -384,6 +395,7 @@ const defaultVendors: Vendor[] = [
 ];
 
 const defaultCalendarEvents: CalendarEvent[] = [
+  azazieBridesmaidPopupEvent,
   {
     id: "event-florals",
     title: "Review floral direction",
@@ -450,6 +462,95 @@ function createTimelineTasks(sectionId: string, tasks: string[]): TimelineTask[]
   }));
 }
 
+const preWeddingShootTimelineSectionId = "timeline-2026-07-01-pre-wedding-shoot-planning";
+
+const preWeddingShootTimelineTaskDetails = [
+  {
+    id: "location",
+    text: "Finalise pre-wedding shoot location. Suggested timing: 3-5 months before shoot. Status: To decide - compare Bay View Park Lookout, Point Walter Jetty, Matilda Bay, and Araluen Botanic Park; evaluate accessibility, lighting, crowd levels, permits, sunset timing, greenery/water balance, and travel time; confirm the final location based on the romantic soft-luxe vision.",
+    matchers: [/\bpre[- ]?wedding shoot location\b/i, /\bengagement shoot location\b/i, /\bsaree shoot location\b/i, /\bphotoshoot location\b/i, /\bBay View Park Lookout\b/i, /\bPoint Walter Jetty\b/i, /\bMatilda Bay\b/i, /\bAraluen Botanic Park\b/i],
+  },
+  {
+    id: "date",
+    text: "Confirm pre-wedding shoot date. Suggested timing: after location shortlist. Status: To decide - coordinate photographer availability, weather season, and golden hour timing; avoid extreme heat or windy periods where possible.",
+    matchers: [/\bconfirm pre[- ]?wedding shoot date\b/i, /\bpre[- ]?wedding shoot date\b/i, /\bengagement shoot date\b/i, /\bphotoshoot date\b/i, /\bshoot date\b.*\bgolden hour\b/i],
+  },
+  {
+    id: "saree-styling",
+    text: "Finalise saree styling direction. Suggested timing: 2-4 months before shoot. Status: To decide - confirm whether the pre-wedding shoot outfit will be the selected saree, decide on drape style and jewellery pairing, and confirm if professional saree draping support is required.",
+    matchers: [/\bfinalise saree styling\b/i, /\bsaree styling direction\b/i, /\bpre[- ]?wedding.*\bsaree\b/i, /\bsaree shoot\b/i, /\bdrape style\b/i],
+  },
+  {
+    id: "saree-draping",
+    text: "Book saree draping support if required. Suggested timing: after styling confirmation. Status: To decide - research and shortlist local saree draping artists if needed, then confirm travel availability to the shoot location.",
+    matchers: [/\bsaree draping support\b/i, /\bsaree draping artists?\b/i, /\bdraping support\b/i, /\bdraping artist\b/i],
+  },
+  {
+    id: "adi-outfit",
+    text: "Finalise Adi's outfit styling. Suggested timing: 2-3 months before shoot. Status: To decide - coordinate outfit colours and textures with the saree palette; confirm shirt, pants, footwear, and accessories; ensure the overall styling matches the romantic polished aesthetic.",
+    matchers: [/\bAdi'?s outfit styling\b/i, /\bAditya'?s outfit styling\b/i, /\bpre[- ]?wedding.*\bAdi'?s outfit\b/i, /\bshoot outfit.*\bAdi\b/i, /\boutfit styling.*\bsaree palette\b/i],
+  },
+  {
+    id: "hair-direction",
+    text: "Finalise pre-wedding shoot hair direction. Suggested timing: 1-2 months before shoot. Status: To decide - confirm hairstyle direction different from wedding day styling, review references for saree-compatible hair looks, and save final reference images.",
+    matchers: [/\bpre[- ]?wedding shoot hair\b/i, /\bshoot hair direction\b/i, /\bhair references\b/i, /\bsaree-compatible hair\b/i],
+  },
+  {
+    id: "makeup-direction",
+    text: "Finalise pre-wedding shoot makeup direction. Suggested timing: 1-2 months before shoot. Status: To decide - confirm soft luxe makeup direction suitable for outdoor photography and save inspiration/reference photos.",
+    matchers: [/\bpre[- ]?wedding shoot makeup\b/i, /\bshoot makeup direction\b/i, /\bmakeup references\b/i, /\bsoft luxe makeup\b/i],
+  },
+  {
+    id: "reference-uploads",
+    text: "Add outfit, hair, and makeup references to planning page. Suggested timing: after styling decisions. Status: To do - upload reference photos for outfits, makeup, jewellery, and hair, and organise them clearly for vendors and day-of preparation.",
+    matchers: [/\boutfit, hair, and makeup references\b/i, /\breference photos.*\boutfits?.*\bmakeup\b/i, /\bplanning page.*\breferences\b/i, /\borganise.*\breferences.*\bvendors\b/i],
+  },
+  {
+    id: "transport-parking",
+    text: "Confirm transport and parking plan. Suggested timing: 2-4 weeks before shoot. Status: To do - review parking availability and walking distances, plan transport timing around golden hour, and consider changing/privacy areas if required.",
+    matchers: [/\bpre[- ]?wedding.*\btransport\b/i, /\bpre[- ]?wedding.*\bparking\b/i, /\bphotoshoot.*\btransport\b/i, /\bphotoshoot.*\bparking\b/i, /\bshoot.*\bparking\b/i, /\bparking.*\bgolden hour\b/i, /\bchanging\/privacy areas\b/i],
+  },
+  {
+    id: "packing-checklist",
+    text: "Create pre-wedding shoot packing checklist. Suggested timing: 1-2 weeks before shoot. Status: To do - include outfit items, jewellery, footwear, touch-up kit, water, safety pins, makeup, tissues, stain remover, phone charger, and emergency styling items.",
+    matchers: [/\bpre[- ]?wedding shoot packing checklist\b/i, /\bphotoshoot packing checklist\b/i, /\bshoot packing checklist\b/i, /\btouch-up kit.*\bsafety pins\b/i, /\bstain remover.*\bemergency styling\b/i],
+  },
+  {
+    id: "weather-backup",
+    text: "Confirm weather backup plan. Suggested timing: 1 week before shoot. Status: To do - monitor the weather forecast and decide whether to proceed, reschedule, or adjust timing/location if conditions change.",
+    matchers: [/\bpre[- ]?wedding.*\bweather backup\b/i, /\bphotoshoot.*\bweather backup\b/i, /\bshoot weather backup\b/i, /\bweather forecast.*\breschedule\b/i],
+  },
+  {
+    id: "moodboard",
+    text: "Build pre-wedding shoot moodboard. Suggested timing: before final photographer briefing. Status: To do - curate romantic, natural, polished, soft luxe references, include posing references, movement shots, close-ups, and editorial-inspired frames, then share the final moodboard with the photographer.",
+    matchers: [/\bpre[- ]?wedding shoot moodboard\b/i, /\bshoot moodboard\b/i, /\bphotographer briefing.*\bmoodboard\b/i, /\bsoft luxe references\b/i, /\bposing references\b.*\beditorial/i],
+  },
+] as const;
+
+const bridalPartyPrepTimelineTaskDetails = [
+  {
+    id: "dennsi-gift-box",
+    sectionId: "timeline-2026-04-22-attire-beauty-honeymoon",
+    text: "Give bridal party gift box to Dennsi. Suggested timing: 2-6 months before wedding. Status: To do - finalise contents of Dennsi's gift box, check packaging, wrapping, and presentation, coordinate a suitable time to give the gift box personally, and capture photos if desired.",
+    matchers: [/\bDennsi\b/i, /\bDennis\b/i, /\bbridal party and proposal gifts\b/i, /\bproposal boxes?\b/i, /\bbridal party gifts?\b/i, /\bbridesmaid gifts?\b/i],
+    insertAfter: [/wedding dress/i, /hair and makeup/i],
+  },
+  {
+    id: "esme-gift-box",
+    sectionId: "timeline-2026-04-22-attire-beauty-honeymoon",
+    text: "Give bridal party gift box to Esme. Suggested timing: 2-6 months before wedding. Status: To do - finalise contents of Esme's gift box, check packaging, wrapping, and presentation, coordinate a suitable time to give the gift box personally, and capture photos if desired.",
+    matchers: [/\bEsme\b/i, /\bgift box to Esme\b/i, /\bproposal box.*\bEsme\b/i],
+    insertAfter: [/\bDennsi\b/i, /\bDennis\b/i, /\bproposal gifts\b/i],
+  },
+  {
+    id: "shilpa-robe",
+    sectionId: "timeline-2026-07-15-small-details",
+    text: "Give getting ready robe to Shilpa. Suggested timing: 1-3 months before wedding. Status: To do - confirm robe sizing/style, steam or prepare the robe if required, package it with any matching bridal party items or notes, and ensure Shilpa has the robe before the wedding morning.",
+    matchers: [/\bShilpa\b/i, /\bgetting ready robe\b/i, /\bgetting-ready robe\b/i, /\bgetting-ready outfits\b/i, /\bgetting ready outfits\b/i, /\brobes?\b/i],
+    insertAfter: [/signing pens/i, /getting-ready outfits/i, /getting ready outfits/i],
+  },
+] as const;
+
 const defaultTimeline: TimelineSection[] = [
   {
     id: "timeline-2026-04-01-planning-reset",
@@ -502,7 +603,8 @@ const defaultTimeline: TimelineSection[] = [
       "Book hair and makeup artists.",
       "Check passports for honeymoon travel.",
       "Research or book honeymoon.",
-      "Confirm bridal party and proposal gifts if still needed.",
+      bridalPartyPrepTimelineTaskDetails[0].text,
+      bridalPartyPrepTimelineTaskDetails[1].text,
       "Start hen and bucks party planning with bridal party.",
     ]),
   },
@@ -583,6 +685,7 @@ const defaultTimeline: TimelineSection[] = [
       "Confirm ceremony setup needs.",
       "Confirm reception setup needs.",
       "Confirm lighting/styling/marquee requirements if applicable.",
+      "Decide bonbonniere / guest favour direction. Suggested timing: 4-6 months before wedding. Status: To decide - decide whether to do bonbonniere, compare options against the garden romance theme, consider usefulness, cost per guest, packaging, and table styling impact, shortlist 2-3 options, and confirm the final choice before ordering.",
       "Update vendor notes with all confirmed inclusions.",
     ]),
   },
@@ -599,6 +702,16 @@ const defaultTimeline: TimelineSection[] = [
     ]),
   },
   {
+    id: preWeddingShootTimelineSectionId,
+    title: "1-14 July 2026 - Pre-wedding shoot planning",
+    category: "Photography / Styling",
+    priority: "Medium",
+    tasks: createTimelineTasks(
+      preWeddingShootTimelineSectionId,
+      preWeddingShootTimelineTaskDetails.map((task) => task.text),
+    ),
+  },
+  {
     id: "timeline-2026-07-15-small-details",
     title: "15-31 July 2026 - Small details purchase list",
     category: "Details",
@@ -610,8 +723,9 @@ const defaultTimeline: TimelineSection[] = [
       "Confirm vow cards/books.",
       "Confirm wedding day cards.",
       "Confirm sparklers if using.",
-      "Confirm cake knife.",
-      "Confirm getting-ready outfits.",
+      "Decide and source cake knife. Suggested timing: 3-4 months before wedding. Status: To decide - check whether Caversham House or the cake vendor provides a suitable knife; decide whether to buy, borrow, hire, or use theirs; if buying, choose a blush/ivory/rose-gold garden romance style and confirm whether a matching cake server is needed.",
+      "Decide and source signing pens. Suggested timing: 3-4 months before wedding. Status: To decide - decide whether to buy 1 or 2 signing pens, choose a refined ceremony-table style, confirm ink colour and smooth writing on legal documents or vow cards, then store with the ceremony box once purchased.",
+      bridalPartyPrepTimelineTaskDetails[2].text,
       "Start detail box for photographer.",
     ]),
   },
@@ -815,6 +929,214 @@ const defaultTimeline: TimelineSection[] = [
   },
 ];
 
+const procurementTimelineTaskDetails = [
+  {
+    id: "bonbonniere",
+    sectionId: "timeline-2026-06-22-hire-decor-lock-in",
+    text: "Decide bonbonniere / guest favour direction. Suggested timing: 4-6 months before wedding. Status: To decide - decide whether to do bonbonniere, compare options against the garden romance theme, consider usefulness, cost per guest, packaging, and table styling impact, shortlist 2-3 options, and confirm the final choice before ordering.",
+    matchers: [/\bbonbonniere\b/i, /\bguest favou?rs?\b/i],
+    insertAfter: [/lighting\/styling\/marquee/i, /table styling/i],
+  },
+  {
+    id: "cake-knife",
+    sectionId: "timeline-2026-07-15-small-details",
+    text: "Decide and source cake knife. Suggested timing: 3-4 months before wedding. Status: To decide - check whether Caversham House or the cake vendor provides a suitable knife; decide whether to buy, borrow, hire, or use theirs; if buying, choose a blush/ivory/rose-gold garden romance style and confirm whether a matching cake server is needed.",
+    matchers: [/\bcake knife\b/i, /\bcake server\b/i, /\bcake cutting knife\b/i],
+    insertAfter: [/sparklers/i, /cake/i],
+  },
+  {
+    id: "signing-pens",
+    sectionId: "timeline-2026-07-15-small-details",
+    text: "Decide and source signing pens. Suggested timing: 3-4 months before wedding. Status: To decide - decide whether to buy 1 or 2 signing pens, choose a refined ceremony-table style, confirm ink colour and smooth writing on legal documents or vow cards, then store with the ceremony box once purchased.",
+    matchers: [/\bsigning pens?\b/i, /\bsigning table.*\bpens?\b/i, /\bceremony stationery\b/i, /\bpens?\b/i],
+    insertAfter: [/vow cards/i, /guest book/i],
+  },
+] as const;
+
+function textMatchesAnyPattern(text: string, patterns: readonly RegExp[]) {
+  return patterns.some((pattern) => pattern.test(text));
+}
+
+function mergeProcurementTimelineTasks(sections: TimelineSection[]): TimelineSection[] {
+  const nextSections = sections.map((section) => ({ ...section, tasks: [...section.tasks] }));
+
+  for (const procurementTask of procurementTimelineTaskDetails) {
+    const matches: { sectionIndex: number; taskIndex: number }[] = [];
+
+    nextSections.forEach((section, sectionIndex) => {
+      section.tasks.forEach((task, taskIndex) => {
+        if (textMatchesAnyPattern(task.text, procurementTask.matchers)) {
+          matches.push({ sectionIndex, taskIndex });
+        }
+      });
+    });
+
+    if (matches.length > 0) {
+      const [primaryMatch, ...duplicateMatches] = matches;
+      const matchingTasks = matches.map(({ sectionIndex, taskIndex }) => nextSections[sectionIndex].tasks[taskIndex]);
+      const completedAt = matchingTasks.find((task) => task.completedAt)?.completedAt ?? "";
+      const done = matchingTasks.some((task) => task.done);
+      const primaryTask = nextSections[primaryMatch.sectionIndex].tasks[primaryMatch.taskIndex];
+
+      nextSections[primaryMatch.sectionIndex].tasks[primaryMatch.taskIndex] = {
+        ...primaryTask,
+        text: procurementTask.text,
+        done,
+        completedAt,
+      };
+
+      for (const { sectionIndex, taskIndex } of duplicateMatches.sort((left, right) => right.taskIndex - left.taskIndex)) {
+        nextSections[sectionIndex].tasks.splice(taskIndex, 1);
+      }
+
+      continue;
+    }
+
+    const sectionIndex = nextSections.findIndex((section) => section.id === procurementTask.sectionId);
+    if (sectionIndex < 0) {
+      continue;
+    }
+
+    const targetSection = nextSections[sectionIndex];
+    const insertAfterIndex = targetSection.tasks.findIndex((task) => textMatchesAnyPattern(task.text, procurementTask.insertAfter));
+    const insertAt = insertAfterIndex >= 0 ? insertAfterIndex + 1 : targetSection.tasks.length;
+
+    targetSection.tasks.splice(insertAt, 0, {
+      id: `${targetSection.id}-task-procurement-${procurementTask.id}`,
+      text: procurementTask.text,
+      done: false,
+      completedAt: "",
+    });
+  }
+
+  return nextSections;
+}
+
+function chooseTimelineTaskMergeTarget(
+  sections: TimelineSection[],
+  matches: { sectionIndex: number; taskIndex: number }[],
+  targetText: string,
+) {
+  return (
+    matches.find(({ sectionIndex, taskIndex }) => {
+      const task = sections[sectionIndex].tasks[taskIndex];
+      return task.done || Boolean(task.completedAt) || task.text !== targetText;
+    }) ?? matches[0]
+  );
+}
+
+function mergeBridalPartyPrepTimelineTasks(sections: TimelineSection[]): TimelineSection[] {
+  const nextSections = sections.map((section) => ({ ...section, tasks: [...section.tasks] }));
+
+  for (const prepTask of bridalPartyPrepTimelineTaskDetails) {
+    const matches: { sectionIndex: number; taskIndex: number }[] = [];
+
+    nextSections.forEach((section, sectionIndex) => {
+      section.tasks.forEach((task, taskIndex) => {
+        if (textMatchesAnyPattern(task.text, prepTask.matchers)) {
+          matches.push({ sectionIndex, taskIndex });
+        }
+      });
+    });
+
+    if (matches.length > 0) {
+      const primaryMatch = chooseTimelineTaskMergeTarget(nextSections, matches, prepTask.text);
+      const duplicateMatches = matches
+        .filter((match) => match.sectionIndex !== primaryMatch.sectionIndex || match.taskIndex !== primaryMatch.taskIndex)
+        .sort((left, right) => (left.sectionIndex === right.sectionIndex ? right.taskIndex - left.taskIndex : right.sectionIndex - left.sectionIndex));
+      const matchingTasks = matches.map(({ sectionIndex, taskIndex }) => nextSections[sectionIndex].tasks[taskIndex]);
+      const completedAt = matchingTasks.find((task) => task.completedAt)?.completedAt ?? "";
+      const done = matchingTasks.some((task) => task.done);
+      const primaryTask = nextSections[primaryMatch.sectionIndex].tasks[primaryMatch.taskIndex];
+
+      nextSections[primaryMatch.sectionIndex].tasks[primaryMatch.taskIndex] = {
+        ...primaryTask,
+        text: prepTask.text,
+        done,
+        completedAt,
+      };
+
+      for (const { sectionIndex, taskIndex } of duplicateMatches) {
+        nextSections[sectionIndex].tasks.splice(taskIndex, 1);
+      }
+
+      continue;
+    }
+
+    const sectionIndex = nextSections.findIndex((section) => section.id === prepTask.sectionId);
+    if (sectionIndex < 0) {
+      continue;
+    }
+
+    const targetSection = nextSections[sectionIndex];
+    const insertAfterIndex = targetSection.tasks.findIndex((task) => textMatchesAnyPattern(task.text, prepTask.insertAfter));
+    const insertAt = insertAfterIndex >= 0 ? insertAfterIndex + 1 : targetSection.tasks.length;
+
+    targetSection.tasks.splice(insertAt, 0, {
+      id: `${prepTask.sectionId}-task-bridal-party-${prepTask.id}`,
+      text: prepTask.text,
+      done: false,
+      completedAt: "",
+    });
+  }
+
+  return nextSections;
+}
+
+function mergePreWeddingShootTimelineTasks(sections: TimelineSection[]): TimelineSection[] {
+  const nextSections = sections.map((section) => ({ ...section, tasks: [...section.tasks] }));
+
+  for (const shootTask of preWeddingShootTimelineTaskDetails) {
+    const matches: { sectionIndex: number; taskIndex: number }[] = [];
+
+    nextSections.forEach((section, sectionIndex) => {
+      section.tasks.forEach((task, taskIndex) => {
+        if (textMatchesAnyPattern(task.text, shootTask.matchers)) {
+          matches.push({ sectionIndex, taskIndex });
+        }
+      });
+    });
+
+    if (matches.length > 0) {
+      const primaryMatch = chooseTimelineTaskMergeTarget(nextSections, matches, shootTask.text);
+      const duplicateMatches = matches
+        .filter((match) => match.sectionIndex !== primaryMatch.sectionIndex || match.taskIndex !== primaryMatch.taskIndex)
+        .sort((left, right) => (left.sectionIndex === right.sectionIndex ? right.taskIndex - left.taskIndex : right.sectionIndex - left.sectionIndex));
+      const matchingTasks = matches.map(({ sectionIndex, taskIndex }) => nextSections[sectionIndex].tasks[taskIndex]);
+      const completedAt = matchingTasks.find((task) => task.completedAt)?.completedAt ?? "";
+      const done = matchingTasks.some((task) => task.done);
+      const primaryTask = nextSections[primaryMatch.sectionIndex].tasks[primaryMatch.taskIndex];
+
+      nextSections[primaryMatch.sectionIndex].tasks[primaryMatch.taskIndex] = {
+        ...primaryTask,
+        text: shootTask.text,
+        done,
+        completedAt,
+      };
+
+      for (const { sectionIndex, taskIndex } of duplicateMatches) {
+        nextSections[sectionIndex].tasks.splice(taskIndex, 1);
+      }
+
+      continue;
+    }
+
+    const sectionIndex = nextSections.findIndex((section) => section.id === preWeddingShootTimelineSectionId);
+    if (sectionIndex < 0) {
+      continue;
+    }
+
+    nextSections[sectionIndex].tasks.push({
+      id: `${preWeddingShootTimelineSectionId}-task-${shootTask.id}`,
+      text: shootTask.text,
+      done: false,
+      completedAt: "",
+    });
+  }
+
+  return nextSections;
+}
+
 function createId(prefix: string) {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
     return `${prefix}-${crypto.randomUUID()}`;
@@ -980,7 +1302,57 @@ function normalizeEvent(raw: Partial<CalendarEvent> & Record<string, unknown>): 
 }
 
 function normalizeEvents(value: unknown): CalendarEvent[] {
-  return Array.isArray(value) ? value.map((event) => normalizeEvent(event as Partial<CalendarEvent> & Record<string, unknown>)) : defaultCalendarEvents;
+  const normalizedEvents = Array.isArray(value)
+    ? value.map((event) => normalizeEvent(event as Partial<CalendarEvent> & Record<string, unknown>))
+    : defaultCalendarEvents;
+
+  return mergeAzazieBridesmaidPopupEvent(normalizedEvents);
+}
+
+function mergeAzazieBridesmaidPopupEvent(events: CalendarEvent[]) {
+  const matchers = [
+    /\bAzazie\b/i,
+    /\bbridesmaid dresses\b/i,
+    /\bbridal party fitting\b/i,
+    /\bpop-up\b/i,
+    /\bpop up\b/i,
+  ];
+  const matchingIndexes = events.flatMap((event, index) => {
+    const searchableText = `${event.title} ${event.notes}`;
+    const isLikelyDressAppointment =
+      textMatchesAnyPattern(searchableText, matchers) ||
+      (event.date === "2026-05-16" && /\b(bridesmaid|dress|fashion|appointment)\b/i.test(searchableText));
+
+    return isLikelyDressAppointment ? [index] : [];
+  });
+
+  if (matchingIndexes.length === 0) {
+    return [azazieBridesmaidPopupEvent, ...events];
+  }
+
+  const [primaryIndex, ...duplicateIndexes] = matchingIndexes;
+  const primaryEvent = events[primaryIndex];
+  const hasAppointmentTasks = /try shortlisted dress styles/i.test(primaryEvent.notes);
+  const notes = hasAppointmentTasks
+    ? primaryEvent.notes
+    : [primaryEvent.notes, azazieBridesmaidPopupEvent.notes].filter(Boolean).join("\n\n");
+  const nextEvents = events.map((event, index) =>
+    index === primaryIndex
+      ? {
+          ...event,
+          title: event.title.trim() ? event.title : azazieBridesmaidPopupEvent.title,
+          date: event.date || azazieBridesmaidPopupEvent.date,
+          type: azazieBridesmaidPopupEvent.type,
+          notes,
+        }
+      : event,
+  );
+
+  for (const index of duplicateIndexes.sort((left, right) => right - left)) {
+    nextEvents.splice(index, 1);
+  }
+
+  return nextEvents;
 }
 
 function normalizeTasks(value: unknown): PlanningTask[] {
@@ -1020,7 +1392,7 @@ function normalizeTimelineTask(raw: Partial<TimelineTask> & Record<string, unkno
 
 function normalizeTimeline(value: unknown): TimelineSection[] {
   if (!Array.isArray(value)) {
-    return defaultTimeline;
+    return mergePreWeddingShootTimelineTasks(mergeBridalPartyPrepTimelineTasks(mergeProcurementTimelineTasks(defaultTimeline)));
   }
 
   const savedSections = value.filter(
@@ -1041,7 +1413,7 @@ function normalizeTimeline(value: unknown): TimelineSection[] {
     return idMatches || titleMatches;
   });
 
-  return defaultTimeline.map((fallbackSection) => {
+  const normalizedTimeline = defaultTimeline.map((fallbackSection) => {
     const saved = byId.get(fallbackSection.id) ?? byTitle.get(normalizeTimelineKey(fallbackSection.title));
     if (!saved || !Array.isArray(saved.tasks)) {
       return fallbackSection;
@@ -1057,6 +1429,8 @@ function normalizeTimeline(value: unknown): TimelineSection[] {
       tasks: hasOptimizedTimeline ? savedTasks : fallbackSection.tasks,
     };
   });
+
+  return mergePreWeddingShootTimelineTasks(mergeBridalPartyPrepTimelineTasks(mergeProcurementTimelineTasks(normalizedTimeline)));
 }
 
 function normalizeNotes(value: unknown, legacyDecisionNotes = ""): PlanningNotes {
@@ -2107,6 +2481,7 @@ const eventTone: Record<EventType, string> = {
   "Follow-up": "bg-[#6f7d5b]",
   Deadline: "bg-[#9b6f68]",
   Appointment: "bg-[#7b879d]",
+  "Bridal Party / Fashion": "bg-[#d8a8a1]",
 };
 
 function getCalendarItems(vendors: Vendor[], events: CalendarEvent[], tasks: PlanningTask[]): CalendarItem[] {
@@ -3808,10 +4183,10 @@ function getFileExtractionStatus(file: PrivatePlanningFileDto) {
 function getFileExtractionStatusLabel(status: string) {
   const labels: Record<string, string> = {
     not_extracted: "Not extracted",
-    extracting: "Extracting",
-    review_needed: "Review needed",
+    extracting: "Extracting text...",
+    review_needed: "Review extracted details",
     linked: "Linked to vendor",
-    failed: "Failed",
+    failed: "No readable text found",
     dismissed: "Dismissed",
   };
 
@@ -3823,11 +4198,11 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
   const [files, setFiles] = useState<PrivatePlanningFileDto[]>([]);
   const [selectedVendorId, setSelectedVendorId] = useState("");
   const [isStorageConfigured, setIsStorageConfigured] = useState(true);
-  const [isExtractionConfigured, setIsExtractionConfigured] = useState(true);
   const [isLoadingFiles, setIsLoadingFiles] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [autoExtractAfterUpload, setAutoExtractAfterUpload] = useState(true);
   const [extractingFileId, setExtractingFileId] = useState<string | null>(null);
+  const [fileScanMessages, setFileScanMessages] = useState<Record<string, string>>({});
   const [applyingSuggestionId, setApplyingSuggestionId] = useState<string | null>(null);
   const [reviewForms, setReviewForms] = useState<Record<string, VendorSuggestionForm>>({});
   const [linkSelections, setLinkSelections] = useState<Record<string, string>>({});
@@ -3880,15 +4255,11 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
         return next;
       });
       const storageConfigured = Boolean(result.storageConfigured);
-      const extractionConfigured = result.extractionConfigured !== false;
 
       setIsStorageConfigured(storageConfigured);
-      setIsExtractionConfigured(extractionConfigured);
 
       if (!storageConfigured) {
         setStatusMessage("Private Blob storage is not configured yet.");
-      } else if (!extractionConfigured) {
-        setStatusMessage("AI vendor extraction is not configured yet. Add OPENAI_API_KEY in Vercel to enable Extract Details.");
       }
 
       return nextFiles;
@@ -3929,22 +4300,30 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
   }
 
   async function extractFile(fileId: string, force = false) {
-    if (!isExtractionConfigured) {
-      setStatusMessage("AI vendor extraction is not configured yet. Add OPENAI_API_KEY in Vercel to enable Extract Details.");
+    const file = files.find((item) => item.id === fileId);
+
+    if (!file) {
+      setStatusMessage("File is still loading. Try again in a moment.");
       return;
     }
 
     setExtractingFileId(fileId);
-    setStatusMessage(force ? "Re-running private extraction..." : "Extracting vendor details privately...");
+    setFileScanMessages((current) => ({ ...current, [fileId]: "Extracting text..." }));
+    setStatusMessage(force ? "Re-running local text extraction..." : "Extracting text...");
 
-    try {
+    const updateScanStatus = (message: string) => {
+      setFileScanMessages((current) => ({ ...current, [fileId]: message }));
+      setStatusMessage(message);
+    };
+
+    const persistExtractedText = async (extractedText: string, extractionMethod: string) => {
       const response = await fetch(`/api/private-planning/files/${fileId}/extract`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           [PRIVATE_PLANNING_CSRF_HEADER]: "1",
         },
-        body: JSON.stringify({ force }),
+        body: JSON.stringify({ force, extractedText, extractionMethod }),
         cache: "no-store",
         credentials: "same-origin",
       });
@@ -3954,11 +4333,40 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
         throw new Error(result?.error ?? "Could not extract details from this file.");
       }
 
-      setStatusMessage("Vendor details detected. Review before applying.");
+      return result;
+    };
+
+    try {
+      const downloadResponse = await fetch(`/api/private-planning/files/${fileId}/download`, {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+
+      if (!downloadResponse.ok) {
+        throw new Error("Could not read the private file for local extraction.");
+      }
+
+      const localExtraction = await extractPrivatePlanningTextLocally({
+        file: await downloadResponse.blob(),
+        mimeType: file.mimeType,
+        onStatus: updateScanStatus,
+      });
+
+      await persistExtractedText(localExtraction.text, localExtraction.method);
+      updateScanStatus("Review extracted details");
       await loadFiles();
     } catch (error) {
       console.error("Private planning extraction failed.", error);
-      setStatusMessage(error instanceof Error ? error.message : "Extraction failed.");
+      const message = error instanceof Error ? error.message : "Extraction failed.";
+
+      if (/no readable text/i.test(message)) {
+        await persistExtractedText("", "no-readable-text").catch(() => undefined);
+        updateScanStatus("No readable text found — download only");
+      } else {
+        setStatusMessage(message);
+        setFileScanMessages((current) => ({ ...current, [fileId]: message }));
+      }
+
       await loadFiles();
     } finally {
       setExtractingFileId(null);
@@ -4111,9 +4519,7 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
       });
       let loadedFiles = await loadFiles();
 
-      if (autoExtractAfterUpload && !isExtractionConfigured) {
-        setStatusMessage("Upload complete. AI vendor extraction is not configured yet. Add OPENAI_API_KEY in Vercel to enable auto-extraction.");
-      } else if (autoExtractAfterUpload) {
+      if (autoExtractAfterUpload) {
         for (let attempt = 0; attempt < 3 && !loadedFiles.some((item) => item.id === ticketResult.ticket?.id && item.uploadedAt); attempt += 1) {
           await new Promise((resolve) => {
             window.setTimeout(resolve, 1000);
@@ -4313,7 +4719,7 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
             <h2 className="heading-secondary heading-secondary-compact mt-2">Invoices & Receipts</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6a5d55]">
               Files are uploaded to private storage, validated after upload, and served only through authenticated downloads.
-              AI extraction runs server-side and creates review-only vendor suggestions that you can edit, link, create, or dismiss.
+              Local text extraction runs in your browser and creates review-only vendor suggestions that you can edit, link, create, or dismiss.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:min-w-[320px]">
@@ -4337,16 +4743,10 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
                 type="checkbox"
                 checked={autoExtractAfterUpload}
                 onChange={(event) => setAutoExtractAfterUpload(event.target.checked)}
-                disabled={!isExtractionConfigured}
                 className="mt-1 h-4 w-4 accent-[var(--color-navy)]"
               />
               <span>
-                Auto-extract vendor details after upload
-                {!isExtractionConfigured && (
-                  <span className="mt-1 block text-xs leading-5 text-[#9b6f68]">
-                    Needs OPENAI_API_KEY in Vercel.
-                  </span>
-                )}
+                Extract details locally after upload
               </span>
             </label>
             <button
@@ -4379,6 +4779,7 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
           files.map((file) => {
             const extractionStatus = getFileExtractionStatus(file);
             const canRunExtraction = extractionStatus !== "extracting" && extractionStatus !== "review_needed" && extractionStatus !== "linked";
+            const scanMessage = fileScanMessages[file.id];
 
             return (
             <PlanningCard key={file.id}>
@@ -4401,12 +4802,8 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
                       </Chip>
                       <p className="text-sm leading-6 text-[#6a5d55]">Scan status: {file.scanStatus}. Download only.</p>
                     </div>
+                    {scanMessage && <p className="mt-2 text-sm leading-6 text-[#6a5d55]">{scanMessage}</p>}
                     {file.extraction?.errorMessage && <p className="mt-2 text-sm leading-6 text-[#9b6f68]">{file.extraction.errorMessage}</p>}
-                    {!isExtractionConfigured && (
-                      <p className="mt-2 text-sm leading-6 text-[#9b6f68]">
-                        AI extraction is unavailable until OPENAI_API_KEY is added in Vercel.
-                      </p>
-                    )}
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-3">
@@ -4414,13 +4811,11 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
                     <button
                       type="button"
                       onClick={() => extractFile(file.id, extractionStatus === "dismissed" || extractionStatus === "failed")}
-                      disabled={extractingFileId === file.id || !isExtractionConfigured}
+                      disabled={extractingFileId === file.id}
                       className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#b98278] disabled:cursor-not-allowed disabled:opacity-55"
                     >
                       <FileText className="h-4 w-4" />
-                      {!isExtractionConfigured
-                        ? "Extraction Unavailable"
-                        : extractingFileId === file.id
+                      {extractingFileId === file.id
                           ? "Extracting"
                           : extractionStatus === "dismissed" || extractionStatus === "failed"
                             ? "Run Again"
