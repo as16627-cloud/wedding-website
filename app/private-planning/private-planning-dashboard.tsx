@@ -72,7 +72,7 @@ const LEGACY_PLANNING_STORAGE_KEYS = [
 ];
 
 const revealEase = [0.22, 1, 0.36, 1] as const;
-const tabs = ["Overview", "Vendors", "Budget", "Calendar", "Timeline", "Runsheet", "Guests", "Files", "Notes"] as const;
+const tabs = ["Overview", "Vendors", "Calendar", "Timeline", "Runsheet", "Guests", "Files", "Notes"] as const;
 const vendorCategories = [
   "Venue",
   "Celebrant",
@@ -309,7 +309,6 @@ type PlanningNotes = {
 type VendorForm = Omit<Vendor, "id" | "communicationLog">;
 type EventForm = Omit<CalendarEvent, "id">;
 type TaskForm = Omit<PlanningTask, "id">;
-type PaymentRecordForm = Omit<PaymentRecord, "id">;
 type LogForm = Omit<CommunicationLog, "id">;
 type RunsheetItemForm = Omit<RunsheetItem, "id">;
 
@@ -343,18 +342,6 @@ const emptyEventForm: EventForm = {
   date: "2026-05-20",
   type: "Meeting",
   vendorId: "",
-  notes: "",
-};
-
-const emptyPaymentRecordForm: PaymentRecordForm = {
-  title: "",
-  vendorId: "",
-  budgetCategoryId: "",
-  amount: "",
-  dueDate: "",
-  paidDate: "",
-  paymentStatus: "Due",
-  sourceFileId: "",
   notes: "",
 };
 
@@ -460,18 +447,6 @@ const defaultVendors: Vendor[] = [
     ],
   },
 ];
-
-const legacyBudgetCategoryFallbacks: Record<string, string> = {
-  "budget-venue-catering": "Venue & Catering",
-  "budget-photo-video": "Photography & Videography",
-  "budget-florals-styling": "Florals & Styling",
-  "budget-attire-beauty": "Attire & Beauty",
-  "budget-entertainment": "Entertainment",
-  "budget-stationery-details": "Stationery & Details",
-  "budget-transport-travel": "Transport & Travel",
-  "budget-gifts-favours": "Gifts & Favours",
-  "budget-contingency": "Contingency",
-};
 
 function getBudgetCategoryIdForVendor(vendor: Pick<Vendor, "id">) {
   return `budget-vendor-${vendor.id}`;
@@ -1571,9 +1546,6 @@ function normalizeBudgetCategories(value: unknown, vendors = defaultVendors): Bu
     : [];
   const categoriesById = new Map(normalized.map((category) => [category.id, category]));
   const categoriesByName = new Map(normalized.map((category) => [normalizeTimelineKey(category.name), category]));
-  const vendorCategoryIds = new Set(vendors.map((vendor) => getBudgetCategoryIdForVendor(vendor)));
-  const vendorCategoryNames = new Set(vendors.map((vendor) => normalizeTimelineKey(vendor.vendorName || "Unnamed vendor")));
-  const legacyCategoryNames = new Set(Object.values(legacyBudgetCategoryFallbacks).map(normalizeTimelineKey));
   const vendorBudgetCategories = vendors.map((vendor) => {
     const categoryId = getBudgetCategoryIdForVendor(vendor);
     const saved = categoriesById.get(categoryId) ?? categoriesByName.get(normalizeTimelineKey(vendor.vendorName || "Unnamed vendor"));
@@ -1581,17 +1553,11 @@ function normalizeBudgetCategories(value: unknown, vendors = defaultVendors): Bu
     return {
       id: categoryId,
       name: vendor.vendorName || "Unnamed vendor",
-      targetBudget: saved?.targetBudget || vendor.quote || "",
+      targetBudget: saved?.targetBudget ?? "",
       notes: saved?.notes || "",
     };
   });
-  const customCategories = normalized.filter((category) => {
-    const nameKey = normalizeTimelineKey(category.name);
-
-    return !vendorCategoryIds.has(category.id) && !vendorCategoryNames.has(nameKey) && !legacyBudgetCategoryFallbacks[category.id] && !legacyCategoryNames.has(nameKey);
-  });
-
-  return [...vendorBudgetCategories, ...customCategories];
+  return vendorBudgetCategories;
 }
 
 function normalizeBudgetCategoryIdForRecord(rawCategoryId: unknown, vendorId: string, vendors: Vendor[], categories: BudgetCategory[]) {
@@ -2523,13 +2489,12 @@ function TasksPanel({ vendors, tasks, setTasks }: { vendors: Vendor[]; tasks: Pl
   );
 }
 
-function BudgetTab({
+function VendorBudgetSection({
   vendors,
   setVendors,
   budgetCategories,
   setBudgetCategories,
   payments,
-  setPayments,
   fileRecords,
 }: {
   vendors: Vendor[];
@@ -2537,14 +2502,11 @@ function BudgetTab({
   budgetCategories: BudgetCategory[];
   setBudgetCategories: (categories: BudgetCategory[]) => void;
   payments: PaymentRecord[];
-  setPayments: (payments: PaymentRecord[]) => void;
   fileRecords: PlanningFileRecord[];
 }) {
-  const [paymentForm, setPaymentForm] = useState<PaymentRecordForm>(emptyPaymentRecordForm);
-  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const activePayments = payments.filter(isPaymentActive);
 
-  function updateVendorBudget(vendorId: string, patch: Partial<Pick<Vendor, "depositPaid" | "balanceDue" | "finalPaymentDueDate">>) {
+  function updateVendorBudget(vendorId: string, patch: Partial<Pick<Vendor, "quote" | "depositPaid" | "balanceDue" | "finalPaymentDueDate">>) {
     setVendors(vendors.map((vendor) => (vendor.id === vendorId ? { ...vendor, ...patch } : vendor)));
   }
 
@@ -2557,7 +2519,7 @@ function BudgetTab({
     const target = parseMoney(category.targetBudget);
     const paid = categoryVendor ? parseMoney(categoryVendor.depositPaid) : categoryPayments.reduce((total, payment) => total + getPaidAmount(payment), 0);
     const due = categoryVendor ? parseMoney(categoryVendor.balanceDue) : categoryPayments.reduce((total, payment) => total + getUnpaidAmount(payment), 0);
-    const committed = categoryVendor ? paid + due : categoryPayments.reduce((total, payment) => total + getPaymentAmount(payment), 0);
+    const committed = categoryVendor ? parseMoney(categoryVendor.quote) || paid + due : categoryPayments.reduce((total, payment) => total + getPaymentAmount(payment), 0);
     const dueDate = categoryVendor
       ? categoryVendor.finalPaymentDueDate || categoryVendor.dueDate || categoryVendor.depositDueDate
       : categoryPayments.find((payment) => !isPaymentPaid(payment) && payment.dueDate)?.dueDate ?? "";
@@ -2639,46 +2601,13 @@ function BudgetTab({
     setBudgetCategories(budgetCategories.map((category) => (category.id === categoryId ? { ...category, ...patch } : category)));
   }
 
-  function submitPayment(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!paymentForm.title.trim() || !paymentForm.amount.trim()) {
-      return;
-    }
-
-    if (editingPaymentId) {
-      setPayments(payments.map((payment) => (payment.id === editingPaymentId ? { ...payment, ...paymentForm } : payment)));
-      setEditingPaymentId(null);
-      setPaymentForm(emptyPaymentRecordForm);
-      return;
-    }
-
-    setPayments([{ ...paymentForm, id: createId("payment") }, ...payments]);
-    setPaymentForm(emptyPaymentRecordForm);
-  }
-
-  function editPayment(payment: PaymentRecord) {
-    setEditingPaymentId(payment.id);
-    setPaymentForm({
-      title: payment.title,
-      vendorId: payment.vendorId,
-      budgetCategoryId: payment.budgetCategoryId,
-      amount: payment.amount,
-      dueDate: payment.dueDate,
-      paidDate: payment.paidDate,
-      paymentStatus: payment.paymentStatus,
-      sourceFileId: payment.sourceFileId,
-      notes: payment.notes,
-    });
-  }
-
   const summaryCards = [
     { label: "Total Budget", value: formatMoney(String(totalTarget)), detail: "Across vendor records", icon: CircleDollarSign, tone: "champagne" as const },
-    { label: "Total Paid", value: formatMoney(String(paidTotal)), detail: `${formatMoney(String(committedTotal))} committed`, icon: CheckCircle2, tone: "sage" as const },
+    { label: "Total Amount", value: formatMoney(String(committedTotal)), detail: "Manual vendor totals", icon: FileText, tone: "neutral" as const },
+    { label: "Amount Paid", value: formatMoney(String(paidTotal)), detail: `${paidVendorCount} vendors with paid amounts`, icon: CheckCircle2, tone: "sage" as const },
     { label: "Still To Pay", value: formatMoney(String(unpaidTotal)), detail: `${unpaidVendorCount} vendors with balances`, icon: CalendarDays, tone: "champagne" as const },
-    { label: "Remaining Budget", value: formatMoney(String(Math.max(varianceTotal, 0))), detail: varianceTotal < 0 ? `${formatMoney(String(Math.abs(varianceTotal)))} over target` : "After committed costs", icon: ClipboardList, tone: varianceTotal < 0 ? ("rose" as const) : ("neutral" as const) },
-    { label: "Categories Over Budget", value: String(overBudgetCategories.length), detail: overBudgetCategories.map((summary) => summary.category.name).join(", ") || "None currently", icon: FileText, tone: overBudgetCategories.length > 0 ? ("rose" as const) : ("sage" as const) },
-    { label: "Vendor Records", value: String(activeVendorCategoryCount), detail: `${paidVendorCount} vendors with paid records`, icon: CheckCircle2, tone: "navy" as const },
+    { label: "Budget Variance", value: formatMoney(String(Math.max(varianceTotal, 0))), detail: varianceTotal < 0 ? `${formatMoney(String(Math.abs(varianceTotal)))} over target` : "After vendor totals", icon: ClipboardList, tone: varianceTotal < 0 ? ("rose" as const) : ("neutral" as const) },
+    { label: "Vendors Over Budget", value: String(overBudgetCategories.length), detail: overBudgetCategories.map((summary) => summary.category.name).join(", ") || `${activeVendorCategoryCount} vendor records`, icon: FileText, tone: overBudgetCategories.length > 0 ? ("rose" as const) : ("navy" as const) },
   ];
 
   return (
@@ -2689,7 +2618,7 @@ function BudgetTab({
             <p className="heading-micro">Private Finance</p>
             <h2 className="heading-secondary mt-2">Wedding Budget</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6a5d55]">
-              A private financial overview grouped by vendor, so paid amounts and remaining balances stay easy to edit and track.
+              A private financial overview grouped by vendor, so target budgets, total amounts, paid amounts, and remaining balances stay easy to edit and track.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Chip tone="champagne">{payments.length} shared cost records</Chip>
@@ -2744,7 +2673,7 @@ function BudgetTab({
               <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
                 {overBudgetCategories.length > 0
                   ? overBudgetCategories.map((summary) => `${summary.category.name} (${formatMoney(String(Math.abs(summary.variance)))})`).join(", ")
-                  : "No category is currently over target."}
+                  : "No vendor is currently over target."}
               </p>
             </div>
             <div className="rounded-2xl bg-white/58 p-4">
@@ -2800,8 +2729,8 @@ function BudgetTab({
       <PlanningCard>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="heading-micro">Vendor Spend</p>
-            <h3 className="heading-secondary heading-secondary-compact mt-2">Vendor Budget Records</h3>
+            <p className="heading-micro">Vendor Category Budget</p>
+            <h3 className="heading-secondary heading-secondary-compact mt-2">Editable Vendor Budgets</h3>
           </div>
           <Chip tone="champagne">Paid + still to pay</Chip>
         </div>
@@ -2846,7 +2775,7 @@ function BudgetTab({
                       <p className="mt-1 font-serif text-xl text-[#8f6a63]">{formatMoney(String(target))}</p>
                     </div>
                     <div className="rounded-2xl bg-[#fffaf7]/86 px-4 py-3">
-                      <p className="heading-micro">Committed</p>
+                      <p className="heading-micro">Total amount</p>
                       <p className="mt-1 font-serif text-xl text-[#8f6a63]">{formatMoney(String(committed))}</p>
                     </div>
                     <div className="rounded-2xl bg-[#fffaf7]/86 px-4 py-3">
@@ -2898,8 +2827,9 @@ function BudgetTab({
                   <TextField label="Target budget" value={category.targetBudget} onChange={(targetBudget) => updateCategory(category.id, { targetBudget })} placeholder="$" />
                   {categoryVendor && (
                     <>
-                      <TextField label="Paid so far" value={categoryVendor.depositPaid} onChange={(depositPaid) => updateVendorBudget(categoryVendor.id, { depositPaid })} placeholder="$" />
-                      <TextField label="Still to pay" value={categoryVendor.balanceDue} onChange={(balanceDue) => updateVendorBudget(categoryVendor.id, { balanceDue })} placeholder="$" />
+                      <TextField label="Total amount" value={categoryVendor.quote} onChange={(quote) => updateVendorBudget(categoryVendor.id, { quote })} placeholder="$" />
+                      <TextField label="Amount paid" value={categoryVendor.depositPaid} onChange={(depositPaid) => updateVendorBudget(categoryVendor.id, { depositPaid })} placeholder="$" />
+                      <TextField label="Amount remaining to pay" value={categoryVendor.balanceDue} onChange={(balanceDue) => updateVendorBudget(categoryVendor.id, { balanceDue })} placeholder="$" />
                       <TextField
                         label="Due date"
                         type="date"
@@ -2977,130 +2907,6 @@ function BudgetTab({
         </div>
       </PlanningCard>
 
-      <PlanningCard>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="heading-micro">Shared Records</p>
-            <h2 className="heading-secondary heading-secondary-compact mt-2">Payment & Cost Records</h2>
-          </div>
-          {editingPaymentId && <Chip tone="rose">Editing record</Chip>}
-        </div>
-        <form onSubmit={submitPayment} className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <TextField label="Title" value={paymentForm.title} onChange={(title) => setPaymentForm({ ...paymentForm, title })} />
-          <label className="grid gap-2">
-            <FieldLabel>Vendor</FieldLabel>
-            <select
-              value={paymentForm.vendorId}
-              onChange={(event) => {
-                const vendorId = event.target.value;
-                const selectedVendor = vendors.find((vendor) => vendor.id === vendorId);
-                setPaymentForm({
-                  ...paymentForm,
-                  vendorId,
-                  budgetCategoryId: selectedVendor ? getBudgetCategoryIdForVendor(selectedVendor) : paymentForm.budgetCategoryId,
-                });
-              }}
-              className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
-            >
-              <option value="">No vendor</option>
-              {vendors.map((vendor) => (
-                <option key={vendor.id} value={vendor.id}>
-                  {vendor.vendorName}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-2">
-            <FieldLabel>Vendor category</FieldLabel>
-            <select
-              value={paymentForm.budgetCategoryId}
-              onChange={(event) => setPaymentForm({ ...paymentForm, budgetCategoryId: event.target.value })}
-              className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
-            >
-              <option value="">No vendor category</option>
-              {budgetCategories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <TextField label="Amount" value={paymentForm.amount} onChange={(amount) => setPaymentForm({ ...paymentForm, amount })} placeholder="$" />
-          <TextField label="Due date" type="date" value={paymentForm.dueDate} onChange={(dueDate) => setPaymentForm({ ...paymentForm, dueDate })} />
-          <TextField label="Paid date" type="date" value={paymentForm.paidDate} onChange={(paidDate) => setPaymentForm({ ...paymentForm, paidDate })} />
-          <SelectField label="Payment status" value={paymentForm.paymentStatus} options={paymentStatuses} onChange={(paymentStatus) => setPaymentForm({ ...paymentForm, paymentStatus })} />
-          <label className="grid gap-2">
-            <FieldLabel>Source file</FieldLabel>
-            <select
-              value={paymentForm.sourceFileId}
-              onChange={(event) => setPaymentForm({ ...paymentForm, sourceFileId: event.target.value })}
-              className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
-            >
-              <option value="">No source file</option>
-              {fileRecords.map((record) => (
-                <option key={record.fileId} value={record.fileId}>
-                  {record.originalFilename}
-                </option>
-              ))}
-            </select>
-          </label>
-          <div className="md:col-span-2 xl:col-span-4">
-            <TextAreaField label="Notes" value={paymentForm.notes} onChange={(notes) => setPaymentForm({ ...paymentForm, notes })} rows={2} />
-          </div>
-          <div className="flex flex-wrap gap-3 md:col-span-2 xl:col-span-4">
-            <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.18)] transition hover:bg-[var(--color-navy-hover)]">
-              <Save className="h-4 w-4" />
-              {editingPaymentId ? "Update Record" : "Add Record"}
-            </button>
-            {editingPaymentId && (
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingPaymentId(null);
-                  setPaymentForm(emptyPaymentRecordForm);
-                }}
-                className="rounded-full border border-[#eaded6] bg-[#fffaf7] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#6a5d55] transition hover:border-[#b98278]"
-              >
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-        <div className="mt-6 grid gap-3">
-          {payments.length > 0 ? (
-            payments.map((payment) => (
-              <div key={payment.id} className="rounded-2xl border border-[#eaded6]/80 bg-white/58 p-4">
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-serif text-xl text-[#3f302b]">{payment.title}</p>
-                      <Chip tone={getPaymentStatusTone(payment.paymentStatus)}>{payment.paymentStatus}</Chip>
-                    </div>
-                    <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
-                      {formatMoney(payment.amount)} {payment.dueDate ? `- due ${formatDate(payment.dueDate)}` : ""} {payment.paidDate ? `- paid ${formatDate(payment.paidDate)}` : ""}
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <Chip>{getVendorName(vendors, payment.vendorId) || "No vendor"}</Chip>
-                      <Chip tone="champagne">{getBudgetCategoryName(budgetCategories, payment.budgetCategoryId) || "No vendor category"}</Chip>
-                      {payment.sourceFileId && <Chip tone="sage">Linked file</Chip>}
-                    </div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button type="button" onClick={() => editPayment(payment)} className="rounded-full p-2 text-[#b98278] hover:bg-[#f4ebe4]" aria-label={`Edit ${payment.title}`}>
-                      <Pencil className="h-4 w-4" />
-                    </button>
-                    <button type="button" onClick={() => setPayments(payments.filter((item) => item.id !== payment.id))} className="rounded-full p-2 text-[#9b6f68] hover:bg-[#f4ebe4]" aria-label={`Delete ${payment.title}`}>
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm leading-7 text-[#6a5d55]">Shared cost records will appear here when you add them or link them from files.</p>
-          )}
-        </div>
-      </PlanningCard>
     </div>
   );
 }
@@ -3113,6 +2919,7 @@ function VendorsTab({
   payments,
   fileRecords,
   budgetCategories,
+  setBudgetCategories,
 }: {
   vendors: Vendor[];
   setVendors: (vendors: Vendor[]) => void;
@@ -3121,6 +2928,7 @@ function VendorsTab({
   payments: PaymentRecord[];
   fileRecords: PlanningFileRecord[];
   budgetCategories: BudgetCategory[];
+  setBudgetCategories: (categories: BudgetCategory[]) => void;
 }) {
   const [form, setForm] = useState<VendorForm>(emptyVendorForm);
   const [editingVendorId, setEditingVendorId] = useState<string | null>(null);
@@ -3226,6 +3034,15 @@ function VendorsTab({
 
   return (
     <div className="space-y-6">
+      <VendorBudgetSection
+        vendors={vendors}
+        setVendors={setVendors}
+        budgetCategories={budgetCategories}
+        setBudgetCategories={setBudgetCategories}
+        payments={payments}
+        fileRecords={fileRecords}
+      />
+
       <div className="grid gap-4 xl:grid-cols-[1fr_auto] xl:items-end">
         <label className="relative block">
           <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8c7a72]" />
@@ -5966,7 +5783,7 @@ function FilesTab({
             <p className="heading-micro">Document links</p>
             <h4 className="mt-2 font-serif text-2xl text-[#3f302b]">{fileRecord.fileType} metadata</h4>
             <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
-              Link this document once, then Budget, Vendor, and Calendar views can reuse the same shared record.
+              Link this document once, then Vendor and Calendar views can reuse the same shared record.
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -6696,19 +6513,16 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
     }
 
     if (activeTab === "Vendors") {
-      return <VendorsTab vendors={vendors} setVendors={setVendors} events={events} setEvents={setEvents} payments={payments} fileRecords={fileRecords} budgetCategories={budgetCategories} />;
-    }
-
-    if (activeTab === "Budget") {
       return (
-        <BudgetTab
+        <VendorsTab
           vendors={vendors}
           setVendors={setVendors}
+          events={events}
+          setEvents={setEvents}
+          payments={payments}
+          fileRecords={fileRecords}
           budgetCategories={budgetCategories}
           setBudgetCategories={setBudgetCategories}
-          payments={payments}
-          setPayments={setPayments}
-          fileRecords={fileRecords}
         />
       );
     }
