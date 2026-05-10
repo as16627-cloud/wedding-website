@@ -50,6 +50,9 @@ const VENDORS_KEY = "private-planning-vendors";
 const EVENTS_KEY = "private-planning-calendar-events";
 const TASKS_KEY = "private-planning-tasks";
 const TIMELINE_KEY = "private-planning-timeline";
+const BUDGET_CATEGORIES_KEY = "private-planning-budget-categories";
+const PAYMENTS_KEY = "private-planning-payments";
+const FILE_RECORDS_KEY = "private-planning-file-records";
 const QUICK_NOTES_KEY = "private-planning-quick-notes";
 const NOTES_KEY = "private-planning-notes";
 const LEGACY_DECISION_NOTES_KEY = "private-planning-decision-notes";
@@ -60,13 +63,16 @@ const LEGACY_PLANNING_STORAGE_KEYS = [
   EVENTS_KEY,
   TASKS_KEY,
   TIMELINE_KEY,
+  BUDGET_CATEGORIES_KEY,
+  PAYMENTS_KEY,
+  FILE_RECORDS_KEY,
   QUICK_NOTES_KEY,
   NOTES_KEY,
   LEGACY_DECISION_NOTES_KEY,
 ];
 
 const revealEase = [0.22, 1, 0.36, 1] as const;
-const tabs = ["Overview", "Vendors", "Calendar", "Timeline", "Runsheet", "Guests", "Files", "Notes"] as const;
+const tabs = ["Overview", "Vendors", "Budget", "Calendar", "Timeline", "Runsheet", "Guests", "Files", "Notes"] as const;
 const vendorCategories = [
   "Venue",
   "Celebrant",
@@ -96,6 +102,8 @@ const priorities = ["Low", "Medium", "High"] as const;
 const contactMethods = ["Email", "Phone", "Instagram", "Website"] as const;
 const eventTypes = ["Meeting", "Payment", "Follow-up", "Deadline", "Appointment", "Bridal Party / Fashion"] as const;
 const taskStatuses = ["To do", "In progress", "Waiting", "Done"] as const;
+const documentTypes = ["Quote", "Invoice", "Receipt", "Contract", "Other"] as const;
+const paymentStatuses = ["Estimated", "Quoted", "Invoiced", "Due", "Part paid", "Paid", "Cancelled"] as const;
 const runsheetStatuses = ["Draft", "Confirmed", "Needs confirmation", "Optional", "Optional / Needs confirmation"] as const;
 const runsheetGroupNames = [
   "Morning Prep",
@@ -114,6 +122,8 @@ type Priority = (typeof priorities)[number];
 type ContactMethod = (typeof contactMethods)[number];
 type EventType = (typeof eventTypes)[number];
 type TaskStatus = (typeof taskStatuses)[number];
+type DocumentType = (typeof documentTypes)[number];
+type PaymentStatus = (typeof paymentStatuses)[number];
 type RunsheetStatus = (typeof runsheetStatuses)[number];
 type RunsheetGroupName = (typeof runsheetGroupNames)[number];
 type PaymentFilter = (typeof paymentFilters)[number];
@@ -161,6 +171,43 @@ type CalendarEvent = {
   type: EventType;
   vendorId: string;
   notes: string;
+};
+
+type BudgetCategory = {
+  id: string;
+  name: string;
+  targetBudget: string;
+  notes: string;
+};
+
+type PaymentRecord = {
+  id: string;
+  title: string;
+  vendorId: string;
+  budgetCategoryId: string;
+  amount: string;
+  dueDate: string;
+  paidDate: string;
+  paymentStatus: PaymentStatus;
+  sourceFileId: string;
+  notes: string;
+};
+
+type PlanningFileRecord = {
+  id: string;
+  fileId: string;
+  originalFilename: string;
+  fileType: DocumentType;
+  vendorId: string;
+  budgetCategoryId: string;
+  extractedAmount: string;
+  documentNumber: string;
+  issueDate: string;
+  dueDate: string;
+  paidDate: string;
+  paymentStatus: PaymentStatus;
+  notes: string;
+  linkedPaymentId: string;
 };
 
 type PlanningTask = {
@@ -255,6 +302,8 @@ type PlanningNotes = {
 type VendorForm = Omit<Vendor, "id" | "communicationLog">;
 type EventForm = Omit<CalendarEvent, "id">;
 type TaskForm = Omit<PlanningTask, "id">;
+type BudgetCategoryForm = Omit<BudgetCategory, "id">;
+type PaymentRecordForm = Omit<PaymentRecord, "id">;
 type LogForm = Omit<CommunicationLog, "id">;
 type RunsheetItemForm = Omit<RunsheetItem, "id">;
 
@@ -288,6 +337,24 @@ const emptyEventForm: EventForm = {
   date: "2026-05-20",
   type: "Meeting",
   vendorId: "",
+  notes: "",
+};
+
+const emptyBudgetCategoryForm: BudgetCategoryForm = {
+  name: "",
+  targetBudget: "",
+  notes: "",
+};
+
+const emptyPaymentRecordForm: PaymentRecordForm = {
+  title: "",
+  vendorId: "",
+  budgetCategoryId: "",
+  amount: "",
+  dueDate: "",
+  paidDate: "",
+  paymentStatus: "Due",
+  sourceFileId: "",
   notes: "",
 };
 
@@ -392,6 +459,18 @@ const defaultVendors: Vendor[] = [
       },
     ],
   },
+];
+
+const defaultBudgetCategories: BudgetCategory[] = [
+  { id: "budget-venue-catering", name: "Venue & Catering", targetBudget: "", notes: "Caversham House, food, beverage, and service costs." },
+  { id: "budget-photo-video", name: "Photography & Videography", targetBudget: "", notes: "Photo, film, albums, coverage, and pre-wedding shoot costs." },
+  { id: "budget-florals-styling", name: "Florals & Styling", targetBudget: "", notes: "Ceremony florals, reception styling, hire items, signage, and decor." },
+  { id: "budget-attire-beauty", name: "Attire & Beauty", targetBudget: "", notes: "Dress, suits, alterations, hair, makeup, accessories, and getting-ready items." },
+  { id: "budget-entertainment", name: "Entertainment", targetBudget: "", notes: "Ceremony music, DJ, band, audio guestbook, and dance-floor details." },
+  { id: "budget-stationery-details", name: "Stationery & Details", targetBudget: "", notes: "Invitations, vow cards, guest book, cake knife, signing pens, and small details." },
+  { id: "budget-transport-travel", name: "Transport & Travel", targetBudget: "", notes: "Cars, accommodation, guest travel notes, and end-of-night transport." },
+  { id: "budget-gifts-favours", name: "Gifts & Favours", targetBudget: "", notes: "Bridal party gifts, bonbonniere, thank-you gifts, and packaging." },
+  { id: "budget-contingency", name: "Contingency", targetBudget: "", notes: "Buffer for unexpected wedding-week or supplier costs." },
 ];
 
 const defaultCalendarEvents: CalendarEvent[] = [
@@ -1355,6 +1434,150 @@ function mergeAzazieBridesmaidPopupEvent(events: CalendarEvent[]) {
   return nextEvents;
 }
 
+function normalizeBudgetCategory(raw: Partial<BudgetCategory> & Record<string, unknown>): BudgetCategory {
+  return {
+    id: typeof raw.id === "string" ? raw.id : createId("budget-category"),
+    name: typeof raw.name === "string" ? raw.name : "",
+    targetBudget: typeof raw.targetBudget === "string" ? raw.targetBudget : String(raw.targetBudget ?? ""),
+    notes: typeof raw.notes === "string" ? raw.notes : "",
+  };
+}
+
+function normalizeBudgetCategories(value: unknown): BudgetCategory[] {
+  if (!Array.isArray(value)) {
+    return defaultBudgetCategories;
+  }
+
+  const normalized = value
+    .filter((category): category is Partial<BudgetCategory> & Record<string, unknown> => typeof category === "object" && category !== null)
+    .map((category) => normalizeBudgetCategory(category))
+    .filter((category) => category.name.trim());
+  const existingNames = new Set(normalized.map((category) => normalizeTimelineKey(category.name)));
+  const missingDefaults = defaultBudgetCategories.filter((category) => !existingNames.has(normalizeTimelineKey(category.name)));
+
+  return [...normalized, ...missingDefaults];
+}
+
+function getBudgetCategoryIdForVendor(vendor: Vendor, categories = defaultBudgetCategories) {
+  const candidate = categories.find((category) => {
+    const name = category.name.toLowerCase();
+
+    if (/venue|catering/.test(name) && vendor.category === "Venue") {
+      return true;
+    }
+
+    if (/photo/.test(name) && ["Photography", "Videography"].includes(vendor.category)) {
+      return true;
+    }
+
+    if (/floral|styling/.test(name) && ["Florist", "Decor / Hire"].includes(vendor.category)) {
+      return true;
+    }
+
+    if (/attire|beauty/.test(name) && ["Hair & Makeup"].includes(vendor.category)) {
+      return true;
+    }
+
+    if (/entertainment/.test(name) && ["DJ / Entertainment", "Audio Guestbook"].includes(vendor.category)) {
+      return true;
+    }
+
+    if (/stationery/.test(name) && ["Stationery", "Cake"].includes(vendor.category)) {
+      return true;
+    }
+
+    if (/transport|travel/.test(name) && ["Transport", "Accommodation"].includes(vendor.category)) {
+      return true;
+    }
+
+    return name.includes(vendor.category.toLowerCase());
+  });
+
+  return candidate?.id ?? "";
+}
+
+function createLegacyPaymentRecordsFromVendors(vendors: Vendor[], categories = defaultBudgetCategories): PaymentRecord[] {
+  return vendors.reduce<PaymentRecord[]>((records, vendor) => {
+    const quote = parseMoney(vendor.quote);
+    const depositPaid = parseMoney(vendor.depositPaid);
+    const balanceDue = parseMoney(vendor.balanceDue);
+    const amount = quote || depositPaid + balanceDue;
+
+    if (!amount) {
+      return records;
+    }
+
+    records.push({
+      id: `payment-vendor-${vendor.id}`,
+      title: `${vendor.vendorName} cost record`,
+      vendorId: vendor.id,
+      budgetCategoryId: getBudgetCategoryIdForVendor(vendor, categories),
+      amount: String(amount),
+      dueDate: vendor.finalPaymentDueDate || vendor.dueDate || vendor.depositDueDate,
+      paidDate: balanceDue <= 0 && depositPaid > 0 ? vendor.lastContactedDate : "",
+      paymentStatus: balanceDue <= 0 ? "Paid" : depositPaid > 0 ? "Part paid" : quote > 0 ? "Quoted" : "Due",
+      sourceFileId: "",
+      notes: "Migrated from the vendor payment fields so budget totals use shared cost records.",
+    });
+
+    return records;
+  }, []);
+}
+
+function normalizePaymentRecord(raw: Partial<PaymentRecord> & Record<string, unknown>): PaymentRecord {
+  return {
+    id: typeof raw.id === "string" ? raw.id : createId("payment"),
+    title: typeof raw.title === "string" ? raw.title : "",
+    vendorId: typeof raw.vendorId === "string" ? raw.vendorId : "",
+    budgetCategoryId: typeof raw.budgetCategoryId === "string" ? raw.budgetCategoryId : "",
+    amount: typeof raw.amount === "string" ? raw.amount : String(raw.amount ?? ""),
+    dueDate: typeof raw.dueDate === "string" ? raw.dueDate : "",
+    paidDate: typeof raw.paidDate === "string" ? raw.paidDate : "",
+    paymentStatus: isOneOf(raw.paymentStatus, paymentStatuses) ? raw.paymentStatus : "Due",
+    sourceFileId: typeof raw.sourceFileId === "string" ? raw.sourceFileId : "",
+    notes: typeof raw.notes === "string" ? raw.notes : "",
+  };
+}
+
+function normalizePayments(value: unknown, vendors: Vendor[], categories: BudgetCategory[]): PaymentRecord[] {
+  if (!Array.isArray(value)) {
+    return createLegacyPaymentRecordsFromVendors(vendors, categories);
+  }
+
+  return value
+    .filter((payment): payment is Partial<PaymentRecord> & Record<string, unknown> => typeof payment === "object" && payment !== null)
+    .map((payment) => normalizePaymentRecord(payment))
+    .filter((payment) => payment.title.trim());
+}
+
+function normalizePlanningFileRecord(raw: Partial<PlanningFileRecord> & Record<string, unknown>): PlanningFileRecord {
+  return {
+    id: typeof raw.id === "string" ? raw.id : createId("file-record"),
+    fileId: typeof raw.fileId === "string" ? raw.fileId : "",
+    originalFilename: typeof raw.originalFilename === "string" ? raw.originalFilename : "",
+    fileType: isOneOf(raw.fileType, documentTypes) ? raw.fileType : "Other",
+    vendorId: typeof raw.vendorId === "string" ? raw.vendorId : "",
+    budgetCategoryId: typeof raw.budgetCategoryId === "string" ? raw.budgetCategoryId : "",
+    extractedAmount: typeof raw.extractedAmount === "string" ? raw.extractedAmount : String(raw.extractedAmount ?? ""),
+    documentNumber: typeof raw.documentNumber === "string" ? raw.documentNumber : "",
+    issueDate: typeof raw.issueDate === "string" ? raw.issueDate : "",
+    dueDate: typeof raw.dueDate === "string" ? raw.dueDate : "",
+    paidDate: typeof raw.paidDate === "string" ? raw.paidDate : "",
+    paymentStatus: isOneOf(raw.paymentStatus, paymentStatuses) ? raw.paymentStatus : "Due",
+    notes: typeof raw.notes === "string" ? raw.notes : "",
+    linkedPaymentId: typeof raw.linkedPaymentId === "string" ? raw.linkedPaymentId : "",
+  };
+}
+
+function normalizeFileRecords(value: unknown): PlanningFileRecord[] {
+  return Array.isArray(value)
+    ? value
+        .filter((record): record is Partial<PlanningFileRecord> & Record<string, unknown> => typeof record === "object" && record !== null)
+        .map((record) => normalizePlanningFileRecord(record))
+        .filter((record) => record.fileId)
+    : [];
+}
+
 function normalizeTasks(value: unknown): PlanningTask[] {
   if (!Array.isArray(value)) {
     return defaultTasks;
@@ -1594,6 +1817,34 @@ function getPaymentStatus(vendor: Vendor): PaymentFilter {
   return "Balance due";
 }
 
+function getVendorSharedPaymentStatus(vendor: Vendor, payments: PaymentRecord[]): PaymentFilter {
+  const vendorPayments = payments.filter((payment) => payment.vendorId === vendor.id && isPaymentActive(payment));
+
+  if (vendorPayments.length === 0) {
+    return getPaymentStatus(vendor);
+  }
+
+  if (vendorPayments.every(isPaymentPaid)) {
+    return "Paid";
+  }
+
+  const nextDueDate = vendorPayments
+    .filter((payment) => !isPaymentPaid(payment) && payment.dueDate)
+    .map((payment) => payment.dueDate)
+    .sort()[0];
+  const days = daysUntil(nextDueDate);
+
+  if (days < 0) {
+    return "Overdue";
+  }
+
+  if (days <= 14) {
+    return "Due in 14 days";
+  }
+
+  return "Balance due";
+}
+
 function FieldLabel({ children }: { children: ReactNode }) {
   return <span className="text-[11px] font-medium uppercase tracking-[0.24em] text-[#7d6b62]">{children}</span>;
 }
@@ -1718,6 +1969,172 @@ function DueChip({ date }: { date?: string }) {
   return <span className={`rounded-full px-3 py-1 text-xs font-medium ${className}`}>{date ? formatDate(date) : "Not set"}</span>;
 }
 
+function getBudgetCategoryName(categories: BudgetCategory[], categoryId: string) {
+  return categories.find((category) => category.id === categoryId)?.name || "";
+}
+
+function isPaymentPaid(payment: PaymentRecord) {
+  return payment.paymentStatus === "Paid" || Boolean(payment.paidDate);
+}
+
+function isPaymentActive(payment: PaymentRecord) {
+  return payment.paymentStatus !== "Cancelled";
+}
+
+function getPaymentStatusTone(status: PaymentStatus): "neutral" | "rose" | "sage" | "champagne" | "navy" {
+  if (status === "Paid") {
+    return "sage";
+  }
+
+  if (status === "Due" || status === "Part paid") {
+    return "champagne";
+  }
+
+  if (status === "Invoiced") {
+    return "rose";
+  }
+
+  if (status === "Cancelled") {
+    return "neutral";
+  }
+
+  return "navy";
+}
+
+function getPaymentAmount(payment: PaymentRecord) {
+  return parseMoney(payment.amount);
+}
+
+function getPaidAmount(payment: PaymentRecord) {
+  return isPaymentPaid(payment) ? getPaymentAmount(payment) : 0;
+}
+
+function getUnpaidAmount(payment: PaymentRecord) {
+  return isPaymentActive(payment) && !isPaymentPaid(payment) ? getPaymentAmount(payment) : 0;
+}
+
+function inferDocumentTypeFromFilename(filename: string): DocumentType {
+  const normalized = filename.toLowerCase();
+
+  if (/quote|quotation|proposal|estimate/.test(normalized)) {
+    return "Quote";
+  }
+
+  if (/receipt|paid/.test(normalized)) {
+    return "Receipt";
+  }
+
+  if (/contract|agreement/.test(normalized)) {
+    return "Contract";
+  }
+
+  if (/invoice|inv/.test(normalized)) {
+    return "Invoice";
+  }
+
+  return "Other";
+}
+
+function documentTypeFromExtraction(documentType?: PrivatePlanningExtractedDocument["documentType"] | null): DocumentType {
+  if (documentType === "quote") {
+    return "Quote";
+  }
+
+  if (documentType === "invoice") {
+    return "Invoice";
+  }
+
+  if (documentType === "receipt") {
+    return "Receipt";
+  }
+
+  if (documentType === "contract") {
+    return "Contract";
+  }
+
+  return "Other";
+}
+
+function paymentStatusForDocumentType(fileType: DocumentType): PaymentStatus {
+  if (fileType === "Quote") {
+    return "Quoted";
+  }
+
+  if (fileType === "Invoice") {
+    return "Invoiced";
+  }
+
+  if (fileType === "Receipt") {
+    return "Paid";
+  }
+
+  return "Due";
+}
+
+function documentNumberFromExtraction(document?: PrivatePlanningExtractedDocument | null) {
+  return document?.invoiceNumber || document?.receiptNumber || "";
+}
+
+function amountFromExtraction(document?: PrivatePlanningExtractedDocument | null) {
+  return document?.total !== null && document?.total !== undefined ? String(document.total) : "";
+}
+
+function getFileRecord(fileRecords: PlanningFileRecord[], file: PrivatePlanningFileDto) {
+  return (
+    fileRecords.find((record) => record.fileId === file.id) ??
+    normalizePlanningFileRecord({
+      fileId: file.id,
+      originalFilename: file.originalFilename,
+      fileType: inferDocumentTypeFromFilename(file.originalFilename),
+      vendorId: file.vendorId ?? "",
+      linkedPaymentId: file.paymentId ?? "",
+      paymentStatus: paymentStatusForDocumentType(inferDocumentTypeFromFilename(file.originalFilename)),
+    })
+  );
+}
+
+function buildPaymentFromFileRecord(fileRecord: PlanningFileRecord): PaymentRecord {
+  const titlePrefix = fileRecord.fileType === "Other" ? "Cost" : fileRecord.fileType;
+
+  return {
+    id: fileRecord.linkedPaymentId || createId("payment"),
+    title: `${titlePrefix}${fileRecord.documentNumber ? ` ${fileRecord.documentNumber}` : ""} - ${fileRecord.originalFilename}`.trim(),
+    vendorId: fileRecord.vendorId,
+    budgetCategoryId: fileRecord.budgetCategoryId,
+    amount: fileRecord.extractedAmount,
+    dueDate: fileRecord.dueDate,
+    paidDate: fileRecord.paidDate,
+    paymentStatus: fileRecord.paymentStatus,
+    sourceFileId: fileRecord.fileId,
+    notes: [fileRecord.notes, fileRecord.documentNumber ? `Document number: ${fileRecord.documentNumber}` : ""].filter(Boolean).join("\n"),
+  };
+}
+
+function findPossibleDuplicatePayments(fileRecord: PlanningFileRecord, payments: PaymentRecord[]) {
+  const amount = parseMoney(fileRecord.extractedAmount);
+  const normalizedDocumentNumber = normalizeTimelineKey(fileRecord.documentNumber);
+  const normalizedFilename = normalizeTimelineKey(fileRecord.originalFilename);
+
+  return payments.filter((payment) => {
+    if (payment.id === fileRecord.linkedPaymentId) {
+      return false;
+    }
+
+    if (payment.sourceFileId && payment.sourceFileId === fileRecord.fileId) {
+      return true;
+    }
+
+    const paymentText = normalizeTimelineKey(`${payment.title} ${payment.notes}`);
+    const sameVendor = Boolean(fileRecord.vendorId) && payment.vendorId === fileRecord.vendorId;
+    const sameNumber = Boolean(normalizedDocumentNumber) && paymentText.includes(normalizedDocumentNumber);
+    const sameFilename = Boolean(normalizedFilename) && paymentText.includes(normalizedFilename);
+    const sameAmount = amount > 0 && parseMoney(payment.amount) === amount;
+    const sameDueDate = Boolean(fileRecord.dueDate) && payment.dueDate === fileRecord.dueDate;
+
+    return (sameVendor && sameNumber) || sameFilename || (sameVendor && sameAmount && sameDueDate);
+  });
+}
+
 type PlanningSummary = {
   nextEvent: string;
   nextPayment: string;
@@ -1725,7 +2142,7 @@ type PlanningSummary = {
   openDecisions: number;
 };
 
-function getPlanningSummary(vendors: Vendor[], events: CalendarEvent[], tasks: PlanningTask[]): PlanningSummary {
+function getPlanningSummary(vendors: Vendor[], events: CalendarEvent[], tasks: PlanningTask[], payments: PaymentRecord[]): PlanningSummary {
   const today = todayKey();
   const upcomingEvents = [
     ...events.filter((event) => event.date >= today).map((event) => ({ date: event.date, label: event.title })),
@@ -1736,11 +2153,9 @@ function getPlanningSummary(vendors: Vendor[], events: CalendarEvent[], tasks: P
       .filter((task) => task.dueDate && task.status !== "Done" && task.dueDate >= today)
       .map((task) => ({ date: task.dueDate, label: task.title })),
   ].sort((first, second) => first.date.localeCompare(second.date));
-  const nextPayments = vendors
-    .filter((vendor) => parseMoney(vendor.balanceDue) > 0)
-    .map((vendor) => ({ vendor, date: getNextVendorDueDate(vendor) }))
-    .filter((item) => item.date)
-    .sort((first, second) => first.date.localeCompare(second.date));
+  const nextPayments = payments
+    .filter((payment) => isPaymentActive(payment) && !isPaymentPaid(payment) && payment.dueDate)
+    .sort((first, second) => first.dueDate.localeCompare(second.dueDate));
   const followUps = vendors.filter((vendor) => vendor.followUpDate && vendor.followUpDate <= today).length + tasks.filter((task) => task.status === "Waiting").length;
   const openDecisions =
     vendors.filter((vendor) => ["Researching", "Contacted", "Quote received", "Shortlisted"].includes(vendor.status)).length +
@@ -1748,7 +2163,9 @@ function getPlanningSummary(vendors: Vendor[], events: CalendarEvent[], tasks: P
 
   return {
     nextEvent: upcomingEvents[0] ? `${formatDate(upcomingEvents[0].date)} - ${upcomingEvents[0].label}` : "Nothing scheduled",
-    nextPayment: nextPayments[0] ? `${formatDate(nextPayments[0].date)} - ${nextPayments[0].vendor.vendorName} ${formatMoney(nextPayments[0].vendor.balanceDue)}` : "No balances due",
+    nextPayment: nextPayments[0]
+      ? `${formatDate(nextPayments[0].dueDate)} - ${getVendorName(vendors, nextPayments[0].vendorId) || nextPayments[0].title} ${formatMoney(nextPayments[0].amount)}`
+      : "No balances due",
     followUps,
     openDecisions,
   };
@@ -1785,6 +2202,7 @@ function OverviewTab({
   vendors,
   events,
   tasks,
+  payments,
   quickNotes,
   setQuickNotes,
   setTasks,
@@ -1792,15 +2210,24 @@ function OverviewTab({
   vendors: Vendor[];
   events: CalendarEvent[];
   tasks: PlanningTask[];
+  payments: PaymentRecord[];
   quickNotes: string;
   setQuickNotes: (notes: string) => void;
   setTasks: (tasks: PlanningTask[]) => void;
 }) {
   const today = todayKey();
   const confirmedVendors = vendors.filter((vendor) => ["Confirmed", "Deposit paid", "Fully paid"].includes(vendor.status));
-  const paymentsDue = vendors.filter((vendor) => parseMoney(vendor.balanceDue) > 0);
+  const paymentsDue = payments.filter((payment) => isPaymentActive(payment) && !isPaymentPaid(payment));
   const comingUp = [
     ...events.filter((event) => event.date >= today).map((event) => ({ id: event.id, title: event.title, date: event.date, detail: event.type })),
+    ...payments
+      .filter((payment) => payment.dueDate && isPaymentActive(payment) && !isPaymentPaid(payment) && payment.dueDate >= today)
+      .map((payment) => ({
+        id: `payment-${payment.id}`,
+        title: payment.title,
+        date: payment.dueDate,
+        detail: `${payment.paymentStatus} - ${formatMoney(payment.amount)}${payment.vendorId ? ` - ${getVendorName(vendors, payment.vendorId)}` : ""}`,
+      })),
     ...vendors
       .filter((vendor) => vendor.followUpDate && vendor.followUpDate >= today)
       .map((vendor) => ({ id: `follow-${vendor.id}`, title: `Follow up with ${vendor.vendorName}`, date: vendor.followUpDate, detail: vendor.nextAction || "Vendor follow-up" })),
@@ -1967,16 +2394,564 @@ function TasksPanel({ vendors, tasks, setTasks }: { vendors: Vendor[]; tasks: Pl
   );
 }
 
+function BudgetTab({
+  vendors,
+  budgetCategories,
+  setBudgetCategories,
+  payments,
+  setPayments,
+  fileRecords,
+}: {
+  vendors: Vendor[];
+  budgetCategories: BudgetCategory[];
+  setBudgetCategories: (categories: BudgetCategory[]) => void;
+  payments: PaymentRecord[];
+  setPayments: (payments: PaymentRecord[]) => void;
+  fileRecords: PlanningFileRecord[];
+}) {
+  const [categoryForm, setCategoryForm] = useState<BudgetCategoryForm>(emptyBudgetCategoryForm);
+  const [paymentForm, setPaymentForm] = useState<PaymentRecordForm>(emptyPaymentRecordForm);
+  const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
+  const activePayments = payments.filter(isPaymentActive);
+  const totalTarget = budgetCategories.reduce((total, category) => total + parseMoney(category.targetBudget), 0);
+  const committedTotal = activePayments.reduce((total, payment) => total + getPaymentAmount(payment), 0);
+  const paidTotal = activePayments.reduce((total, payment) => total + getPaidAmount(payment), 0);
+  const unpaidTotal = activePayments.reduce((total, payment) => total + getUnpaidAmount(payment), 0);
+  const varianceTotal = totalTarget - committedTotal;
+  const upcomingPayments = activePayments
+    .filter((payment) => !isPaymentPaid(payment) && payment.dueDate)
+    .sort((first, second) => first.dueDate.localeCompare(second.dueDate));
+  const categorySummaries = budgetCategories.map((category) => {
+    const categoryPayments = activePayments.filter((payment) => payment.budgetCategoryId === category.id);
+    const categoryFiles = fileRecords.filter((record) => record.budgetCategoryId === category.id);
+    const linkedVendorIds = Array.from(new Set([...categoryPayments.map((payment) => payment.vendorId), ...categoryFiles.map((record) => record.vendorId)].filter(Boolean)));
+    const target = parseMoney(category.targetBudget);
+    const committed = categoryPayments.reduce((total, payment) => total + getPaymentAmount(payment), 0);
+    const paid = categoryPayments.reduce((total, payment) => total + getPaidAmount(payment), 0);
+    const due = categoryPayments.reduce((total, payment) => total + getUnpaidAmount(payment), 0);
+    const variance = target - committed;
+    const spendPercent = target > 0 ? Math.min((committed / target) * 100, 120) : committed > 0 ? 100 : 0;
+    const paymentPercent = committed > 0 ? Math.min((paid / committed) * 100, 100) : 0;
+    const isPaid = categoryPayments.length > 0 && categoryPayments.every(isPaymentPaid);
+    const status = isPaid ? "Paid" : target > 0 && committed > target ? "Over budget" : target > 0 && committed <= target * 0.85 ? "Under budget" : "On track";
+    const tone: "neutral" | "rose" | "sage" | "champagne" | "navy" =
+      status === "Paid" ? "navy" : status === "Over budget" ? "rose" : status === "Under budget" ? "sage" : "neutral";
+
+    return {
+      category,
+      categoryPayments,
+      categoryFiles,
+      linkedVendorIds,
+      target,
+      committed,
+      paid,
+      due,
+      variance,
+      spendPercent,
+      paymentPercent,
+      status,
+      tone,
+    };
+  });
+  const overBudgetCategories = categorySummaries.filter((summary) => summary.status === "Over budget");
+  const paidVendorCount = Array.from(new Set(activePayments.filter(isPaymentPaid).map((payment) => payment.vendorId).filter(Boolean))).length;
+  const budgetUsedPercent = totalTarget > 0 ? Math.min((committedTotal / totalTarget) * 100, 100) : 0;
+  const highestSpendingCategories = [...categorySummaries].sort((first, second) => second.committed - first.committed).slice(0, 3);
+  const upcomingLargePayments = upcomingPayments.filter((payment) => getPaymentAmount(payment) >= 1000).slice(0, 3);
+
+  function addCategory(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!categoryForm.name.trim()) {
+      return;
+    }
+
+    setBudgetCategories([...budgetCategories, { ...categoryForm, id: createId("budget") }]);
+    setCategoryForm(emptyBudgetCategoryForm);
+  }
+
+  function updateCategory(categoryId: string, patch: Partial<BudgetCategory>) {
+    setBudgetCategories(budgetCategories.map((category) => (category.id === categoryId ? { ...category, ...patch } : category)));
+  }
+
+  function deleteCategory(categoryId: string) {
+    if (payments.some((payment) => payment.budgetCategoryId === categoryId) || fileRecords.some((record) => record.budgetCategoryId === categoryId)) {
+      window.alert("This category has linked payments or files. Move those records before deleting it.");
+      return;
+    }
+
+    setBudgetCategories(budgetCategories.filter((category) => category.id !== categoryId));
+  }
+
+  function submitPayment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!paymentForm.title.trim() || !paymentForm.amount.trim()) {
+      return;
+    }
+
+    if (editingPaymentId) {
+      setPayments(payments.map((payment) => (payment.id === editingPaymentId ? { ...payment, ...paymentForm } : payment)));
+      setEditingPaymentId(null);
+      setPaymentForm(emptyPaymentRecordForm);
+      return;
+    }
+
+    setPayments([{ ...paymentForm, id: createId("payment") }, ...payments]);
+    setPaymentForm(emptyPaymentRecordForm);
+  }
+
+  function editPayment(payment: PaymentRecord) {
+    setEditingPaymentId(payment.id);
+    setPaymentForm({
+      title: payment.title,
+      vendorId: payment.vendorId,
+      budgetCategoryId: payment.budgetCategoryId,
+      amount: payment.amount,
+      dueDate: payment.dueDate,
+      paidDate: payment.paidDate,
+      paymentStatus: payment.paymentStatus,
+      sourceFileId: payment.sourceFileId,
+      notes: payment.notes,
+    });
+  }
+
+  const summaryCards = [
+    { label: "Total Budget", value: formatMoney(String(totalTarget)), detail: "Across all categories", icon: CircleDollarSign, tone: "champagne" as const },
+    { label: "Total Spent", value: formatMoney(String(paidTotal)), detail: `${formatMoney(String(committedTotal))} committed`, icon: CheckCircle2, tone: "sage" as const },
+    { label: "Remaining Budget", value: formatMoney(String(Math.max(varianceTotal, 0))), detail: varianceTotal < 0 ? `${formatMoney(String(Math.abs(varianceTotal)))} over target` : "Before unpaid commitments", icon: ClipboardList, tone: varianceTotal < 0 ? ("rose" as const) : ("neutral" as const) },
+    { label: "Upcoming Payments", value: formatMoney(String(unpaidTotal)), detail: `${upcomingPayments.length} scheduled`, icon: CalendarDays, tone: "champagne" as const },
+    { label: "Categories Over Budget", value: String(overBudgetCategories.length), detail: overBudgetCategories.map((summary) => summary.category.name).join(", ") || "None currently", icon: FileText, tone: overBudgetCategories.length > 0 ? ("rose" as const) : ("sage" as const) },
+    { label: "Paid Vendors", value: String(paidVendorCount), detail: "With paid shared records", icon: CheckCircle2, tone: "navy" as const },
+  ];
+
+  return (
+    <div className="grid gap-6">
+      <PlanningCard>
+        <div className="grid gap-6 lg:grid-cols-[1fr_260px] lg:items-center">
+          <div>
+            <p className="heading-micro">Private Finance</p>
+            <h2 className="heading-secondary mt-2">Wedding Budget</h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6a5d55]">
+              A private financial overview of vendors, styling, logistics, and celebration planning.
+            </p>
+            <div className="mt-5 flex flex-wrap gap-2">
+              <Chip tone="champagne">{payments.length} shared cost records</Chip>
+              <Chip tone="sage">{fileRecords.length} linked documents</Chip>
+              <Chip>{budgetCategories.length} categories</Chip>
+            </div>
+          </div>
+          <div className="mx-auto grid h-48 w-48 place-items-center rounded-full border border-[#eaded6]/80 bg-white/58 p-4 shadow-[0_18px_40px_rgba(90,65,50,0.055)]">
+            <div
+              className="grid h-36 w-36 place-items-center rounded-full"
+              style={{
+                background: `conic-gradient(#b98278 ${budgetUsedPercent * 3.6}deg, rgba(234,222,214,0.76) 0deg)`,
+              }}
+            >
+              <div className="grid h-[7.35rem] w-[7.35rem] place-items-center rounded-full bg-[#fffaf7] text-center shadow-[inset_0_0_24px_rgba(90,65,50,0.04)]">
+                <div>
+                  <p className="heading-micro">Used</p>
+                  <p className="mt-1 font-serif text-3xl text-[#8f6a63]">{Math.round(budgetUsedPercent)}%</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-6">
+          {summaryCards.map((card) => (
+            <div key={card.label} className="rounded-2xl border border-[#eaded6]/78 bg-white/58 px-4 py-4 shadow-[0_10px_24px_rgba(90,65,50,0.035)]">
+              <div className="flex items-start justify-between gap-3">
+                <p className="heading-micro">{card.label}</p>
+                <span className="rounded-full bg-[#f4ebe4] p-2 text-[#b98278]">
+                  <card.icon className="h-4 w-4" />
+                </span>
+              </div>
+              <p className="mt-3 font-serif text-2xl text-[#8f6a63]">{card.value}</p>
+              <p className="mt-1 text-xs leading-5 text-[#7d6b62]">{card.detail}</p>
+            </div>
+          ))}
+        </div>
+      </PlanningCard>
+
+      <div className="grid gap-6 xl:grid-cols-[1fr_0.74fr]">
+        <PlanningCard>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="heading-micro">Budget Intelligence</p>
+              <h3 className="heading-secondary heading-secondary-compact mt-2">Planning Notes</h3>
+            </div>
+            <Chip tone={overBudgetCategories.length > 0 ? "rose" : "sage"}>{overBudgetCategories.length > 0 ? "Needs review" : "On track"}</Chip>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
+            <div className="rounded-2xl bg-white/58 p-4">
+              <p className="heading-micro">Over Target</p>
+              <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
+                {overBudgetCategories.length > 0
+                  ? overBudgetCategories.map((summary) => `${summary.category.name} (${formatMoney(String(Math.abs(summary.variance)))})`).join(", ")
+                  : "No category is currently over target."}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-white/58 p-4">
+              <p className="heading-micro">Discretionary Room</p>
+              <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
+                {varianceTotal > 0 ? `${formatMoney(String(varianceTotal))} remains against current category targets.` : "Current commitments are at or above target."}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-white/58 p-4">
+              <p className="heading-micro">Large Payments</p>
+              <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
+                {upcomingLargePayments.length > 0
+                  ? upcomingLargePayments.map((payment) => `${payment.title} ${formatMoney(payment.amount)}`).join(", ")
+                  : "No upcoming payment over $1,000 is scheduled."}
+              </p>
+            </div>
+            <div className="rounded-2xl bg-white/58 p-4">
+              <p className="heading-micro">Highest Spend</p>
+              <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
+                {highestSpendingCategories.filter((summary) => summary.committed > 0).length > 0
+                  ? highestSpendingCategories.filter((summary) => summary.committed > 0).map((summary) => `${summary.category.name} ${formatMoney(String(summary.committed))}`).join(", ")
+                  : "Spending will appear here as records are linked."}
+              </p>
+            </div>
+          </div>
+        </PlanningCard>
+
+        <PlanningCard>
+          <p className="heading-micro">Upcoming Payment Timeline</p>
+          <h3 className="heading-secondary heading-secondary-compact mt-2">Next Due Dates</h3>
+          <div className="mt-5 space-y-3">
+            {upcomingPayments.slice(0, 5).length > 0 ? (
+              upcomingPayments.slice(0, 5).map((payment) => (
+                <div key={payment.id} className="rounded-2xl border border-[#eaded6]/78 bg-white/58 p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <p className="font-serif text-xl text-[#3f302b]">{payment.title}</p>
+                      <p className="mt-1 text-sm leading-6 text-[#6a5d55]">
+                        {getVendorName(vendors, payment.vendorId) || "No vendor"} - {formatMoney(payment.amount)}
+                      </p>
+                    </div>
+                    <DueChip date={payment.dueDate} />
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm leading-7 text-[#6a5d55]">No upcoming unpaid payment dates yet.</p>
+            )}
+          </div>
+        </PlanningCard>
+      </div>
+
+      <PlanningCard>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="heading-micro">Category Spend</p>
+            <h3 className="heading-secondary heading-secondary-compact mt-2">Budget Categories</h3>
+          </div>
+          <Chip tone="champagne">Expandable cards</Chip>
+        </div>
+        <div className="mt-6 grid gap-4">
+          {categorySummaries.map((summary) => {
+          const {
+            category,
+            categoryPayments,
+            categoryFiles,
+            linkedVendorIds,
+            target,
+            committed,
+            paid,
+            due,
+            variance,
+            spendPercent,
+            paymentPercent,
+            status,
+            tone,
+          } = summary;
+
+          return (
+            <details key={category.id} className="group rounded-[1.35rem] border border-[#eaded6]/78 bg-white/54 p-4 shadow-[0_12px_30px_rgba(90,65,50,0.04)]">
+              <summary className="grid cursor-pointer list-none gap-4 lg:grid-cols-[1fr_360px] lg:items-center">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h4 className="font-serif text-2xl text-[#3f302b]">{category.name}</h4>
+                    <Chip tone={tone}>{status}</Chip>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-[#6a5d55]">{category.notes || "No notes added yet."}</p>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {linkedVendorIds.length > 0 ? linkedVendorIds.map((vendorId) => <Chip key={vendorId}>{getVendorName(vendors, vendorId) || "Linked vendor"}</Chip>) : <Chip>No linked vendors</Chip>}
+                    {categoryFiles.length > 0 ? <Chip tone="champagne">{categoryFiles.length} linked files</Chip> : <Chip>No linked files</Chip>}
+                  </div>
+                </div>
+                <div className="grid gap-3">
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl bg-[#fffaf7]/86 px-4 py-3">
+                      <p className="heading-micro">Target</p>
+                      <p className="mt-1 font-serif text-xl text-[#8f6a63]">{formatMoney(String(target))}</p>
+                    </div>
+                    <div className="rounded-2xl bg-[#fffaf7]/86 px-4 py-3">
+                      <p className="heading-micro">Current Spend</p>
+                      <p className="mt-1 font-serif text-xl text-[#8f6a63]">{formatMoney(String(committed))}</p>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8c7a72]">
+                      <span>Spend</span>
+                      <span>{target > 0 ? `${Math.round(Math.min(spendPercent, 100))}%` : "No target"}</span>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#eaded6]/70">
+                      <div className={`h-full rounded-full ${status === "Over budget" ? "bg-[#c58a80]" : status === "Under budget" ? "bg-[#9daa88]" : status === "Paid" ? "bg-[var(--color-navy)]" : "bg-[#d6bfa0]"}`} style={{ width: `${Math.min(spendPercent, 100)}%` }} />
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex justify-between gap-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8c7a72]">
+                      <span>Payment Progress</span>
+                      <span>{Math.round(paymentPercent)}%</span>
+                    </div>
+                    <div className="mt-2 h-2 overflow-hidden rounded-full bg-[#eaded6]/70">
+                      <div className="h-full rounded-full bg-[var(--color-navy)]" style={{ width: `${paymentPercent}%` }} />
+                    </div>
+                  </div>
+                </div>
+              </summary>
+
+              <div className="mt-5 border-t border-[#eaded6]/70 pt-5">
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                  {[
+                    ["Variance", variance],
+                    ["Paid", paid],
+                    ["Unpaid / due", due],
+                    ["Linked files", categoryFiles.length],
+                  ].map(([label, value]) => (
+                    <div key={String(label)} className="rounded-2xl bg-[#fffaf7]/86 px-4 py-3">
+                      <p className="heading-micro">{label}</p>
+                      <p className="mt-1 font-serif text-xl text-[#8f6a63]">{typeof value === "number" && label !== "Linked files" ? formatMoney(String(value)) : value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-5 grid gap-3 md:grid-cols-2">
+                  <TextField label="Target budget" value={category.targetBudget} onChange={(targetBudget) => updateCategory(category.id, { targetBudget })} placeholder="$" />
+                  <TextField label="Notes" value={category.notes} onChange={(notes) => updateCategory(category.id, { notes })} />
+                </div>
+
+                <div className="mt-5 grid gap-4 lg:grid-cols-3">
+                  <div className="rounded-2xl bg-[#fffaf7]/74 p-4">
+                    <p className="heading-micro">Payment History</p>
+                    <div className="mt-3 space-y-3">
+                      {categoryPayments.length > 0 ? (
+                        categoryPayments.map((payment) => (
+                          <div key={payment.id} className="rounded-2xl bg-white/62 px-4 py-3">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <p className="text-sm font-medium text-[#3f302b]">{payment.title}</p>
+                              <Chip tone={getPaymentStatusTone(payment.paymentStatus)}>{payment.paymentStatus}</Chip>
+                            </div>
+                            <p className="mt-1 text-sm leading-6 text-[#6a5d55]">
+                              {formatMoney(payment.amount)} {payment.dueDate ? `- due ${formatDate(payment.dueDate)}` : ""}
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm leading-7 text-[#6a5d55]">No payment records linked yet.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-[#fffaf7]/74 p-4">
+                    <p className="heading-micro">Linked Files</p>
+                    <div className="mt-3 space-y-3">
+                      {categoryFiles.length > 0 ? (
+                        categoryFiles.map((record) => (
+                          <div key={record.id} className="rounded-2xl bg-white/62 px-4 py-3">
+                            <p className="text-sm font-medium text-[#3f302b]">{record.originalFilename}</p>
+                            <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#8c7a72]">
+                              {record.fileType} {record.documentNumber ? `- ${record.documentNumber}` : ""}
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm leading-7 text-[#6a5d55]">No files linked to this category yet.</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl bg-[#fffaf7]/74 p-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="heading-micro">Vendor Details</p>
+                      <button type="button" onClick={() => deleteCategory(category.id)} className="rounded-full p-1.5 text-[#9b6f68] hover:bg-[#f4ebe4]" aria-label={`Delete ${category.name}`}>
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {linkedVendorIds.length > 0 ? (
+                        linkedVendorIds.map((vendorId) => <Chip key={vendorId}>{getVendorName(vendors, vendorId) || "Linked vendor"}</Chip>)
+                      ) : (
+                        <p className="text-sm leading-7 text-[#6a5d55]">No vendors linked to this category yet.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </details>
+          );
+          })}
+        </div>
+      </PlanningCard>
+
+      <PlanningCard>
+        <p className="heading-micro">Add Category</p>
+        <form onSubmit={addCategory} className="mt-5 grid gap-3 md:grid-cols-[1fr_180px_auto] md:items-end">
+          <TextField label="Category name" value={categoryForm.name} onChange={(name) => setCategoryForm({ ...categoryForm, name })} />
+          <TextField label="Target budget" value={categoryForm.targetBudget} onChange={(targetBudget) => setCategoryForm({ ...categoryForm, targetBudget })} placeholder="$" />
+          <button type="submit" className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-[#fffaf7] px-5 text-xs font-semibold uppercase tracking-[0.16em] text-[#6a5d55] transition hover:border-[#b98278]">
+            <Plus className="h-4 w-4" />
+            Add
+          </button>
+        </form>
+      </PlanningCard>
+
+      <PlanningCard>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="heading-micro">Shared Records</p>
+            <h2 className="heading-secondary heading-secondary-compact mt-2">Payment & Cost Records</h2>
+          </div>
+          {editingPaymentId && <Chip tone="rose">Editing record</Chip>}
+        </div>
+        <form onSubmit={submitPayment} className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <TextField label="Title" value={paymentForm.title} onChange={(title) => setPaymentForm({ ...paymentForm, title })} />
+          <label className="grid gap-2">
+            <FieldLabel>Vendor</FieldLabel>
+            <select
+              value={paymentForm.vendorId}
+              onChange={(event) => {
+                const vendorId = event.target.value;
+                const selectedVendor = vendors.find((vendor) => vendor.id === vendorId);
+                setPaymentForm({
+                  ...paymentForm,
+                  vendorId,
+                  budgetCategoryId: paymentForm.budgetCategoryId || (selectedVendor ? getBudgetCategoryIdForVendor(selectedVendor, budgetCategories) : ""),
+                });
+              }}
+              className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
+            >
+              <option value="">No vendor</option>
+              {vendors.map((vendor) => (
+                <option key={vendor.id} value={vendor.id}>
+                  {vendor.vendorName}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-2">
+            <FieldLabel>Budget category</FieldLabel>
+            <select
+              value={paymentForm.budgetCategoryId}
+              onChange={(event) => setPaymentForm({ ...paymentForm, budgetCategoryId: event.target.value })}
+              className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
+            >
+              <option value="">No category</option>
+              {budgetCategories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <TextField label="Amount" value={paymentForm.amount} onChange={(amount) => setPaymentForm({ ...paymentForm, amount })} placeholder="$" />
+          <TextField label="Due date" type="date" value={paymentForm.dueDate} onChange={(dueDate) => setPaymentForm({ ...paymentForm, dueDate })} />
+          <TextField label="Paid date" type="date" value={paymentForm.paidDate} onChange={(paidDate) => setPaymentForm({ ...paymentForm, paidDate })} />
+          <SelectField label="Payment status" value={paymentForm.paymentStatus} options={paymentStatuses} onChange={(paymentStatus) => setPaymentForm({ ...paymentForm, paymentStatus })} />
+          <label className="grid gap-2">
+            <FieldLabel>Source file</FieldLabel>
+            <select
+              value={paymentForm.sourceFileId}
+              onChange={(event) => setPaymentForm({ ...paymentForm, sourceFileId: event.target.value })}
+              className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
+            >
+              <option value="">No source file</option>
+              {fileRecords.map((record) => (
+                <option key={record.fileId} value={record.fileId}>
+                  {record.originalFilename}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="md:col-span-2 xl:col-span-4">
+            <TextAreaField label="Notes" value={paymentForm.notes} onChange={(notes) => setPaymentForm({ ...paymentForm, notes })} rows={2} />
+          </div>
+          <div className="flex flex-wrap gap-3 md:col-span-2 xl:col-span-4">
+            <button type="submit" className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.18)] transition hover:bg-[var(--color-navy-hover)]">
+              <Save className="h-4 w-4" />
+              {editingPaymentId ? "Update Record" : "Add Record"}
+            </button>
+            {editingPaymentId && (
+              <button
+                type="button"
+                onClick={() => {
+                  setEditingPaymentId(null);
+                  setPaymentForm(emptyPaymentRecordForm);
+                }}
+                className="rounded-full border border-[#eaded6] bg-[#fffaf7] px-5 py-3 text-xs font-semibold uppercase tracking-[0.16em] text-[#6a5d55] transition hover:border-[#b98278]"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+        <div className="mt-6 grid gap-3">
+          {payments.length > 0 ? (
+            payments.map((payment) => (
+              <div key={payment.id} className="rounded-2xl border border-[#eaded6]/80 bg-white/58 p-4">
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-serif text-xl text-[#3f302b]">{payment.title}</p>
+                      <Chip tone={getPaymentStatusTone(payment.paymentStatus)}>{payment.paymentStatus}</Chip>
+                    </div>
+                    <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
+                      {formatMoney(payment.amount)} {payment.dueDate ? `- due ${formatDate(payment.dueDate)}` : ""} {payment.paidDate ? `- paid ${formatDate(payment.paidDate)}` : ""}
+                    </p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <Chip>{getVendorName(vendors, payment.vendorId) || "No vendor"}</Chip>
+                      <Chip tone="champagne">{getBudgetCategoryName(budgetCategories, payment.budgetCategoryId) || "No budget category"}</Chip>
+                      {payment.sourceFileId && <Chip tone="sage">Linked file</Chip>}
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button type="button" onClick={() => editPayment(payment)} className="rounded-full p-2 text-[#b98278] hover:bg-[#f4ebe4]" aria-label={`Edit ${payment.title}`}>
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                    <button type="button" onClick={() => setPayments(payments.filter((item) => item.id !== payment.id))} className="rounded-full p-2 text-[#9b6f68] hover:bg-[#f4ebe4]" aria-label={`Delete ${payment.title}`}>
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p className="text-sm leading-7 text-[#6a5d55]">Shared cost records will appear here when you add them or link them from files.</p>
+          )}
+        </div>
+      </PlanningCard>
+    </div>
+  );
+}
+
 function VendorsTab({
   vendors,
   setVendors,
   events,
   setEvents,
+  payments,
+  fileRecords,
+  budgetCategories,
 }: {
   vendors: Vendor[];
   setVendors: (vendors: Vendor[]) => void;
   events: CalendarEvent[];
   setEvents: (events: CalendarEvent[]) => void;
+  payments: PaymentRecord[];
+  fileRecords: PlanningFileRecord[];
+  budgetCategories: BudgetCategory[];
 }) {
   const [form, setForm] = useState<VendorForm>(emptyVendorForm);
   const [editingVendorId, setEditingVendorId] = useState<string | null>(null);
@@ -1994,7 +2969,7 @@ function VendorsTab({
     return vendors
       .filter((vendor) => categoryFilter === "All" || vendor.category === categoryFilter)
       .filter((vendor) => statusFilter === "All" || vendor.status === statusFilter)
-      .filter((vendor) => paymentFilter === "All" || getPaymentStatus(vendor) === paymentFilter)
+      .filter((vendor) => paymentFilter === "All" || getVendorSharedPaymentStatus(vendor, payments) === paymentFilter)
       .filter((vendor) =>
         normalizedQuery
           ? [vendor.vendorName, vendor.contact, vendor.email, vendor.phone, vendor.instagram, vendor.website, vendor.notes, vendor.nextAction].some((value) =>
@@ -2017,7 +2992,7 @@ function VendorsTab({
 
         return (getNextVendorDueDate(first) || "9999").localeCompare(getNextVendorDueDate(second) || "9999");
       });
-  }, [categoryFilter, paymentFilter, query, sortBy, statusFilter, vendors]);
+  }, [categoryFilter, paymentFilter, payments, query, sortBy, statusFilter, vendors]);
   const selectedVendor = vendors.find((vendor) => vendor.id === selectedVendorId) ?? null;
 
   function resetForm() {
@@ -2301,6 +3276,9 @@ function VendorsTab({
           vendors={vendors}
           setVendors={setVendors}
           events={events}
+          payments={payments}
+          fileRecords={fileRecords}
+          budgetCategories={budgetCategories}
           onClose={() => setSelectedVendorId(null)}
           onEdit={() => editVendor(selectedVendor)}
         />
@@ -2314,6 +3292,9 @@ function VendorDrawer({
   vendors,
   setVendors,
   events,
+  payments,
+  fileRecords,
+  budgetCategories,
   onClose,
   onEdit,
 }: {
@@ -2321,11 +3302,28 @@ function VendorDrawer({
   vendors: Vendor[];
   setVendors: (vendors: Vendor[]) => void;
   events: CalendarEvent[];
+  payments: PaymentRecord[];
+  fileRecords: PlanningFileRecord[];
+  budgetCategories: BudgetCategory[];
   onClose: () => void;
   onEdit: () => void;
 }) {
   const [logForm, setLogForm] = useState<LogForm>({ ...emptyLogForm, date: todayKey() });
   const linkedEvents = events.filter((event) => event.vendorId === vendor.id);
+  const linkedPayments = payments.filter((payment) => payment.vendorId === vendor.id && isPaymentActive(payment));
+  const linkedFiles = fileRecords.filter((record) => record.vendorId === vendor.id);
+  const quotedTotal = linkedPayments
+    .filter((payment) => payment.paymentStatus === "Quoted" || payment.title.toLowerCase().includes("quote"))
+    .reduce((total, payment) => total + getPaymentAmount(payment), 0);
+  const invoicedTotal = linkedPayments
+    .filter((payment) => ["Invoiced", "Due", "Part paid", "Paid"].includes(payment.paymentStatus))
+    .reduce((total, payment) => total + getPaymentAmount(payment), 0);
+  const paidTotal = linkedPayments.reduce((total, payment) => total + getPaidAmount(payment), 0);
+  const upcomingDuePayments = linkedPayments
+    .filter((payment) => !isPaymentPaid(payment) && payment.dueDate)
+    .sort((first, second) => first.dueDate.localeCompare(second.dueDate))
+    .slice(0, 4);
+  const relatedCategoryIds = Array.from(new Set([...linkedPayments.map((payment) => payment.budgetCategoryId), ...linkedFiles.map((record) => record.budgetCategoryId)].filter(Boolean)));
 
   function updateVendor(patch: Partial<Vendor>) {
     setVendors(vendors.map((item) => (item.id === vendor.id ? { ...item, ...patch } : item)));
@@ -2396,6 +3394,67 @@ function VendorDrawer({
             </div>
           </PlanningCard>
         </div>
+
+        <PlanningCard className="mt-4">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="heading-micro">Linked Records</p>
+              <h3 className="mt-2 font-serif text-2xl text-[#3f302b]">Vendor Cost Summary</h3>
+            </div>
+            <Chip tone="champagne">{linkedFiles.length} documents</Chip>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-3">
+            {[
+              ["Total quoted", quotedTotal],
+              ["Total invoiced", invoicedTotal],
+              ["Total paid", paidTotal],
+            ].map(([label, value]) => (
+              <div key={String(label)} className="rounded-2xl bg-white/58 px-4 py-3">
+                <p className="heading-micro">{label}</p>
+                <p className="mt-1 font-serif text-xl text-[#8f6a63]">{formatMoney(String(value))}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {relatedCategoryIds.length > 0 ? (
+              relatedCategoryIds.map((categoryId) => <Chip key={categoryId}>{getBudgetCategoryName(budgetCategories, categoryId) || "Linked budget"}</Chip>)
+            ) : (
+              <Chip>No budget category linked</Chip>
+            )}
+          </div>
+          <div className="mt-5 grid gap-3">
+            {upcomingDuePayments.length > 0 ? (
+              upcomingDuePayments.map((payment) => (
+                <div key={payment.id} className="rounded-2xl border border-[#eaded6]/80 bg-white/54 p-4">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="font-medium text-[#3f302b]">{payment.title}</p>
+                    <DueChip date={payment.dueDate} />
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
+                    {formatMoney(payment.amount)} - {payment.paymentStatus}
+                  </p>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm leading-7 text-[#6a5d55]">No upcoming due payments linked to this vendor.</p>
+            )}
+          </div>
+          {linkedFiles.length > 0 && (
+            <div className="mt-5 grid gap-2">
+              {linkedFiles.slice(0, 5).map((record) => (
+                <div key={record.id} className="flex flex-col gap-2 rounded-2xl bg-[#fffaf7]/72 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-[#3f302b]">{record.originalFilename}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.14em] text-[#8c7a72]">
+                      {record.fileType} {record.documentNumber ? `- ${record.documentNumber}` : ""}
+                    </p>
+                  </div>
+                  <Chip tone={getPaymentStatusTone(record.paymentStatus)}>{record.paymentStatus}</Chip>
+                </div>
+              ))}
+            </div>
+          )}
+        </PlanningCard>
 
         <PlanningCard className="mt-4">
           <h3 className="font-serif text-2xl text-[#3f302b]">Notes & Links</h3>
@@ -2471,7 +3530,7 @@ function VendorDrawer({
 }
 
 type CalendarItem = CalendarEvent & {
-  source: "manual" | "vendor" | "task";
+  source: "manual" | "vendor" | "task" | "payment" | "file";
   isGenerated?: boolean;
 };
 
@@ -2484,35 +3543,9 @@ const eventTone: Record<EventType, string> = {
   "Bridal Party / Fashion": "bg-[#d8a8a1]",
 };
 
-function getCalendarItems(vendors: Vendor[], events: CalendarEvent[], tasks: PlanningTask[]): CalendarItem[] {
+function getCalendarItems(vendors: Vendor[], events: CalendarEvent[], tasks: PlanningTask[], payments: PaymentRecord[], fileRecords: PlanningFileRecord[]): CalendarItem[] {
   const vendorItems: CalendarItem[] = vendors.flatMap((vendor) => {
     const items: CalendarItem[] = [];
-
-    if (vendor.depositDueDate && parseMoney(vendor.balanceDue) > 0) {
-      items.push({
-        id: `vendor-deposit-${vendor.id}`,
-        title: `${vendor.vendorName} deposit due`,
-        date: vendor.depositDueDate,
-        type: "Payment",
-        vendorId: vendor.id,
-        notes: `${formatMoney(vendor.balanceDue)} balance tracked for ${vendor.vendorName}.`,
-        source: "vendor",
-        isGenerated: true,
-      });
-    }
-
-    if ((vendor.finalPaymentDueDate || vendor.dueDate) && parseMoney(vendor.balanceDue) > 0) {
-      items.push({
-        id: `vendor-final-${vendor.id}`,
-        title: `${vendor.vendorName} final payment`,
-        date: vendor.finalPaymentDueDate || vendor.dueDate,
-        type: "Payment",
-        vendorId: vendor.id,
-        notes: `${formatMoney(vendor.balanceDue)} remaining.`,
-        source: "vendor",
-        isGenerated: true,
-      });
-    }
 
     if (vendor.followUpDate) {
       items.push({
@@ -2541,19 +3574,47 @@ function getCalendarItems(vendors: Vendor[], events: CalendarEvent[], tasks: Pla
       source: "task",
       isGenerated: true,
     }));
+  const paymentItems: CalendarItem[] = payments
+    .filter((payment) => isPaymentActive(payment) && !isPaymentPaid(payment) && payment.dueDate)
+    .map((payment) => ({
+      id: `payment-${payment.id}`,
+      title: `${payment.title} due`,
+      date: payment.dueDate,
+      type: "Payment",
+      vendorId: payment.vendorId,
+      notes: `${formatMoney(payment.amount)} - ${payment.paymentStatus}`,
+      source: "payment",
+      isGenerated: true,
+    }));
+  const fileItems: CalendarItem[] = fileRecords
+    .filter((record) => record.dueDate && (!record.linkedPaymentId || record.fileType === "Quote"))
+    .map((record) => ({
+      id: `file-${record.fileId}-${record.dueDate}`,
+      title: record.fileType === "Quote" ? `${record.originalFilename} quote expiry` : `${record.originalFilename} due`,
+      date: record.dueDate,
+      type: record.fileType === "Quote" ? "Deadline" : "Payment",
+      vendorId: record.vendorId,
+      notes: `${record.fileType}${record.documentNumber ? ` ${record.documentNumber}` : ""}${record.extractedAmount ? ` - ${formatMoney(record.extractedAmount)}` : ""}`,
+      source: "file",
+      isGenerated: true,
+    }));
 
-  return [...events.map((event) => ({ ...event, source: "manual" as const })), ...vendorItems, ...taskItems];
+  return [...events.map((event) => ({ ...event, source: "manual" as const })), ...vendorItems, ...paymentItems, ...fileItems, ...taskItems];
 }
 
 function CalendarTab({
   vendors,
   events,
   tasks,
+  payments,
+  fileRecords,
   setEvents,
 }: {
   vendors: Vendor[];
   events: CalendarEvent[];
   tasks: PlanningTask[];
+  payments: PaymentRecord[];
+  fileRecords: PlanningFileRecord[];
   setEvents: (events: CalendarEvent[]) => void;
 }) {
   const [viewDate, setViewDate] = useState(() => new Date(2026, 4, 1));
@@ -2570,7 +3631,7 @@ function CalendarTab({
       return { key: toDateKey(date), date: toDateKey(date), day: String(index + 1) };
     }),
   ];
-  const allEvents = getCalendarItems(vendors, events, tasks);
+  const allEvents = getCalendarItems(vendors, events, tasks, payments, fileRecords);
   const selectedEvents = allEvents.filter((event) => event.date === selectedDate);
   const selectedEvent = allEvents.find((event) => event.id === selectedEventId) ?? selectedEvents[0] ?? null;
 
@@ -4193,7 +5254,23 @@ function getFileExtractionStatusLabel(status: string) {
   return labels[status] ?? status;
 }
 
-function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (vendors: Vendor[]) => void }) {
+function FilesTab({
+  vendors,
+  setVendors,
+  budgetCategories,
+  payments,
+  setPayments,
+  fileRecords,
+  setFileRecords,
+}: {
+  vendors: Vendor[];
+  setVendors: (vendors: Vendor[]) => void;
+  budgetCategories: BudgetCategory[];
+  payments: PaymentRecord[];
+  setPayments: (payments: PaymentRecord[]) => void;
+  fileRecords: PlanningFileRecord[];
+  setFileRecords: (records: PlanningFileRecord[]) => void;
+}) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [files, setFiles] = useState<PrivatePlanningFileDto[]>([]);
   const [selectedVendorId, setSelectedVendorId] = useState("");
@@ -4209,7 +5286,106 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
   const [uploadProgress, setUploadProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState("");
   const vendorNameById = useMemo(() => new Map(vendors.map((vendor) => [vendor.id, vendor.vendorName])), [vendors]);
+  const categoryNameById = useMemo(() => new Map(budgetCategories.map((category) => [category.id, category.name])), [budgetCategories]);
   const acceptedFileTypes = `${privatePlanningAllowedMimeTypes.join(",")},.pdf,.png,.jpg,.jpeg,.webp`;
+
+  function getDefaultBudgetCategoryForVendorId(vendorId: string) {
+    const vendor = vendors.find((item) => item.id === vendorId);
+
+    return vendor ? getBudgetCategoryIdForVendor(vendor, budgetCategories) : "";
+  }
+
+  function upsertFileRecord(file: PrivatePlanningFileDto, patch: Partial<PlanningFileRecord>) {
+    const currentRecord = getFileRecord(fileRecords, file);
+    const nextVendorId = String(patch.vendorId ?? currentRecord.vendorId ?? "");
+    const nextBudgetCategoryId = (patch.budgetCategoryId ?? currentRecord.budgetCategoryId) || getDefaultBudgetCategoryForVendorId(nextVendorId);
+    const nextRecord = normalizePlanningFileRecord({
+      ...currentRecord,
+      vendorId: currentRecord.vendorId || file.vendorId || "",
+      linkedPaymentId: currentRecord.linkedPaymentId || file.paymentId || "",
+      ...patch,
+      budgetCategoryId: nextBudgetCategoryId,
+    });
+
+    setFileRecords([nextRecord, ...fileRecords.filter((record) => record.fileId !== file.id)]);
+    return nextRecord;
+  }
+
+  async function patchPrivateFileLinks(fileId: string, vendorId: string, paymentId: string) {
+    await fetch(`/api/private-planning/files/${fileId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        [PRIVATE_PLANNING_CSRF_HEADER]: "1",
+      },
+      body: JSON.stringify({ vendorId: vendorId || null, paymentId: paymentId || null }),
+      cache: "no-store",
+      credentials: "same-origin",
+    }).catch((error) => {
+      console.error("Private planning file link update failed.", error);
+    });
+  }
+
+  function updateFileRecordFromExtraction(file: PrivatePlanningFileDto, extraction?: PrivatePlanningFileExtractionDto | null) {
+    const extractedDocument = extraction?.extractedDocument ?? extraction?.suggestion?.suggestedDocument ?? null;
+    const matchedVendorId = extraction?.matchedVendorId ?? extraction?.suggestion?.matchedVendorId ?? "";
+
+    if (!extractedDocument) {
+      return;
+    }
+
+    const fileType = documentTypeFromExtraction(extractedDocument.documentType);
+    const currentRecord = getFileRecord(fileRecords, file);
+    const nextRecord = upsertFileRecord(file, {
+      fileType,
+      vendorId: currentRecord.vendorId || matchedVendorId || file.vendorId || "",
+      extractedAmount: currentRecord.extractedAmount || amountFromExtraction(extractedDocument),
+      documentNumber: currentRecord.documentNumber || documentNumberFromExtraction(extractedDocument),
+      issueDate: currentRecord.issueDate || extractedDocument.invoiceDate || "",
+      dueDate: currentRecord.dueDate || extractedDocument.dueDate || "",
+      paidDate: currentRecord.paidDate || (fileType === "Receipt" ? extractedDocument.invoiceDate || "" : ""),
+      paymentStatus: currentRecord.paymentStatus || paymentStatusForDocumentType(fileType),
+    });
+
+    void patchPrivateFileLinks(file.id, nextRecord.vendorId, nextRecord.linkedPaymentId);
+  }
+
+  function syncPaymentForFile(file: PrivatePlanningFileDto) {
+    const fileRecord = getFileRecord(fileRecords, file);
+
+    if (!fileRecord.extractedAmount.trim()) {
+      setStatusMessage("Add an amount before creating a shared payment record.");
+      return;
+    }
+
+    const duplicatePayments = findPossibleDuplicatePayments(fileRecord, payments);
+
+    if (duplicatePayments.length > 0 && !fileRecord.linkedPaymentId) {
+      const confirmed = window.confirm(
+        `Possible duplicate payment found:\n\n${duplicatePayments
+          .map((payment) => `${payment.title} - ${formatMoney(payment.amount)}${payment.dueDate ? ` due ${formatDate(payment.dueDate)}` : ""}`)
+          .join("\n")}\n\nCreate a new record anyway?`,
+      );
+
+      if (!confirmed) {
+        setStatusMessage("Payment record not created. Review the possible duplicate first.");
+        return;
+      }
+    }
+
+    const nextPayment = buildPaymentFromFileRecord(fileRecord);
+
+    if (fileRecord.linkedPaymentId && payments.some((payment) => payment.id === fileRecord.linkedPaymentId)) {
+      setPayments(payments.map((payment) => (payment.id === fileRecord.linkedPaymentId ? { ...payment, ...nextPayment, id: payment.id } : payment)));
+      setStatusMessage("Shared payment record updated.");
+      return;
+    }
+
+    setPayments([nextPayment, ...payments]);
+    const nextRecord = upsertFileRecord(file, { linkedPaymentId: nextPayment.id });
+    void patchPrivateFileLinks(file.id, nextRecord.vendorId, nextPayment.id);
+    setStatusMessage("Shared payment record created and linked.");
+  }
 
   const loadFiles = useCallback(async () => {
     setIsLoadingFiles(true);
@@ -4352,7 +5528,8 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
         onStatus: updateScanStatus,
       });
 
-      await persistExtractedText(localExtraction.text, localExtraction.method);
+      const extractionResult = await persistExtractedText(localExtraction.text, localExtraction.method);
+      updateFileRecordFromExtraction(file, extractionResult.extraction);
       updateScanStatus("Review extracted details");
       await loadFiles();
     } catch (error) {
@@ -4416,6 +5593,27 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
 
       if (action === "create" && result.vendor) {
         setVendors([result.vendor, ...vendors.filter((vendor) => vendor.id !== result.vendor?.id)]);
+      }
+
+      const linkedVendorId =
+        action === "create"
+          ? result.vendor?.id ?? result.vendorId ?? ""
+          : linkSelections[suggestion.id] ?? suggestion.matchedVendorId ?? suggestion.possibleMatches[0]?.id ?? "";
+      const linkedVendor = action === "create" && result.vendor ? result.vendor : vendors.find((vendor) => vendor.id === linkedVendorId);
+      const file = files.find((item) => item.id === suggestion.fileId);
+
+      if (file && linkedVendorId) {
+        const nextRecord = upsertFileRecord(file, {
+          vendorId: linkedVendorId,
+          budgetCategoryId: linkedVendor ? getBudgetCategoryIdForVendor(linkedVendor, budgetCategories) : "",
+          fileType: documentTypeFromExtraction(suggestion.suggestedDocument.documentType),
+          extractedAmount: amountFromExtraction(suggestion.suggestedDocument),
+          documentNumber: documentNumberFromExtraction(suggestion.suggestedDocument),
+          issueDate: suggestion.suggestedDocument.invoiceDate ?? "",
+          dueDate: suggestion.suggestedDocument.dueDate ?? "",
+          paymentStatus: paymentStatusForDocumentType(documentTypeFromExtraction(suggestion.suggestedDocument.documentType)),
+        });
+        void patchPrivateFileLinks(file.id, nextRecord.vendorId, nextRecord.linkedPaymentId);
       }
 
       setStatusMessage(action === "link" ? "File linked to an existing vendor." : "Vendor created from the document suggestion.");
@@ -4513,6 +5711,16 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
         onUploadProgress: (progress) => setUploadProgress(progress.percentage),
       });
 
+      const inferredFileType = inferDocumentTypeFromFilename(file.name);
+      const uploadRecord = normalizePlanningFileRecord({
+        fileId: ticketResult.ticket.id,
+        originalFilename: file.name,
+        fileType: inferredFileType,
+        vendorId: selectedVendorId,
+        budgetCategoryId: getDefaultBudgetCategoryForVendorId(selectedVendorId),
+        paymentStatus: paymentStatusForDocumentType(inferredFileType),
+      });
+      setFileRecords([uploadRecord, ...fileRecords.filter((record) => record.fileId !== ticketResult.ticket?.id)]);
       setStatusMessage("Upload complete. Validating file before it appears in the vault...");
       await new Promise((resolve) => {
         window.setTimeout(resolve, 1200);
@@ -4565,12 +5773,117 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
         throw new Error(result?.error ?? "Could not delete that file.");
       }
 
+      setFileRecords(fileRecords.filter((record) => record.fileId !== file.id));
+      setPayments(payments.map((payment) => (payment.sourceFileId === file.id ? { ...payment, sourceFileId: "" } : payment)));
       setStatusMessage("Private file deleted.");
       await loadFiles();
     } catch (error) {
       console.error("Private planning file delete failed.", error);
       setStatusMessage(error instanceof Error ? error.message : "Delete failed.");
     }
+  }
+
+  function renderDocumentLinks(file: PrivatePlanningFileDto, fileRecord: PlanningFileRecord) {
+    const linkedPayment = payments.find((payment) => payment.id === fileRecord.linkedPaymentId);
+    const duplicatePayments = findPossibleDuplicatePayments(fileRecord, payments);
+
+    return (
+      <div className="mt-5 rounded-[1.15rem] border border-[#eaded6] bg-white/50 p-4">
+        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+          <div>
+            <p className="heading-micro">Document links</p>
+            <h4 className="mt-2 font-serif text-2xl text-[#3f302b]">{fileRecord.fileType} metadata</h4>
+            <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
+              Link this document once, then Budget, Vendor, and Calendar views can reuse the same shared record.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Chip tone={fileRecord.vendorId ? "sage" : "neutral"}>{fileRecord.vendorId ? "Linked to vendor" : "No vendor"}</Chip>
+            <Chip tone={fileRecord.budgetCategoryId ? "champagne" : "neutral"}>{fileRecord.budgetCategoryId ? "Linked to budget" : "No budget"}</Chip>
+            {linkedPayment && <Chip tone="navy">Payment linked</Chip>}
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <SelectField label="File type" value={fileRecord.fileType} options={documentTypes} onChange={(fileType) => upsertFileRecord(file, { fileType, paymentStatus: paymentStatusForDocumentType(fileType) })} />
+          <label className="grid gap-2">
+            <FieldLabel>Linked vendor</FieldLabel>
+            <select
+              value={fileRecord.vendorId}
+              onChange={(event) => {
+                const vendorId = event.target.value;
+                const nextRecord = upsertFileRecord(file, {
+                  vendorId,
+                  budgetCategoryId: fileRecord.budgetCategoryId || getDefaultBudgetCategoryForVendorId(vendorId),
+                });
+                void patchPrivateFileLinks(file.id, nextRecord.vendorId, nextRecord.linkedPaymentId);
+              }}
+              className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
+            >
+              <option value="">No vendor association</option>
+              {vendors.map((vendor) => (
+                <option key={vendor.id} value={vendor.id}>
+                  {vendor.vendorName}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label className="grid gap-2">
+            <FieldLabel>Budget category</FieldLabel>
+            <select
+              value={fileRecord.budgetCategoryId}
+              onChange={(event) => upsertFileRecord(file, { budgetCategoryId: event.target.value })}
+              className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
+            >
+              <option value="">No budget category</option>
+              {budgetCategories.map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <SelectField label="Payment status" value={fileRecord.paymentStatus} options={paymentStatuses} onChange={(paymentStatus) => upsertFileRecord(file, { paymentStatus })} />
+          <TextField label="Amount" value={fileRecord.extractedAmount} onChange={(extractedAmount) => upsertFileRecord(file, { extractedAmount })} placeholder="$" />
+          <TextField label="Invoice / quote no." value={fileRecord.documentNumber} onChange={(documentNumber) => upsertFileRecord(file, { documentNumber })} />
+          <TextField label="Issue date" type="date" value={fileRecord.issueDate} onChange={(issueDate) => upsertFileRecord(file, { issueDate })} />
+          <TextField label="Due / expiry date" type="date" value={fileRecord.dueDate} onChange={(dueDate) => upsertFileRecord(file, { dueDate })} />
+          <TextField label="Paid date" type="date" value={fileRecord.paidDate} onChange={(paidDate) => upsertFileRecord(file, { paidDate, paymentStatus: paidDate ? "Paid" : fileRecord.paymentStatus })} />
+          <div className="md:col-span-2 xl:col-span-3">
+            <TextAreaField label="Notes" value={fileRecord.notes} onChange={(notes) => upsertFileRecord(file, { notes })} rows={2} />
+          </div>
+        </div>
+
+        {duplicatePayments.length > 0 && !fileRecord.linkedPaymentId && (
+          <div className="mt-4 rounded-2xl bg-[#f8e8e4]/62 px-4 py-3 text-sm leading-6 text-[#7d6b62]">
+            Possible duplicate: {duplicatePayments.map((payment) => `${payment.title} (${formatMoney(payment.amount)})`).join(", ")}. Review before creating a new shared record.
+          </div>
+        )}
+
+        <div className="mt-5 flex flex-wrap gap-3">
+          <button
+            type="button"
+            onClick={() => syncPaymentForFile(file)}
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-[var(--color-navy)] px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)] shadow-[0_12px_30px_rgba(20,26,44,0.18)] transition hover:bg-[var(--color-navy-hover)]"
+          >
+            <CircleDollarSign className="h-4 w-4" />
+            {linkedPayment ? "Update Payment Record" : "Create Payment Record"}
+          </button>
+          {linkedPayment && (
+            <button
+              type="button"
+              onClick={() => {
+                const nextRecord = upsertFileRecord(file, { linkedPaymentId: "" });
+                void patchPrivateFileLinks(file.id, nextRecord.vendorId, "");
+              }}
+              className="inline-flex items-center justify-center gap-2 rounded-full border border-[#eaded6] bg-white/58 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#6a5d55] transition hover:border-[#b98278]"
+            >
+              Unlink Payment
+            </button>
+          )}
+        </div>
+      </div>
+    );
   }
 
   function renderExtractionReview(file: PrivatePlanningFileDto) {
@@ -4716,10 +6029,10 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
         <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
             <p className="heading-micro">Private Files</p>
-            <h2 className="heading-secondary heading-secondary-compact mt-2">Invoices & Receipts</h2>
+            <h2 className="heading-secondary heading-secondary-compact mt-2">Files, Quotes & Receipts</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6a5d55]">
               Files are uploaded to private storage, validated after upload, and served only through authenticated downloads.
-              Local text extraction runs in your browser and creates review-only vendor suggestions that you can edit, link, create, or dismiss.
+              Local text extraction runs in your browser and creates review-only document and vendor suggestions that you can edit, link, create, or dismiss.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:min-w-[320px]">
@@ -4780,6 +6093,7 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
             const extractionStatus = getFileExtractionStatus(file);
             const canRunExtraction = extractionStatus !== "extracting" && extractionStatus !== "review_needed" && extractionStatus !== "linked";
             const scanMessage = fileScanMessages[file.id];
+            const fileRecord = getFileRecord(fileRecords, file);
 
             return (
             <PlanningCard key={file.id}>
@@ -4794,7 +6108,8 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
                       <span>{formatPrivatePlanningFileSize(file.size)}</span>
                       <span>{file.mimeType}</span>
                       <span>{file.uploadedAt ? formatDate(file.uploadedAt.slice(0, 10)) : "Processing"}</span>
-                      <span>{file.vendorId ? vendorNameById.get(file.vendorId) ?? "Vendor linked" : "No vendor"}</span>
+                      <span>{fileRecord.vendorId ? vendorNameById.get(fileRecord.vendorId) ?? "Vendor linked" : "No vendor"}</span>
+                      <span>{fileRecord.budgetCategoryId ? categoryNameById.get(fileRecord.budgetCategoryId) ?? "Budget linked" : "No budget"}</span>
                     </div>
                     <div className="mt-3 flex flex-wrap items-center gap-2">
                       <Chip tone={extractionStatus === "review_needed" ? "rose" : extractionStatus === "linked" ? "sage" : extractionStatus === "failed" ? "champagne" : "neutral"}>
@@ -4839,13 +6154,14 @@ function FilesTab({ vendors, setVendors }: { vendors: Vendor[]; setVendors: (ven
                   </button>
                 </div>
               </div>
+              {renderDocumentLinks(file, fileRecord)}
               {renderExtractionReview(file)}
             </PlanningCard>
             );
           })
         ) : (
           <PlanningCard>
-            <p className="text-sm leading-7 text-[#6a5d55]">No private invoices or receipts have been uploaded yet.</p>
+            <p className="text-sm leading-7 text-[#6a5d55]">No private quotes, invoices, receipts, contracts, or supporting files have been uploaded yet.</p>
           </PlanningCard>
         )}
       </div>
@@ -4857,6 +6173,9 @@ type PlanningExport = {
   version: 1;
   exportedAt: string;
   vendors: Vendor[];
+  budgetCategories: BudgetCategory[];
+  payments: PaymentRecord[];
+  fileRecords: PlanningFileRecord[];
   events: CalendarEvent[];
   tasks: PlanningTask[];
   timeline: TimelineSection[];
@@ -4875,8 +6194,14 @@ type PlanningDataApiResponse = {
 };
 
 function normalizePlanningPayload(payload?: Partial<PlanningDataPayload> | null, legacyDecisionNotes = ""): PlanningDataPayload {
+  const vendors = normalizeVendors(payload?.vendors);
+  const budgetCategories = normalizeBudgetCategories(payload?.budgetCategories);
+
   return {
-    vendors: normalizeVendors(payload?.vendors),
+    vendors,
+    budgetCategories,
+    payments: normalizePayments(payload?.payments, vendors, budgetCategories),
+    fileRecords: normalizeFileRecords(payload?.fileRecords),
     events: normalizeEvents(payload?.events),
     tasks: normalizeTasks(payload?.tasks),
     timeline: normalizeTimeline(payload?.timeline),
@@ -4888,6 +6213,9 @@ function normalizePlanningPayload(payload?: Partial<PlanningDataPayload> | null,
 
 function buildPlanningPayload(
   vendors: Vendor[],
+  budgetCategories: BudgetCategory[],
+  payments: PaymentRecord[],
+  fileRecords: PlanningFileRecord[],
   events: CalendarEvent[],
   tasks: PlanningTask[],
   timeline: TimelineSection[],
@@ -4897,6 +6225,9 @@ function buildPlanningPayload(
 ): PlanningDataPayload {
   return {
     vendors,
+    budgetCategories,
+    payments,
+    fileRecords,
     events,
     tasks,
     timeline,
@@ -4922,6 +6253,9 @@ function readLegacyPlanningPayload() {
     legacyDecisionNotes,
     payload: {
       vendors: parseStoredValue<Vendor[]>(VENDORS_KEY, defaultVendors),
+      budgetCategories: parseStoredValue<BudgetCategory[]>(BUDGET_CATEGORIES_KEY, defaultBudgetCategories),
+      payments: parseStoredValue<PaymentRecord[]>(PAYMENTS_KEY, []),
+      fileRecords: parseStoredValue<PlanningFileRecord[]>(FILE_RECORDS_KEY, []),
       events: parseStoredValue<CalendarEvent[]>(EVENTS_KEY, defaultCalendarEvents),
       tasks: parseStoredValue<PlanningTask[]>(TASKS_KEY, defaultTasks),
       timeline: parseStoredValue<TimelineSection[]>(TIMELINE_KEY, defaultTimeline),
@@ -4937,6 +6271,9 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const skipNextPersistRef = useRef(true);
   const [activeTab, setActiveTab] = useState<Tab>(initialTab);
   const [storedVendors, setStoredVendors] = useState<Vendor[]>(defaultVendors);
+  const [storedBudgetCategories, setStoredBudgetCategories] = useState<BudgetCategory[]>(defaultBudgetCategories);
+  const [storedPayments, setStoredPayments] = useState<PaymentRecord[]>([]);
+  const [storedFileRecords, setStoredFileRecords] = useState<PlanningFileRecord[]>([]);
   const [storedEvents, setStoredEvents] = useState<CalendarEvent[]>(defaultCalendarEvents);
   const [storedTasks, setStoredTasks] = useState<PlanningTask[]>(defaultTasks);
   const [storedTimeline, setStoredTimeline] = useState<TimelineSection[]>(defaultTimeline);
@@ -4947,13 +6284,19 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const [isPlanningDataLoaded, setIsPlanningDataLoaded] = useState(false);
   const [planningDataStatus, setPlanningDataStatus] = useState("Loading secure planning data...");
   const vendors = useMemo(() => normalizeVendors(storedVendors), [storedVendors]);
+  const budgetCategories = useMemo(() => normalizeBudgetCategories(storedBudgetCategories), [storedBudgetCategories]);
+  const payments = useMemo(() => normalizePayments(storedPayments, vendors, budgetCategories), [budgetCategories, storedPayments, vendors]);
+  const fileRecords = useMemo(() => normalizeFileRecords(storedFileRecords), [storedFileRecords]);
   const events = useMemo(() => normalizeEvents(storedEvents), [storedEvents]);
   const tasks = useMemo(() => normalizeTasks(storedTasks), [storedTasks]);
   const timeline = useMemo(() => normalizeTimeline(storedTimeline), [storedTimeline]);
   const runsheet = useMemo(() => normalizeRunsheet(storedRunsheet), [storedRunsheet]);
   const notes = useMemo(() => normalizeNotes(storedNotes, legacyDecisionNotes), [legacyDecisionNotes, storedNotes]);
-  const planningSummary = useMemo(() => getPlanningSummary(vendors, events, tasks), [events, tasks, vendors]);
+  const planningSummary = useMemo(() => getPlanningSummary(vendors, events, tasks, payments), [events, payments, tasks, vendors]);
   const setVendors = useCallback((next: Vendor[]) => setStoredVendors(normalizeVendors(next)), [setStoredVendors]);
+  const setBudgetCategories = useCallback((next: BudgetCategory[]) => setStoredBudgetCategories(normalizeBudgetCategories(next)), [setStoredBudgetCategories]);
+  const setPayments = useCallback((next: PaymentRecord[]) => setStoredPayments(normalizePayments(next, vendors, budgetCategories)), [budgetCategories, setStoredPayments, vendors]);
+  const setFileRecords = useCallback((next: PlanningFileRecord[]) => setStoredFileRecords(normalizeFileRecords(next)), [setStoredFileRecords]);
   const setEvents = useCallback((next: CalendarEvent[]) => setStoredEvents(normalizeEvents(next)), [setStoredEvents]);
   const setTasks = useCallback((next: PlanningTask[]) => setStoredTasks(normalizeTasks(next)), [setStoredTasks]);
   const setTimeline = useCallback((next: TimelineSection[]) => setStoredTimeline(normalizeTimeline(next)), [setStoredTimeline]);
@@ -4961,6 +6304,9 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const setNotes = useCallback((next: PlanningNotes) => setStoredNotes(normalizeNotes(next)), [setStoredNotes]);
   const applyPlanningPayload = useCallback((payload: PlanningDataPayload) => {
     setStoredVendors(payload.vendors);
+    setStoredBudgetCategories(payload.budgetCategories);
+    setStoredPayments(payload.payments);
+    setStoredFileRecords(payload.fileRecords);
     setStoredEvents(payload.events);
     setStoredTasks(payload.tasks);
     setStoredTimeline(payload.timeline);
@@ -5075,7 +6421,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
     }
 
     const controller = new AbortController();
-    const payload = buildPlanningPayload(vendors, events, tasks, timeline, runsheet, quickNotes, notes);
+    const payload = buildPlanningPayload(vendors, budgetCategories, payments, fileRecords, events, tasks, timeline, runsheet, quickNotes, notes);
     const timeoutId = window.setTimeout(() => {
       setPlanningDataStatus("Saving securely...");
 
@@ -5098,7 +6444,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [events, isPlanningDataLoaded, notes, quickNotes, runsheet, savePlanningPayload, tasks, timeline, vendors]);
+  }, [budgetCategories, events, fileRecords, isPlanningDataLoaded, notes, payments, quickNotes, runsheet, savePlanningPayload, tasks, timeline, vendors]);
 
   function exportPlanningData() {
     const confirmed = window.confirm(
@@ -5113,6 +6459,9 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       version: 1,
       exportedAt: new Date().toISOString(),
       vendors,
+      budgetCategories,
+      payments,
+      fileRecords,
       events,
       tasks,
       timeline,
@@ -5139,6 +6488,9 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
     try {
       const payload = JSON.parse(await file.text()) as Partial<PlanningExport>;
       setVendors(normalizeVendors(payload.vendors));
+      setBudgetCategories(normalizeBudgetCategories(payload.budgetCategories));
+      setPayments(normalizePayments(payload.payments, normalizeVendors(payload.vendors), normalizeBudgetCategories(payload.budgetCategories)));
+      setFileRecords(normalizeFileRecords(payload.fileRecords));
       setEvents(normalizeEvents(payload.events));
       setTasks(normalizeTasks(payload.tasks));
       setTimeline(normalizeTimeline(payload.timeline));
@@ -5165,15 +6517,28 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
 
   const renderTab = useCallback(() => {
     if (activeTab === "Overview") {
-      return <OverviewTab vendors={vendors} events={events} tasks={tasks} quickNotes={quickNotes} setQuickNotes={setQuickNotes} setTasks={setTasks} />;
+      return <OverviewTab vendors={vendors} events={events} tasks={tasks} payments={payments} quickNotes={quickNotes} setQuickNotes={setQuickNotes} setTasks={setTasks} />;
     }
 
     if (activeTab === "Vendors") {
-      return <VendorsTab vendors={vendors} setVendors={setVendors} events={events} setEvents={setEvents} />;
+      return <VendorsTab vendors={vendors} setVendors={setVendors} events={events} setEvents={setEvents} payments={payments} fileRecords={fileRecords} budgetCategories={budgetCategories} />;
+    }
+
+    if (activeTab === "Budget") {
+      return (
+        <BudgetTab
+          vendors={vendors}
+          budgetCategories={budgetCategories}
+          setBudgetCategories={setBudgetCategories}
+          payments={payments}
+          setPayments={setPayments}
+          fileRecords={fileRecords}
+        />
+      );
     }
 
     if (activeTab === "Calendar") {
-      return <CalendarTab vendors={vendors} events={events} tasks={tasks} setEvents={setEvents} />;
+      return <CalendarTab vendors={vendors} events={events} tasks={tasks} payments={payments} fileRecords={fileRecords} setEvents={setEvents} />;
     }
 
     if (activeTab === "Timeline") {
@@ -5189,11 +6554,43 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
     }
 
     if (activeTab === "Files") {
-      return <FilesTab vendors={vendors} setVendors={setVendors} />;
+      return (
+        <FilesTab
+          vendors={vendors}
+          setVendors={setVendors}
+          budgetCategories={budgetCategories}
+          payments={payments}
+          setPayments={setPayments}
+          fileRecords={fileRecords}
+          setFileRecords={setFileRecords}
+        />
+      );
     }
 
     return <NotesTab notes={notes} setNotes={setNotes} />;
-  }, [activeTab, events, notes, quickNotes, runsheet, setEvents, setNotes, setQuickNotes, setRunsheet, setTasks, setTimeline, setVendors, tasks, timeline, vendors]);
+  }, [
+    activeTab,
+    budgetCategories,
+    events,
+    fileRecords,
+    notes,
+    payments,
+    quickNotes,
+    runsheet,
+    setBudgetCategories,
+    setEvents,
+    setFileRecords,
+    setNotes,
+    setPayments,
+    setQuickNotes,
+    setRunsheet,
+    setTasks,
+    setTimeline,
+    setVendors,
+    tasks,
+    timeline,
+    vendors,
+  ]);
 
   return (
     <main className="private-planning-page min-h-screen bg-[#fbf7f2] px-5 py-8 text-[#4f4641] sm:px-6 lg:px-8">

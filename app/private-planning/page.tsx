@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   },
 };
 
-const privatePlanningTabs = ["Overview", "Vendors", "Calendar", "Timeline", "Runsheet", "Guests", "Files", "Notes"] as const;
+const privatePlanningTabs = ["Overview", "Vendors", "Budget", "Calendar", "Timeline", "Runsheet", "Guests", "Files", "Notes"] as const;
 type PrivatePlanningTab = (typeof privatePlanningTabs)[number];
 
 function getInitialTab(value: string | string[] | undefined): PrivatePlanningTab {

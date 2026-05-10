@@ -82,3 +82,52 @@ export async function DELETE(request: NextRequest, context: RouteContext<"/api/p
 
   return privatePlanningJson({ ok: true });
 }
+
+export async function PATCH(request: NextRequest, context: RouteContext<"/api/private-planning/files/[fileId]">) {
+  if (!isPrivatePlanningAuthConfigured()) {
+    return privatePlanningJson({ ok: false, error: "Private planning access is not configured." }, { status: 500 });
+  }
+
+  if (!(await isAuthenticatedPrivatePlanningRequest(request))) {
+    return privatePlanningJson({ ok: false, error: "Private planning access is required." }, { status: 401 });
+  }
+
+  if (!validateStateChangingRequest(request)) {
+    return privatePlanningJson({ ok: false, error: "Request origin could not be verified." }, { status: 403 });
+  }
+
+  const { fileId } = await context.params;
+  const body = (await request.json().catch(() => null)) as {
+    vendorId?: unknown;
+    paymentId?: unknown;
+  } | null;
+  const vendorId = typeof body?.vendorId === "string" && body.vendorId.trim() ? body.vendorId.trim() : null;
+  const paymentId = typeof body?.paymentId === "string" && body.paymentId.trim() ? body.paymentId.trim() : null;
+  const file = await prisma.privatePlanningFile.findUnique({
+    where: { id: fileId },
+  });
+
+  if (!file) {
+    return privatePlanningJson({ ok: false, error: "File not found." }, { status: 404 });
+  }
+
+  const updatedFile = await prisma.privatePlanningFile.update({
+    where: { id: file.id },
+    data: {
+      vendorId,
+      paymentId,
+    },
+    select: {
+      id: true,
+      vendorId: true,
+      paymentId: true,
+    },
+  });
+
+  await createPrivatePlanningFileAuditLog(request, "metadata_update", file.id, {
+    vendorId,
+    paymentId,
+  });
+
+  return privatePlanningJson({ ok: true, file: updatedFile });
+}
