@@ -461,70 +461,27 @@ const defaultVendors: Vendor[] = [
   },
 ];
 
-const budgetCategoryNotesByVendorCategory: Record<VendorCategory, string> = {
-  Venue: "Venue, catering, access, service, and venue-led logistics.",
-  Celebrant: "Celebrant, ceremony paperwork, rehearsal, and ceremony support.",
-  Photography: "Photography coverage, albums, portraits, and pre-wedding shoot costs.",
-  Videography: "Film coverage, edits, reels, and cinematic wedding-day capture.",
-  Florist: "Bouquets, ceremony florals, reception florals, and floral delivery.",
-  "DJ / Entertainment": "Ceremony music, cocktail hour, reception entertainment, and dance-floor details.",
-  Cake: "Wedding cake, delivery, setup, cutting details, and dessert styling.",
-  "Hair & Makeup": "Hair, makeup, trials, touch-ups, and beauty-related preparation.",
-  "Bride wedding dress": "Wedding dress, alterations, veil, accessories, and bridal outfit details.",
-  "Groom Suit": "Groom suit, tailoring, shoes, accessories, and formalwear details.",
-  "Bridesmaid Dress": "Bridesmaid dresses, sizing, alterations, and dress delivery.",
-  "Bridesmaid Other": "Bridal party robes, gifts, accessories, and getting-ready items.",
-  "Wedding Band - Groom": "Groom wedding band, sizing, engraving, and ring care.",
-  "Wedding Band - Bride": "Bride wedding band, sizing, engraving, and ring care.",
-  Stationery: "Invitations, signage, vow cards, menus, guest book, and printed details.",
-  "Decor / Hire": "Furniture hire, ceremony setup, reception styling, lighting, and decor.",
-  Transport: "Wedding cars, guest transport, transfers, and end-of-night logistics.",
-  Accommodation: "Accommodation, room blocks, wedding-week stays, and travel support.",
-  "Audio Guestbook": "Audio guestbook hire, delivery, setup, and collection.",
-  Other: "Anything that does not fit a vendor category yet.",
+const legacyBudgetCategoryFallbacks: Record<string, string> = {
+  "budget-venue-catering": "Venue & Catering",
+  "budget-photo-video": "Photography & Videography",
+  "budget-florals-styling": "Florals & Styling",
+  "budget-attire-beauty": "Attire & Beauty",
+  "budget-entertainment": "Entertainment",
+  "budget-stationery-details": "Stationery & Details",
+  "budget-transport-travel": "Transport & Travel",
+  "budget-gifts-favours": "Gifts & Favours",
+  "budget-contingency": "Contingency",
 };
 
-const legacyBudgetCategoryFallbacks: Record<string, VendorCategory> = {
-  "budget-venue-catering": "Venue",
-  "budget-photo-video": "Photography",
-  "budget-florals-styling": "Florist",
-  "budget-attire-beauty": "Bride wedding dress",
-  "budget-entertainment": "DJ / Entertainment",
-  "budget-stationery-details": "Stationery",
-  "budget-transport-travel": "Transport",
-  "budget-gifts-favours": "Bridesmaid Other",
-  "budget-contingency": "Other",
-};
-
-const legacyBudgetCategoryNameFallbacks: Record<string, VendorCategory> = {
-  "venue & catering": "Venue",
-  "photography & videography": "Photography",
-  "florals & styling": "Florist",
-  "attire & beauty": "Bride wedding dress",
-  entertainment: "DJ / Entertainment",
-  "stationery & details": "Stationery",
-  "transport & travel": "Transport",
-  "gifts & favours": "Bridesmaid Other",
-  contingency: "Other",
-};
-
-function slugifyBudgetCategory(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/&/g, "and")
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+function getBudgetCategoryIdForVendor(vendor: Pick<Vendor, "id">) {
+  return `budget-vendor-${vendor.id}`;
 }
 
-function getBudgetCategoryIdForVendorCategory(category: VendorCategory) {
-  return `budget-${slugifyBudgetCategory(category)}`;
-}
-
-const defaultBudgetCategories: BudgetCategory[] = vendorCategories.map((category) => ({
-  id: getBudgetCategoryIdForVendorCategory(category),
-  name: category,
+const defaultBudgetCategories: BudgetCategory[] = defaultVendors.map((vendor) => ({
+  id: getBudgetCategoryIdForVendor(vendor),
+  name: vendor.vendorName || "Unnamed vendor",
   targetBudget: "",
-  notes: budgetCategoryNotesByVendorCategory[category],
+  notes: "",
 }));
 
 const defaultCalendarEvents: CalendarEvent[] = [
@@ -1605,68 +1562,43 @@ function normalizeBudgetCategory(raw: Partial<BudgetCategory> & Record<string, u
   };
 }
 
-function normalizeBudgetCategories(value: unknown): BudgetCategory[] {
-  if (!Array.isArray(value)) {
-    return defaultBudgetCategories;
-  }
-
-  const normalized = value
-    .filter((category): category is Partial<BudgetCategory> & Record<string, unknown> => typeof category === "object" && category !== null)
-    .map((category) => normalizeBudgetCategory(category))
-    .filter((category) => category.name.trim());
-  const defaultIds = new Set(defaultBudgetCategories.map((category) => category.id));
-  const defaultNames = new Set(defaultBudgetCategories.map((category) => normalizeTimelineKey(category.name)));
-  const legacyIds = new Set(Object.keys(legacyBudgetCategoryFallbacks));
-  const legacyNames = new Set(Object.keys(legacyBudgetCategoryNameFallbacks).map(normalizeTimelineKey));
+function normalizeBudgetCategories(value: unknown, vendors = defaultVendors): BudgetCategory[] {
+  const normalized = Array.isArray(value)
+    ? value
+        .filter((category): category is Partial<BudgetCategory> & Record<string, unknown> => typeof category === "object" && category !== null)
+        .map((category) => normalizeBudgetCategory(category))
+        .filter((category) => category.name.trim())
+    : [];
   const categoriesById = new Map(normalized.map((category) => [category.id, category]));
   const categoriesByName = new Map(normalized.map((category) => [normalizeTimelineKey(category.name), category]));
-  const vendorCategoryDefaults = defaultBudgetCategories.map((defaultCategory) => {
-    const saved = categoriesById.get(defaultCategory.id) ?? categoriesByName.get(normalizeTimelineKey(defaultCategory.name));
+  const vendorCategoryIds = new Set(vendors.map((vendor) => getBudgetCategoryIdForVendor(vendor)));
+  const vendorCategoryNames = new Set(vendors.map((vendor) => normalizeTimelineKey(vendor.vendorName || "Unnamed vendor")));
+  const legacyCategoryNames = new Set(Object.values(legacyBudgetCategoryFallbacks).map(normalizeTimelineKey));
+  const vendorBudgetCategories = vendors.map((vendor) => {
+    const categoryId = getBudgetCategoryIdForVendor(vendor);
+    const saved = categoriesById.get(categoryId) ?? categoriesByName.get(normalizeTimelineKey(vendor.vendorName || "Unnamed vendor"));
 
     return {
-      ...defaultCategory,
-      targetBudget: saved?.targetBudget ?? defaultCategory.targetBudget,
-      notes: saved?.notes || defaultCategory.notes,
+      id: categoryId,
+      name: vendor.vendorName || "Unnamed vendor",
+      targetBudget: saved?.targetBudget || vendor.quote || "",
+      notes: saved?.notes || "",
     };
   });
   const customCategories = normalized.filter((category) => {
     const nameKey = normalizeTimelineKey(category.name);
 
-    return !defaultIds.has(category.id) && !defaultNames.has(nameKey) && !legacyIds.has(category.id) && !legacyNames.has(nameKey);
+    return !vendorCategoryIds.has(category.id) && !vendorCategoryNames.has(nameKey) && !legacyBudgetCategoryFallbacks[category.id] && !legacyCategoryNames.has(nameKey);
   });
 
-  return [...vendorCategoryDefaults, ...customCategories];
-}
-
-function getBudgetCategoryIdForVendor(vendor: Vendor, categories = defaultBudgetCategories) {
-  const categoryId = getBudgetCategoryIdForVendorCategory(vendor.category);
-  const candidate = categories.find((category) => category.id === categoryId || normalizeTimelineKey(category.name) === normalizeTimelineKey(vendor.category));
-
-  return candidate?.id ?? categoryId;
-}
-
-function getFallbackVendorCategoryForBudgetCategory(categoryId: string, categories: BudgetCategory[]): VendorCategory | "" {
-  if (legacyBudgetCategoryFallbacks[categoryId]) {
-    return legacyBudgetCategoryFallbacks[categoryId];
-  }
-
-  const category = categories.find((candidate) => candidate.id === categoryId);
-  const nameKey = normalizeTimelineKey(category?.name ?? "");
-
-  if (legacyBudgetCategoryNameFallbacks[nameKey]) {
-    return legacyBudgetCategoryNameFallbacks[nameKey];
-  }
-
-  const exactVendorCategory = vendorCategories.find((vendorCategory) => normalizeTimelineKey(vendorCategory) === nameKey);
-
-  return exactVendorCategory ?? "";
+  return [...vendorBudgetCategories, ...customCategories];
 }
 
 function normalizeBudgetCategoryIdForRecord(rawCategoryId: unknown, vendorId: string, vendors: Vendor[], categories: BudgetCategory[]) {
   const vendor = vendors.find((candidate) => candidate.id === vendorId);
 
   if (vendor) {
-    return getBudgetCategoryIdForVendor(vendor, categories);
+    return getBudgetCategoryIdForVendor(vendor);
   }
 
   const categoryId = typeof rawCategoryId === "string" ? rawCategoryId : "";
@@ -1681,12 +1613,10 @@ function normalizeBudgetCategoryIdForRecord(rawCategoryId: unknown, vendorId: st
     return existingCategory.id;
   }
 
-  const fallbackVendorCategory = getFallbackVendorCategoryForBudgetCategory(categoryId, categories);
-
-  return fallbackVendorCategory ? getBudgetCategoryIdForVendorCategory(fallbackVendorCategory) : categoryId;
+  return categoryId;
 }
 
-function createLegacyPaymentRecordsFromVendors(vendors: Vendor[], categories = defaultBudgetCategories): PaymentRecord[] {
+function createLegacyPaymentRecordsFromVendors(vendors: Vendor[]): PaymentRecord[] {
   return vendors.reduce<PaymentRecord[]>((records, vendor) => {
     const quote = parseMoney(vendor.quote);
     const depositPaid = parseMoney(vendor.depositPaid);
@@ -1701,7 +1631,7 @@ function createLegacyPaymentRecordsFromVendors(vendors: Vendor[], categories = d
       id: `payment-vendor-${vendor.id}`,
       title: `${vendor.vendorName} cost record`,
       vendorId: vendor.id,
-      budgetCategoryId: getBudgetCategoryIdForVendor(vendor, categories),
+      budgetCategoryId: getBudgetCategoryIdForVendor(vendor),
       amount: String(amount),
       dueDate: vendor.finalPaymentDueDate || vendor.dueDate || vendor.depositDueDate,
       paidDate: balanceDue <= 0 && depositPaid > 0 ? vendor.lastContactedDate : "",
@@ -1733,7 +1663,7 @@ function normalizePaymentRecord(raw: Partial<PaymentRecord> & Record<string, unk
 
 function normalizePayments(value: unknown, vendors: Vendor[], categories: BudgetCategory[]): PaymentRecord[] {
   if (!Array.isArray(value)) {
-    return createLegacyPaymentRecordsFromVendors(vendors, categories);
+    return createLegacyPaymentRecordsFromVendors(vendors);
   }
 
   return value
@@ -2595,6 +2525,7 @@ function TasksPanel({ vendors, tasks, setTasks }: { vendors: Vendor[]; tasks: Pl
 
 function BudgetTab({
   vendors,
+  setVendors,
   budgetCategories,
   setBudgetCategories,
   payments,
@@ -2602,6 +2533,7 @@ function BudgetTab({
   fileRecords,
 }: {
   vendors: Vendor[];
+  setVendors: (vendors: Vendor[]) => void;
   budgetCategories: BudgetCategory[];
   setBudgetCategories: (categories: BudgetCategory[]) => void;
   payments: PaymentRecord[];
@@ -2611,52 +2543,59 @@ function BudgetTab({
   const [paymentForm, setPaymentForm] = useState<PaymentRecordForm>(emptyPaymentRecordForm);
   const [editingPaymentId, setEditingPaymentId] = useState<string | null>(null);
   const activePayments = payments.filter(isPaymentActive);
-  const totalTarget = budgetCategories.reduce((total, category) => total + parseMoney(category.targetBudget), 0);
-  const committedTotal = activePayments.reduce((total, payment) => total + getPaymentAmount(payment), 0);
-  const paidTotal = activePayments.reduce((total, payment) => total + getPaidAmount(payment), 0);
-  const unpaidTotal = activePayments.reduce((total, payment) => total + getUnpaidAmount(payment), 0);
-  const varianceTotal = totalTarget - committedTotal;
-  const upcomingPayments = activePayments
-    .filter((payment) => !isPaymentPaid(payment) && payment.dueDate)
-    .sort((first, second) => dateSortValue(first.dueDate).localeCompare(dateSortValue(second.dueDate)));
+
+  function updateVendorBudget(vendorId: string, patch: Partial<Pick<Vendor, "depositPaid" | "balanceDue" | "finalPaymentDueDate">>) {
+    setVendors(vendors.map((vendor) => (vendor.id === vendorId ? { ...vendor, ...patch } : vendor)));
+  }
+
   const categorySummaries = budgetCategories.map((category) => {
-    const categoryVendorIds = vendors
-      .filter((vendor) => getBudgetCategoryIdForVendor(vendor, budgetCategories) === category.id)
-      .map((vendor) => vendor.id);
+    const categoryVendor = vendors.find((vendor) => getBudgetCategoryIdForVendor(vendor) === category.id);
+    const categoryVendorIds = categoryVendor ? [categoryVendor.id] : [];
     const categoryPayments = activePayments.filter((payment) => payment.budgetCategoryId === category.id || categoryVendorIds.includes(payment.vendorId));
     const categoryFiles = fileRecords.filter((record) => record.budgetCategoryId === category.id || categoryVendorIds.includes(record.vendorId));
     const linkedVendorIds = Array.from(new Set([...categoryVendorIds, ...categoryPayments.map((payment) => payment.vendorId), ...categoryFiles.map((record) => record.vendorId)].filter(Boolean)));
+    const target = parseMoney(category.targetBudget);
+    const paid = categoryVendor ? parseMoney(categoryVendor.depositPaid) : categoryPayments.reduce((total, payment) => total + getPaidAmount(payment), 0);
+    const due = categoryVendor ? parseMoney(categoryVendor.balanceDue) : categoryPayments.reduce((total, payment) => total + getUnpaidAmount(payment), 0);
+    const committed = categoryVendor ? paid + due : categoryPayments.reduce((total, payment) => total + getPaymentAmount(payment), 0);
+    const dueDate = categoryVendor
+      ? categoryVendor.finalPaymentDueDate || categoryVendor.dueDate || categoryVendor.depositDueDate
+      : categoryPayments.find((payment) => !isPaymentPaid(payment) && payment.dueDate)?.dueDate ?? "";
     const vendorSummaries = linkedVendorIds.map((vendorId) => {
+      if (categoryVendor?.id === vendorId) {
+        return {
+          vendorId,
+          committed,
+          paid,
+          due,
+        };
+      }
+
       const vendorPayments = categoryPayments.filter((payment) => payment.vendorId === vendorId);
-      const committed = vendorPayments.reduce((total, payment) => total + getPaymentAmount(payment), 0);
-      const paid = vendorPayments.reduce((total, payment) => total + getPaidAmount(payment), 0);
-      const due = vendorPayments.reduce((total, payment) => total + getUnpaidAmount(payment), 0);
 
       return {
         vendorId,
-        committed,
-        paid,
-        due,
+        committed: vendorPayments.reduce((total, payment) => total + getPaymentAmount(payment), 0),
+        paid: vendorPayments.reduce((total, payment) => total + getPaidAmount(payment), 0),
+        due: vendorPayments.reduce((total, payment) => total + getUnpaidAmount(payment), 0),
       };
     });
-    const target = parseMoney(category.targetBudget);
-    const committed = categoryPayments.reduce((total, payment) => total + getPaymentAmount(payment), 0);
-    const paid = categoryPayments.reduce((total, payment) => total + getPaidAmount(payment), 0);
-    const due = categoryPayments.reduce((total, payment) => total + getUnpaidAmount(payment), 0);
     const variance = target - committed;
     const spendPercent = target > 0 ? Math.min((committed / target) * 100, 120) : committed > 0 ? 100 : 0;
     const paymentPercent = committed > 0 ? Math.min((paid / committed) * 100, 100) : 0;
-    const isPaid = categoryPayments.length > 0 && categoryPayments.every(isPaymentPaid);
+    const isPaid = committed > 0 && due <= 0;
     const status = linkedVendorIds.length === 0 && committed === 0 ? "No records" : isPaid ? "Paid" : target > 0 && committed > target ? "Over budget" : target > 0 && committed <= target * 0.85 ? "Under budget" : "On track";
     const tone: "neutral" | "rose" | "sage" | "champagne" | "navy" =
       status === "Paid" ? "navy" : status === "Over budget" ? "rose" : status === "Under budget" ? "sage" : "neutral";
 
     return {
       category,
+      categoryVendor,
       categoryPayments,
       categoryFiles,
       linkedVendorIds,
       vendorSummaries,
+      dueDate,
       target,
       committed,
       paid,
@@ -2673,13 +2612,28 @@ function BudgetTab({
 
     return secondActive - firstActive;
   });
+  const totalTarget = categorySummaries.reduce((total, summary) => total + summary.target, 0);
+  const committedTotal = categorySummaries.reduce((total, summary) => total + summary.committed, 0);
+  const paidTotal = categorySummaries.reduce((total, summary) => total + summary.paid, 0);
+  const unpaidTotal = categorySummaries.reduce((total, summary) => total + summary.due, 0);
+  const varianceTotal = totalTarget - committedTotal;
+  const upcomingPayments = categorySummaries
+    .filter((summary) => summary.due > 0 && summary.dueDate)
+    .map((summary) => ({
+      id: summary.category.id,
+      title: summary.category.name,
+      vendorId: summary.categoryVendor?.id ?? "",
+      amount: String(summary.due),
+      dueDate: summary.dueDate,
+    }))
+    .sort((first, second) => dateSortValue(first.dueDate).localeCompare(dateSortValue(second.dueDate)));
   const overBudgetCategories = categorySummaries.filter((summary) => summary.status === "Over budget");
-  const paidVendorCount = Array.from(new Set(activePayments.filter(isPaymentPaid).map((payment) => payment.vendorId).filter(Boolean))).length;
-  const unpaidVendorCount = Array.from(new Set(activePayments.filter((payment) => getUnpaidAmount(payment) > 0).map((payment) => payment.vendorId).filter(Boolean))).length;
+  const paidVendorCount = categorySummaries.filter((summary) => summary.categoryVendor && summary.paid > 0).length;
+  const unpaidVendorCount = categorySummaries.filter((summary) => summary.categoryVendor && summary.due > 0).length;
   const activeVendorCategoryCount = categorySummaries.filter((summary) => summary.linkedVendorIds.length > 0 || summary.committed > 0 || summary.target > 0).length;
   const budgetUsedPercent = totalTarget > 0 ? Math.min((committedTotal / totalTarget) * 100, 100) : 0;
   const highestSpendingCategories = [...categorySummaries].sort((first, second) => second.committed - first.committed).slice(0, 3);
-  const upcomingLargePayments = upcomingPayments.filter((payment) => getPaymentAmount(payment) >= 1000).slice(0, 3);
+  const upcomingLargePayments = upcomingPayments.filter((payment) => parseMoney(payment.amount) >= 1000).slice(0, 3);
 
   function updateCategory(categoryId: string, patch: Partial<BudgetCategory>) {
     setBudgetCategories(budgetCategories.map((category) => (category.id === categoryId ? { ...category, ...patch } : category)));
@@ -2719,12 +2673,12 @@ function BudgetTab({
   }
 
   const summaryCards = [
-    { label: "Total Budget", value: formatMoney(String(totalTarget)), detail: "Across vendor categories", icon: CircleDollarSign, tone: "champagne" as const },
+    { label: "Total Budget", value: formatMoney(String(totalTarget)), detail: "Across vendor records", icon: CircleDollarSign, tone: "champagne" as const },
     { label: "Total Paid", value: formatMoney(String(paidTotal)), detail: `${formatMoney(String(committedTotal))} committed`, icon: CheckCircle2, tone: "sage" as const },
     { label: "Still To Pay", value: formatMoney(String(unpaidTotal)), detail: `${unpaidVendorCount} vendors with balances`, icon: CalendarDays, tone: "champagne" as const },
     { label: "Remaining Budget", value: formatMoney(String(Math.max(varianceTotal, 0))), detail: varianceTotal < 0 ? `${formatMoney(String(Math.abs(varianceTotal)))} over target` : "After committed costs", icon: ClipboardList, tone: varianceTotal < 0 ? ("rose" as const) : ("neutral" as const) },
     { label: "Categories Over Budget", value: String(overBudgetCategories.length), detail: overBudgetCategories.map((summary) => summary.category.name).join(", ") || "None currently", icon: FileText, tone: overBudgetCategories.length > 0 ? ("rose" as const) : ("sage" as const) },
-    { label: "Vendor Categories", value: String(activeVendorCategoryCount), detail: `${paidVendorCount} vendors with paid records`, icon: CheckCircle2, tone: "navy" as const },
+    { label: "Vendor Records", value: String(activeVendorCategoryCount), detail: `${paidVendorCount} vendors with paid records`, icon: CheckCircle2, tone: "navy" as const },
   ];
 
   return (
@@ -2735,12 +2689,12 @@ function BudgetTab({
             <p className="heading-micro">Private Finance</p>
             <h2 className="heading-secondary mt-2">Wedding Budget</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6a5d55]">
-              A private financial overview grouped by the same categories used for vendors, so paid amounts and remaining balances stay easy to track.
+              A private financial overview grouped by vendor, so paid amounts and remaining balances stay easy to edit and track.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Chip tone="champagne">{payments.length} shared cost records</Chip>
               <Chip tone="sage">{fileRecords.length} linked documents</Chip>
-              <Chip>{budgetCategories.length} vendor categories</Chip>
+              <Chip>{budgetCategories.length} vendor records</Chip>
             </div>
           </div>
           <div className="mx-auto grid h-48 w-48 place-items-center rounded-full border border-[#eaded6]/80 bg-white/58 p-4 shadow-[0_18px_40px_rgba(90,65,50,0.055)]">
@@ -2796,7 +2750,7 @@ function BudgetTab({
             <div className="rounded-2xl bg-white/58 p-4">
               <p className="heading-micro">Discretionary Room</p>
               <p className="mt-2 text-sm leading-6 text-[#6a5d55]">
-                {varianceTotal > 0 ? `${formatMoney(String(varianceTotal))} remains against current category targets.` : "Current commitments are at or above target."}
+                {varianceTotal > 0 ? `${formatMoney(String(varianceTotal))} remains against current vendor targets.` : "Current commitments are at or above target."}
               </p>
             </div>
             <div className="rounded-2xl bg-white/58 p-4">
@@ -2846,8 +2800,8 @@ function BudgetTab({
       <PlanningCard>
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <p className="heading-micro">Vendor Category Spend</p>
-            <h3 className="heading-secondary heading-secondary-compact mt-2">Vendor Categories</h3>
+            <p className="heading-micro">Vendor Spend</p>
+            <h3 className="heading-secondary heading-secondary-compact mt-2">Vendor Budget Records</h3>
           </div>
           <Chip tone="champagne">Paid + still to pay</Chip>
         </div>
@@ -2855,6 +2809,7 @@ function BudgetTab({
           {categorySummaries.map((summary) => {
           const {
             category,
+            categoryVendor,
             categoryPayments,
             categoryFiles,
             linkedVendorIds,
@@ -2941,6 +2896,18 @@ function BudgetTab({
 
                 <div className="mt-5 grid gap-3 md:grid-cols-2">
                   <TextField label="Target budget" value={category.targetBudget} onChange={(targetBudget) => updateCategory(category.id, { targetBudget })} placeholder="$" />
+                  {categoryVendor && (
+                    <>
+                      <TextField label="Paid so far" value={categoryVendor.depositPaid} onChange={(depositPaid) => updateVendorBudget(categoryVendor.id, { depositPaid })} placeholder="$" />
+                      <TextField label="Still to pay" value={categoryVendor.balanceDue} onChange={(balanceDue) => updateVendorBudget(categoryVendor.id, { balanceDue })} placeholder="$" />
+                      <TextField
+                        label="Due date"
+                        type="date"
+                        value={categoryVendor.finalPaymentDueDate}
+                        onChange={(finalPaymentDueDate) => updateVendorBudget(categoryVendor.id, { finalPaymentDueDate })}
+                      />
+                    </>
+                  )}
                   <TextField label="Notes" value={category.notes} onChange={(notes) => updateCategory(category.id, { notes })} />
                 </div>
 
@@ -3030,7 +2997,7 @@ function BudgetTab({
                 setPaymentForm({
                   ...paymentForm,
                   vendorId,
-                  budgetCategoryId: selectedVendor ? getBudgetCategoryIdForVendor(selectedVendor, budgetCategories) : paymentForm.budgetCategoryId,
+                  budgetCategoryId: selectedVendor ? getBudgetCategoryIdForVendor(selectedVendor) : paymentForm.budgetCategoryId,
                 });
               }}
               className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
@@ -5494,7 +5461,7 @@ function FilesTab({
   function getDefaultBudgetCategoryForVendorId(vendorId: string) {
     const vendor = vendors.find((item) => item.id === vendorId);
 
-    return vendor ? getBudgetCategoryIdForVendor(vendor, budgetCategories) : "";
+    return vendor ? getBudgetCategoryIdForVendor(vendor) : "";
   }
 
   function upsertFileRecord(file: PrivatePlanningFileDto, patch: Partial<PlanningFileRecord>) {
@@ -5810,7 +5777,7 @@ function FilesTab({
       if (file && linkedVendorId) {
         const nextRecord = upsertFileRecord(file, {
           vendorId: linkedVendorId,
-          budgetCategoryId: linkedVendor ? getBudgetCategoryIdForVendor(linkedVendor, budgetCategories) : "",
+          budgetCategoryId: linkedVendor ? getBudgetCategoryIdForVendor(linkedVendor) : "",
           fileType: documentTypeFromExtraction(suggestion.suggestedDocument.documentType),
           extractedAmount: amountFromExtraction(suggestion.suggestedDocument),
           documentNumber: documentNumberFromExtraction(suggestion.suggestedDocument),
@@ -6400,7 +6367,7 @@ type PlanningDataApiResponse = {
 
 function normalizePlanningPayload(payload?: Partial<PlanningDataPayload> | null, legacyDecisionNotes = ""): PlanningDataPayload {
   const vendors = normalizeVendors(payload?.vendors);
-  const budgetCategories = normalizeBudgetCategories(payload?.budgetCategories);
+  const budgetCategories = normalizeBudgetCategories(payload?.budgetCategories, vendors);
 
   return {
     vendors,
@@ -6489,7 +6456,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const [isPlanningDataLoaded, setIsPlanningDataLoaded] = useState(false);
   const [planningDataStatus, setPlanningDataStatus] = useState("Loading secure planning data...");
   const vendors = useMemo(() => normalizeVendors(storedVendors), [storedVendors]);
-  const budgetCategories = useMemo(() => normalizeBudgetCategories(storedBudgetCategories), [storedBudgetCategories]);
+  const budgetCategories = useMemo(() => normalizeBudgetCategories(storedBudgetCategories, vendors), [storedBudgetCategories, vendors]);
   const payments = useMemo(() => normalizePayments(storedPayments, vendors, budgetCategories), [budgetCategories, storedPayments, vendors]);
   const fileRecords = useMemo(() => normalizeFileRecords(storedFileRecords, vendors, budgetCategories), [budgetCategories, storedFileRecords, vendors]);
   const events = useMemo(() => normalizeEvents(storedEvents), [storedEvents]);
@@ -6499,7 +6466,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const notes = useMemo(() => normalizeNotes(storedNotes, legacyDecisionNotes), [legacyDecisionNotes, storedNotes]);
   const planningSummary = useMemo(() => getPlanningSummary(vendors, events, tasks, payments), [events, payments, tasks, vendors]);
   const setVendors = useCallback((next: Vendor[]) => setStoredVendors(normalizeVendors(next)), [setStoredVendors]);
-  const setBudgetCategories = useCallback((next: BudgetCategory[]) => setStoredBudgetCategories(normalizeBudgetCategories(next)), [setStoredBudgetCategories]);
+  const setBudgetCategories = useCallback((next: BudgetCategory[]) => setStoredBudgetCategories(normalizeBudgetCategories(next, vendors)), [setStoredBudgetCategories, vendors]);
   const setPayments = useCallback((next: PaymentRecord[]) => setStoredPayments(normalizePayments(next, vendors, budgetCategories)), [budgetCategories, setStoredPayments, vendors]);
   const setFileRecords = useCallback((next: PlanningFileRecord[]) => setStoredFileRecords(normalizeFileRecords(next, vendors, budgetCategories)), [budgetCategories, setStoredFileRecords, vendors]);
   const setEvents = useCallback((next: CalendarEvent[]) => setStoredEvents(normalizeEvents(next)), [setStoredEvents]);
@@ -6693,9 +6660,12 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
     try {
       const payload = JSON.parse(await file.text()) as Partial<PlanningExport>;
       setVendors(normalizeVendors(payload.vendors));
-      setBudgetCategories(normalizeBudgetCategories(payload.budgetCategories));
-      setPayments(normalizePayments(payload.payments, normalizeVendors(payload.vendors), normalizeBudgetCategories(payload.budgetCategories)));
-      setFileRecords(normalizeFileRecords(payload.fileRecords, normalizeVendors(payload.vendors), normalizeBudgetCategories(payload.budgetCategories)));
+      const importedVendors = normalizeVendors(payload.vendors);
+      const importedBudgetCategories = normalizeBudgetCategories(payload.budgetCategories, importedVendors);
+
+      setBudgetCategories(importedBudgetCategories);
+      setPayments(normalizePayments(payload.payments, importedVendors, importedBudgetCategories));
+      setFileRecords(normalizeFileRecords(payload.fileRecords, importedVendors, importedBudgetCategories));
       setEvents(normalizeEvents(payload.events));
       setTasks(normalizeTasks(payload.tasks));
       setTimeline(normalizeTimeline(payload.timeline));
@@ -6733,6 +6703,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       return (
         <BudgetTab
           vendors={vendors}
+          setVendors={setVendors}
           budgetCategories={budgetCategories}
           setBudgetCategories={setBudgetCategories}
           payments={payments}
