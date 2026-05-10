@@ -1267,25 +1267,133 @@ function todayKey() {
   return toDateKey(new Date());
 }
 
+function normalizeDateValue(value: unknown) {
+  if (typeof value !== "string") {
+    return "";
+  }
+
+  const trimmed = value.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  const isoMatch = trimmed.match(/^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/);
+
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch;
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
+
+    return Number.isNaN(date.getTime()) ? "" : toDateKey(date);
+  }
+
+  const numericMatch = trimmed.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})$/);
+
+  if (numericMatch) {
+    const [, day, month, rawYear] = numericMatch;
+    const year = rawYear.length === 2 ? `20${rawYear}` : rawYear;
+    const date = new Date(Number(year), Number(month) - 1, Number(day));
+
+    return Number.isNaN(date.getTime()) ? "" : toDateKey(date);
+  }
+
+  const months: Record<string, number> = {
+    jan: 1,
+    january: 1,
+    feb: 2,
+    february: 2,
+    mar: 3,
+    march: 3,
+    apr: 4,
+    april: 4,
+    may: 5,
+    jun: 6,
+    june: 6,
+    jul: 7,
+    july: 7,
+    aug: 8,
+    august: 8,
+    sep: 9,
+    sept: 9,
+    september: 9,
+    oct: 10,
+    october: 10,
+    nov: 11,
+    november: 11,
+    dec: 12,
+    december: 12,
+  };
+  const dayMonthMatch = trimmed.match(/^(\d{1,2})\s+([a-z]+)\s+(\d{2,4})$/i);
+
+  if (dayMonthMatch) {
+    const [, day, monthName, rawYear] = dayMonthMatch;
+    const month = months[monthName.toLowerCase()];
+    const year = rawYear.length === 2 ? `20${rawYear}` : rawYear;
+    const date = month ? new Date(Number(year), month - 1, Number(day)) : null;
+
+    return date && !Number.isNaN(date.getTime()) ? toDateKey(date) : "";
+  }
+
+  const monthDayMatch = trimmed.match(/^([a-z]+)\s+(\d{1,2}),?\s+(\d{2,4})$/i);
+
+  if (monthDayMatch) {
+    const [, monthName, day, rawYear] = monthDayMatch;
+    const month = months[monthName.toLowerCase()];
+    const year = rawYear.length === 2 ? `20${rawYear}` : rawYear;
+    const date = month ? new Date(Number(year), month - 1, Number(day)) : null;
+
+    return date && !Number.isNaN(date.getTime()) ? toDateKey(date) : "";
+  }
+
+  const parsed = new Date(trimmed);
+
+  return Number.isNaN(parsed.getTime()) ? "" : toDateKey(parsed);
+}
+
 function formatDate(value?: string) {
-  if (!value) {
-    return "No date";
+  const normalized = normalizeDateValue(value);
+
+  if (!value || !normalized) {
+    return value || "No date";
+  }
+
+  const date = new Date(`${normalized}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
   }
 
   return new Intl.DateTimeFormat("en-AU", {
     day: "2-digit",
     month: "short",
     year: "numeric",
-  }).format(new Date(`${value}T00:00:00`));
+  }).format(date);
+}
+
+function dateSortValue(value?: string) {
+  return normalizeDateValue(value) || "9999-99-99";
+}
+
+function isDateOnOrAfter(value: string | undefined, compareTo: string) {
+  const normalized = normalizeDateValue(value);
+
+  return Boolean(normalized && normalized >= compareTo);
 }
 
 function daysUntil(value?: string) {
-  if (!value) {
+  const normalized = normalizeDateValue(value);
+
+  if (!normalized) {
     return Number.POSITIVE_INFINITY;
   }
 
   const current = new Date(`${todayKey()}T00:00:00`).getTime();
-  const target = new Date(`${value}T00:00:00`).getTime();
+  const target = new Date(`${normalized}T00:00:00`).getTime();
+
+  if (Number.isNaN(target)) {
+    return Number.POSITIVE_INFINITY;
+  }
+
   return Math.ceil((target - current) / 86_400_000);
 }
 
@@ -1330,11 +1438,11 @@ function normalizeVendor(raw: Partial<Vendor> & Record<string, unknown>): Vendor
     quote: typeof raw.quote === "string" ? raw.quote : String(raw.quote ?? ""),
     depositPaid: typeof raw.depositPaid === "string" ? raw.depositPaid : String(raw.depositPaid ?? ""),
     balanceDue: typeof raw.balanceDue === "string" ? raw.balanceDue : String(raw.balanceDue ?? ""),
-    dueDate: typeof raw.dueDate === "string" ? raw.dueDate : "",
-    depositDueDate: typeof raw.depositDueDate === "string" ? raw.depositDueDate : "",
-    finalPaymentDueDate: typeof raw.finalPaymentDueDate === "string" ? raw.finalPaymentDueDate : "",
-    lastContactedDate: typeof raw.lastContactedDate === "string" ? raw.lastContactedDate : "",
-    followUpDate: typeof raw.followUpDate === "string" ? raw.followUpDate : "",
+    dueDate: normalizeDateValue(raw.dueDate),
+    depositDueDate: normalizeDateValue(raw.depositDueDate),
+    finalPaymentDueDate: normalizeDateValue(raw.finalPaymentDueDate),
+    lastContactedDate: normalizeDateValue(raw.lastContactedDate),
+    followUpDate: normalizeDateValue(raw.followUpDate),
     notes: typeof raw.notes === "string" ? raw.notes : "",
     nextAction: typeof raw.nextAction === "string" ? raw.nextAction : "",
     filesLinks: typeof raw.filesLinks === "string" ? raw.filesLinks : "",
@@ -1347,10 +1455,10 @@ function normalizeVendor(raw: Partial<Vendor> & Record<string, unknown>): Vendor
 function normalizeLog(raw: Partial<CommunicationLog> & Record<string, unknown>): CommunicationLog {
   return {
     id: typeof raw.id === "string" ? raw.id : createId("log"),
-    date: typeof raw.date === "string" ? raw.date : "",
+    date: normalizeDateValue(raw.date),
     method: isOneOf(raw.method, contactMethods) ? raw.method : "Email",
     summary: typeof raw.summary === "string" ? raw.summary : "",
-    nextFollowUp: typeof raw.nextFollowUp === "string" ? raw.nextFollowUp : "",
+    nextFollowUp: normalizeDateValue(raw.nextFollowUp),
   };
 }
 
@@ -1373,7 +1481,7 @@ function normalizeEvent(raw: Partial<CalendarEvent> & Record<string, unknown>): 
   return {
     id: typeof raw.id === "string" ? raw.id : createId("event"),
     title: typeof raw.title === "string" ? raw.title : "",
-    date: typeof raw.date === "string" ? raw.date : "",
+    date: normalizeDateValue(raw.date),
     type: isOneOf(legacyType, eventTypes) ? legacyType : "Meeting",
     vendorId: typeof raw.vendorId === "string" ? raw.vendorId : "",
     notes: typeof raw.notes === "string" ? raw.notes : "",
@@ -1531,8 +1639,8 @@ function normalizePaymentRecord(raw: Partial<PaymentRecord> & Record<string, unk
     vendorId: typeof raw.vendorId === "string" ? raw.vendorId : "",
     budgetCategoryId: typeof raw.budgetCategoryId === "string" ? raw.budgetCategoryId : "",
     amount: typeof raw.amount === "string" ? raw.amount : String(raw.amount ?? ""),
-    dueDate: typeof raw.dueDate === "string" ? raw.dueDate : "",
-    paidDate: typeof raw.paidDate === "string" ? raw.paidDate : "",
+    dueDate: normalizeDateValue(raw.dueDate),
+    paidDate: normalizeDateValue(raw.paidDate),
     paymentStatus: isOneOf(raw.paymentStatus, paymentStatuses) ? raw.paymentStatus : "Due",
     sourceFileId: typeof raw.sourceFileId === "string" ? raw.sourceFileId : "",
     notes: typeof raw.notes === "string" ? raw.notes : "",
@@ -1560,9 +1668,9 @@ function normalizePlanningFileRecord(raw: Partial<PlanningFileRecord> & Record<s
     budgetCategoryId: typeof raw.budgetCategoryId === "string" ? raw.budgetCategoryId : "",
     extractedAmount: typeof raw.extractedAmount === "string" ? raw.extractedAmount : String(raw.extractedAmount ?? ""),
     documentNumber: typeof raw.documentNumber === "string" ? raw.documentNumber : "",
-    issueDate: typeof raw.issueDate === "string" ? raw.issueDate : "",
-    dueDate: typeof raw.dueDate === "string" ? raw.dueDate : "",
-    paidDate: typeof raw.paidDate === "string" ? raw.paidDate : "",
+    issueDate: normalizeDateValue(raw.issueDate),
+    dueDate: normalizeDateValue(raw.dueDate),
+    paidDate: normalizeDateValue(raw.paidDate),
     paymentStatus: isOneOf(raw.paymentStatus, paymentStatuses) ? raw.paymentStatus : "Due",
     notes: typeof raw.notes === "string" ? raw.notes : "",
     linkedPaymentId: typeof raw.linkedPaymentId === "string" ? raw.linkedPaymentId : "",
@@ -1590,7 +1698,7 @@ function normalizeTasks(value: unknown): PlanningTask[] {
       title: typeof task.title === "string" ? task.title : "",
       vendorId: typeof task.vendorId === "string" ? task.vendorId : "",
       category: isOneOf(task.category, vendorCategories) ? task.category : "",
-      dueDate: typeof task.dueDate === "string" ? task.dueDate : "",
+      dueDate: normalizeDateValue(task.dueDate),
       priority: isOneOf(task.priority, priorities) ? task.priority : "Medium",
       status: isOneOf(task.status, taskStatuses) ? task.status : "To do",
       notes: typeof task.notes === "string" ? task.notes : "",
@@ -1776,7 +1884,7 @@ function getVendorName(vendors: Vendor[], vendorId: string) {
 }
 
 function getNextVendorDueDate(vendor: Vendor) {
-  return [vendor.depositDueDate, vendor.finalPaymentDueDate, vendor.dueDate].filter(Boolean).sort()[0] ?? "";
+  return [vendor.depositDueDate, vendor.finalPaymentDueDate, vendor.dueDate].filter(Boolean).sort((first, second) => dateSortValue(first).localeCompare(dateSortValue(second)))[0] ?? "";
 }
 
 function getDueTone(date?: string) {
@@ -2145,18 +2253,18 @@ type PlanningSummary = {
 function getPlanningSummary(vendors: Vendor[], events: CalendarEvent[], tasks: PlanningTask[], payments: PaymentRecord[]): PlanningSummary {
   const today = todayKey();
   const upcomingEvents = [
-    ...events.filter((event) => event.date >= today).map((event) => ({ date: event.date, label: event.title })),
+    ...events.filter((event) => isDateOnOrAfter(event.date, today)).map((event) => ({ date: event.date, label: event.title })),
     ...vendors
-      .filter((vendor) => vendor.followUpDate && vendor.followUpDate >= today)
+      .filter((vendor) => isDateOnOrAfter(vendor.followUpDate, today))
       .map((vendor) => ({ date: vendor.followUpDate, label: `Follow up: ${vendor.vendorName}` })),
     ...tasks
-      .filter((task) => task.dueDate && task.status !== "Done" && task.dueDate >= today)
+      .filter((task) => task.status !== "Done" && isDateOnOrAfter(task.dueDate, today))
       .map((task) => ({ date: task.dueDate, label: task.title })),
-  ].sort((first, second) => first.date.localeCompare(second.date));
+  ].sort((first, second) => dateSortValue(first.date).localeCompare(dateSortValue(second.date)));
   const nextPayments = payments
     .filter((payment) => isPaymentActive(payment) && !isPaymentPaid(payment) && payment.dueDate)
-    .sort((first, second) => first.dueDate.localeCompare(second.dueDate));
-  const followUps = vendors.filter((vendor) => vendor.followUpDate && vendor.followUpDate <= today).length + tasks.filter((task) => task.status === "Waiting").length;
+    .sort((first, second) => dateSortValue(first.dueDate).localeCompare(dateSortValue(second.dueDate)));
+  const followUps = vendors.filter((vendor) => Boolean(vendor.followUpDate && dateSortValue(vendor.followUpDate) <= today)).length + tasks.filter((task) => task.status === "Waiting").length;
   const openDecisions =
     vendors.filter((vendor) => ["Researching", "Contacted", "Quote received", "Shortlisted"].includes(vendor.status)).length +
     tasks.filter((task) => task.status !== "Done" && task.priority === "High").length;
@@ -2219,9 +2327,9 @@ function OverviewTab({
   const confirmedVendors = vendors.filter((vendor) => ["Confirmed", "Deposit paid", "Fully paid"].includes(vendor.status));
   const paymentsDue = payments.filter((payment) => isPaymentActive(payment) && !isPaymentPaid(payment));
   const comingUp = [
-    ...events.filter((event) => event.date >= today).map((event) => ({ id: event.id, title: event.title, date: event.date, detail: event.type })),
+    ...events.filter((event) => isDateOnOrAfter(event.date, today)).map((event) => ({ id: event.id, title: event.title, date: event.date, detail: event.type })),
     ...payments
-      .filter((payment) => payment.dueDate && isPaymentActive(payment) && !isPaymentPaid(payment) && payment.dueDate >= today)
+      .filter((payment) => isPaymentActive(payment) && !isPaymentPaid(payment) && isDateOnOrAfter(payment.dueDate, today))
       .map((payment) => ({
         id: `payment-${payment.id}`,
         title: payment.title,
@@ -2229,13 +2337,13 @@ function OverviewTab({
         detail: `${payment.paymentStatus} - ${formatMoney(payment.amount)}${payment.vendorId ? ` - ${getVendorName(vendors, payment.vendorId)}` : ""}`,
       })),
     ...vendors
-      .filter((vendor) => vendor.followUpDate && vendor.followUpDate >= today)
+      .filter((vendor) => isDateOnOrAfter(vendor.followUpDate, today))
       .map((vendor) => ({ id: `follow-${vendor.id}`, title: `Follow up with ${vendor.vendorName}`, date: vendor.followUpDate, detail: vendor.nextAction || "Vendor follow-up" })),
     ...tasks
-      .filter((task) => task.dueDate && task.status !== "Done" && task.dueDate >= today)
+      .filter((task) => task.status !== "Done" && isDateOnOrAfter(task.dueDate, today))
       .map((task) => ({ id: `task-${task.id}`, title: task.title, date: task.dueDate, detail: `${task.status} - ${task.priority}` })),
   ]
-    .sort((first, second) => first.date.localeCompare(second.date))
+    .sort((first, second) => dateSortValue(first.date).localeCompare(dateSortValue(second.date)))
     .slice(0, 5);
   const summaryCards = [
     { title: "Confirmed Vendors", value: confirmedVendors.length, icon: CheckCircle2 },
@@ -2307,7 +2415,7 @@ function OverviewTab({
 
 function TasksPanel({ vendors, tasks, setTasks }: { vendors: Vendor[]; tasks: PlanningTask[]; setTasks: (tasks: PlanningTask[]) => void }) {
   const [form, setForm] = useState<TaskForm>(emptyTaskForm);
-  const activeTasks = tasks.filter((task) => task.status !== "Done").sort((first, second) => (first.dueDate || "9999").localeCompare(second.dueDate || "9999"));
+  const activeTasks = tasks.filter((task) => task.status !== "Done").sort((first, second) => dateSortValue(first.dueDate).localeCompare(dateSortValue(second.dueDate)));
 
   function addTask(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -2420,7 +2528,7 @@ function BudgetTab({
   const varianceTotal = totalTarget - committedTotal;
   const upcomingPayments = activePayments
     .filter((payment) => !isPaymentPaid(payment) && payment.dueDate)
-    .sort((first, second) => first.dueDate.localeCompare(second.dueDate));
+    .sort((first, second) => dateSortValue(first.dueDate).localeCompare(dateSortValue(second.dueDate)));
   const categorySummaries = budgetCategories.map((category) => {
     const categoryPayments = activePayments.filter((payment) => payment.budgetCategoryId === category.id);
     const categoryFiles = fileRecords.filter((record) => record.budgetCategoryId === category.id);
@@ -3321,7 +3429,7 @@ function VendorDrawer({
   const paidTotal = linkedPayments.reduce((total, payment) => total + getPaidAmount(payment), 0);
   const upcomingDuePayments = linkedPayments
     .filter((payment) => !isPaymentPaid(payment) && payment.dueDate)
-    .sort((first, second) => first.dueDate.localeCompare(second.dueDate))
+    .sort((first, second) => dateSortValue(first.dueDate).localeCompare(dateSortValue(second.dueDate)))
     .slice(0, 4);
   const relatedCategoryIds = Array.from(new Set([...linkedPayments.map((payment) => payment.budgetCategoryId), ...linkedFiles.map((record) => record.budgetCategoryId)].filter(Boolean)));
 
