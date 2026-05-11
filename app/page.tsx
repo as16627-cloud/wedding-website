@@ -1691,7 +1691,7 @@ export default function WeddingWebsiteStarter() {
             </div>
           </motion.div>
 
-          <motion.div {...dressRevealMotion(0.02, 8)} className="dress-code-mobile-panel">
+          <motion.div {...dressRevealMotion(0.02, 8)} className="dress-code-mobile-panel dress-code-mobile-panel-classic">
             <div className="dress-code-mobile-panel-inner">
               <article className="dress-code-mobile-block">
                 <h3 className="heading-secondary">Classic Formal</h3>
