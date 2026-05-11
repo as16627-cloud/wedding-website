@@ -798,6 +798,10 @@ export default function WeddingWebsiteStarter() {
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
   const ambientAudioFadeRef = useRef<number | null>(null);
   const copiedVenueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dressSnapTimerRef = useRef<number | null>(null);
+  const dressSnapSettlingRef = useRef(false);
+  const dressSnapLastYRef = useRef(0);
+  const dressSnapDirectionRef = useRef<"up" | "down">("down");
   const [guestInviteToken] = useState("");
   const [guestName, setGuestName] = useState("");
   const [guestLookupMessage] = useState("");
@@ -885,6 +889,116 @@ export default function WeddingWebsiteStarter() {
       document.documentElement.classList.remove("invite-editorial-scroll");
     };
   }, []);
+
+  useEffect(() => {
+    if (shouldReduceMotion) {
+      return;
+    }
+
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
+
+    const clearDressSnapTimer = () => {
+      if (dressSnapTimerRef.current) {
+        window.clearTimeout(dressSnapTimerRef.current);
+        dressSnapTimerRef.current = null;
+      }
+    };
+
+    const settleToElement = (element: HTMLElement, block: ScrollLogicalPosition) => {
+      dressSnapSettlingRef.current = true;
+      element.scrollIntoView({ block, inline: "nearest", behavior: "smooth" });
+
+      window.setTimeout(() => {
+        dressSnapSettlingRef.current = false;
+      }, 760);
+    };
+
+    const settleDressCodePanel = () => {
+      if (!mobileQuery.matches || dressSnapSettlingRef.current) {
+        return;
+      }
+
+      const panels = Array.from(document.querySelectorAll<HTMLElement>(".dress-code-mobile-panel"));
+
+      if (!panels.length) {
+        return;
+      }
+
+      const viewportHeight = window.innerHeight;
+      let nearestPanel: HTMLElement | null = null;
+      let nearestDistance = Number.POSITIVE_INFINITY;
+      let nearestVisible = 0;
+
+      for (const panel of panels) {
+        const rect = panel.getBoundingClientRect();
+        const visible = Math.max(0, Math.min(viewportHeight, rect.bottom) - Math.max(0, rect.top));
+
+        if (visible <= 0) {
+          continue;
+        }
+
+        const distance = Math.abs(rect.top + rect.height / 2 - viewportHeight / 2);
+
+        if (distance < nearestDistance) {
+          nearestPanel = panel;
+          nearestDistance = distance;
+          nearestVisible = visible;
+        }
+      }
+
+      if (!nearestPanel || nearestVisible < viewportHeight * 0.28) {
+        return;
+      }
+
+      const rect = nearestPanel.getBoundingClientRect();
+      const isAlreadyFramed = Math.abs(rect.top) <= 10 && Math.abs(rect.bottom - viewportHeight) <= 10;
+
+      if (isAlreadyFramed) {
+        return;
+      }
+
+      const itinerary = document.querySelector<HTMLElement>("#itinerary");
+
+      if (
+        itinerary &&
+        dressSnapDirectionRef.current === "down" &&
+        nearestPanel.classList.contains("dress-code-mobile-panel-classic") &&
+        rect.top < -viewportHeight * 0.18
+      ) {
+        settleToElement(itinerary, "start");
+        return;
+      }
+
+      settleToElement(nearestPanel, "center");
+    };
+
+    const queueDressSnap = () => {
+      const currentY = window.scrollY;
+
+      if (Math.abs(currentY - dressSnapLastYRef.current) > 2) {
+        dressSnapDirectionRef.current = currentY > dressSnapLastYRef.current ? "down" : "up";
+        dressSnapLastYRef.current = currentY;
+      }
+
+      if (dressSnapSettlingRef.current) {
+        return;
+      }
+
+      clearDressSnapTimer();
+      dressSnapTimerRef.current = window.setTimeout(settleDressCodePanel, 125);
+    };
+
+    dressSnapLastYRef.current = window.scrollY;
+    window.addEventListener("scroll", queueDressSnap, { passive: true });
+    window.addEventListener("resize", queueDressSnap);
+
+    return () => {
+      clearDressSnapTimer();
+      window.removeEventListener("scroll", queueDressSnap);
+      window.removeEventListener("resize", queueDressSnap);
+      dressSnapSettlingRef.current = false;
+    };
+  }, [shouldReduceMotion]);
 
   useEffect(() => {
     const ambientAudio = ambientAudioRef.current;
@@ -1640,15 +1754,14 @@ export default function WeddingWebsiteStarter() {
             {...dressRevealMotion(0.08, 8)}
             className="mobile-editorial-callout mx-auto mt-10 max-w-2xl text-center"
           >
-            <h3 className="type-card-title">A small note</h3>
+            <h3 className="type-card-title">A gentle note</h3>
             <p className="type-card-body mx-auto mt-3 max-w-[600px]">
-              We kindly ask guests to avoid white, ivory, cream, or anything bridal in tone.
+              With love, please leave white, ivory, cream, and bridal tones for the bride.
             </p>
 
             <h3 className="type-card-title mt-7">Garden shoes</h3>
             <p className="type-card-body mx-auto mt-3 max-w-[600px]">
-              The ceremony will take place within the venue gardens, so block heels, wedges, flats, or comfortable dress
-              shoes are recommended.
+              For the gardens, block heels, wedges, flats, or comfortable dress shoes will feel best.
             </p>
           </motion.div>
         </div>
@@ -1714,21 +1827,16 @@ export default function WeddingWebsiteStarter() {
               <p className="dress-palette-guidance luxe-serif-detail mx-auto max-w-[34ch] text-center">
                 Soft romantic neutrals inspired by the floral palette.
               </p>
-            </div>
-          </motion.div>
 
-          <motion.div {...dressRevealMotion(0.03, 8)} className="dress-code-mobile-panel dress-code-mobile-panel-notes">
-            <div className="dress-code-mobile-panel-inner">
-              <div className="mobile-editorial-callout mx-auto max-w-2xl text-center">
-                <h3 className="type-card-title">A small note</h3>
+              <div className="mobile-editorial-callout dress-code-mobile-etiquette mx-auto max-w-2xl text-center">
+                <h3 className="type-card-title">A gentle note</h3>
                 <p className="type-card-body mx-auto max-w-[600px]">
-                  We kindly ask guests to avoid white, ivory, cream, or anything bridal in tone.
+                  With love, please leave white, ivory, cream, and bridal tones for the bride.
                 </p>
 
                 <h3 className="type-card-title">Garden shoes</h3>
                 <p className="type-card-body mx-auto max-w-[600px]">
-                  The ceremony will take place within the venue gardens, so block heels, wedges, flats, or comfortable dress
-                  shoes are recommended.
+                  For the gardens, block heels, wedges, flats, or comfortable dress shoes will feel best.
                 </p>
               </div>
             </div>
