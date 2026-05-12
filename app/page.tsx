@@ -1670,8 +1670,7 @@ export default function WeddingWebsiteStarter() {
             to evening glow
           </motion.h2>
           <motion.p className="heading-copy mt-4" {...cinematicRevealMotion(0.3, 14, 0.92, 0.44)}>
-            Our day has been designed to feel romantic, relaxed, and full of warmth &mdash; with beautiful food, music,
-            and an evening shared together at Caversham House.
+            Our day has been designed to feel romantic, relaxed, and full of warmth &mdash; unfolding across Caversham House.
           </motion.p>
         </div>
         <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
