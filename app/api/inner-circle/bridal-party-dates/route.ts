@@ -73,12 +73,34 @@ function getStringField(record: Record<string, unknown>, keys: string[]) {
   return "";
 }
 
+function isAzazieBridesmaidEvent(title: string, notes: string) {
+  return /\bazazie\b/i.test(`${title} ${notes}`) && /\bbridesmaid|dress|fashion|pop[-\s]?up\b/i.test(`${title} ${notes}`);
+}
+
+function formatMeridiem(value: string) {
+  return value.replace(/\./g, "").toUpperCase();
+}
+
+function extractPublicTime(notes: string) {
+  const timeMatch = notes.match(
+    /time:\s*(\d{1,2}:\d{2})\s*(a\.m\.|p\.m\.)\s*[-–]\s*(\d{1,2}:\d{2})\s*(a\.m\.|p\.m\.)/i,
+  );
+
+  if (!timeMatch) {
+    return "";
+  }
+
+  const [, startTime, startMeridiem, endTime, endMeridiem] = timeMatch;
+
+  return `${startTime} ${formatMeridiem(startMeridiem)} - ${endTime} ${formatMeridiem(endMeridiem)}`;
+}
+
 function isSafePublicNote(notes: string) {
   if (!notes.trim()) {
     return false;
   }
 
-  return !/(admin|internal|private|payment|budget|cost|quote|invoice|deposit|balance|bank|follow[-\s]?up|vendor contact|phone|email)/i.test(notes);
+  return !/(admin|internal|private|payment|budget|cost|quote|invoice|deposit|balance|bank|follow[-\s]?up|vendor contact|phone|email|status|tasks?|purchase)/i.test(notes);
 }
 
 function normalizePublicEvent(value: unknown): PublicInnerCircleDate | null {
@@ -104,12 +126,13 @@ function normalizePublicEvent(value: unknown): PublicInnerCircleDate | null {
   }
 
   const notes = getStringField(record, ["notes"]);
+  const isAzazieEvent = isAzazieBridesmaidEvent(title, notes);
   const publicEvent: PublicInnerCircleDate = {
     id: getStringField(record, ["id"]) || `${date}-${title.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-    title,
+    title: isAzazieEvent ? "Azazie bridesmaid dress pop-up" : title,
     date,
   };
-  const time = getStringField(record, ["time", "startTime"]);
+  const time = getStringField(record, ["time", "startTime"]) || (isAzazieEvent ? extractPublicTime(notes) : "");
   const location = getStringField(record, ["location"]);
 
   if (time) {
@@ -120,7 +143,10 @@ function normalizePublicEvent(value: unknown): PublicInnerCircleDate | null {
     publicEvent.location = location;
   }
 
-  if (isSafePublicNote(notes)) {
+  if (isAzazieEvent) {
+    publicEvent.notes =
+      "A relaxed try-on appointment for bridesmaid dress colours, fabrics, and fits. We'll confirm who needs to attend closer to the date.";
+  } else if (isSafePublicNote(notes)) {
     publicEvent.notes = notes;
   }
 

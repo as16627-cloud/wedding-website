@@ -46,6 +46,7 @@ type SoftSectionProps = {
   contentClassName?: string;
   panelStep?: string;
   panelLabel?: string;
+  backgroundLayer?: ReactNode;
 };
 
 const googleCalendarDetails = encodeURIComponent(
@@ -500,14 +501,16 @@ function SoftSection({
   contentClassName = "mx-auto max-w-6xl",
   panelStep,
   panelLabel,
+  backgroundLayer,
 }: SoftSectionProps) {
   return (
     <section
       id={id}
       className={`editorial-panel mobile-invite-section relative overflow-hidden scroll-mt-24 bg-[#fbf7f2] px-6 py-24 md:py-32 ${className}`}
     >
+      {backgroundLayer}
       <SectionProgressCue step={panelStep} label={panelLabel} />
-      <div className={`relative ${contentClassName}`}>{children}</div>
+      <div className={`relative ${backgroundLayer ? "z-20" : ""} ${contentClassName}`}>{children}</div>
     </section>
   );
 }
@@ -820,6 +823,7 @@ export default function WeddingWebsiteStarter() {
   const [isAudioToggleVisible, setIsAudioToggleVisible] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [hasCopiedVenueAddress, setHasCopiedVenueAddress] = useState(false);
+  const [canPlayCelebrationVideo, setCanPlayCelebrationVideo] = useState(false);
 
   const fadeAmbientAudio = useCallback((targetVolume: number, pauseWhenDone = false) => {
     const audio = ambientAudioRef.current;
@@ -887,6 +891,23 @@ export default function WeddingWebsiteStarter() {
 
     return () => {
       document.documentElement.classList.remove("invite-editorial-scroll");
+    };
+  }, []);
+
+  useEffect(() => {
+    const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
+    const updateCelebrationVideoPreference = () => {
+      setCanPlayCelebrationVideo(!reducedMotionQuery.matches && mobileQuery.matches);
+    };
+
+    updateCelebrationVideoPreference();
+    reducedMotionQuery.addEventListener("change", updateCelebrationVideoPreference);
+    mobileQuery.addEventListener("change", updateCelebrationVideoPreference);
+
+    return () => {
+      reducedMotionQuery.removeEventListener("change", updateCelebrationVideoPreference);
+      mobileQuery.removeEventListener("change", updateCelebrationVideoPreference);
     };
   }, []);
 
@@ -1616,7 +1637,29 @@ export default function WeddingWebsiteStarter() {
         </motion.div>
       </section>
 
-      <SoftSection id="details" panelStep="01 / 06" panelLabel="Details">
+      <SoftSection
+        id="details"
+        panelStep="01 / 06"
+        panelLabel="Details"
+        backgroundLayer={
+          canPlayCelebrationVideo ? (
+            <>
+              <video
+                className="celebration-video-layer pointer-events-none absolute inset-0 h-full w-full object-cover"
+                src="/videos/celebration-garden-loop-soft-loop.mp4"
+                poster="/videos/celebration-garden-poster.jpg"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+                aria-hidden="true"
+              />
+              <div className="celebration-video-wash pointer-events-none absolute inset-0" aria-hidden="true" />
+            </>
+          ) : null
+        }
+      >
         <div className="mx-auto mb-10 max-w-3xl text-center">
           <motion.p className="heading-micro mb-3" {...cinematicRevealMotion(0, 10, 0.86, 0.5)}>
             The celebration

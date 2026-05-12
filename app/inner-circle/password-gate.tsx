@@ -11,14 +11,12 @@ const WEDDING_DAY_ROLES_HELPERS_KEY = "weddingDayRolesHelpers";
 const innerRevealEase = [0.19, 1, 0.22, 1] as const;
 
 const pageAnchors = [
-  { href: "#note", label: "Note" },
-  { href: "#details", label: "Details" },
-  { href: "#upcoming-dates", label: "Upcoming" },
-  { href: "#dates", label: "Dates" },
-  { href: "#week", label: "Wedding week" },
-  { href: "#roles", label: "Roles" },
-  { href: "#lookbooks", label: "Lookbooks" },
-  { href: "#contact", label: "Contact" },
+  { href: "#note", label: "NOTE" },
+  { href: "#details", label: "ESSENTIALS" },
+  { href: "#dates", label: "DATES" },
+  { href: "#lookbooks", label: "STYLE" },
+  { href: "#roles", label: "ROLES" },
+  { href: "#contact", label: "CONTACT" },
 ];
 
 type LookbookCategory = {
@@ -68,6 +66,14 @@ type InnerCircleDateEvent = {
   time?: string;
   location?: string;
   notes?: string;
+};
+
+type HelpingHandResponse = {
+  name: string;
+  helpWith: string[];
+  note: string;
+  submittedAt: string;
+  updatedAt?: string;
 };
 
 const lookbooks: LookbookCategory[] = [
@@ -143,7 +149,7 @@ const keyDetails = [
   { label: "Venue", value: "Caversham House, Swan Valley" },
   { label: "Ceremony", value: "4:00 PM at Garden House" },
   { label: "Style", value: "Elegant garden romance, pastel formal" },
-  { label: "Main priority", value: "Be present, enjoy the day, and help keep the energy calm and happy." },
+  { label: "Main priority", value: "Be present, enjoy the day, and bring your calm, happy energy." },
 ];
 
 const keyDates = [
@@ -173,7 +179,7 @@ const weekReminders = [
   "Keep phones charged.",
   "Bring snacks, water, and any personal medication.",
   "Let us know early if anything changes.",
-  "Help keep the week as calm as possible.",
+  "Bring your calmest, happiest energy.",
 ];
 
 const dayRoles: DayRole[] = [
@@ -214,23 +220,23 @@ const dayRoles: DayRole[] = [
   },
 ];
 
-const littleWaysToHelp = [
-  "Help keep the morning calm.",
-  "Take behind-the-scenes photos and videos.",
-  "Remind us to drink water and eat.",
-  "Help gather people for photos.",
-  "Keep an eye on cards, gifts, and personal items.",
-  "Help guests find where they need to go.",
-  "Keep the dance floor energy alive.",
-  "Most importantly, enjoy the day with us.",
-];
-
 const contactPlaceholders = [
   "General questions - TBC",
   "Wedding-day logistics - TBC",
   "Family photos - TBC",
   "Transport - TBC",
   "Emergency / urgent - TBC",
+];
+
+const helpingHandStorageKey = "weddingInnerCircleHelpingHand";
+
+const helpingHandOptions = [
+  "Morning preparations",
+  "Welcoming or directing guests",
+  "Photo gathering",
+  "Transport coordination",
+  "End-of-night cards, gifts, or keepsakes",
+  "A little bit of anything",
 ];
 
 function emptyRoleHelperNames(): RoleHelperNames {
@@ -288,6 +294,54 @@ function createRoleHelperDrafts(helpers: RoleHelperMap = {}): RoleHelperMap {
     drafts[role.id] = helpers[role.id] ?? emptyRoleHelperNames();
     return drafts;
   }, {});
+}
+
+function emptyHelpingHandResponse(): HelpingHandResponse {
+  return {
+    name: "",
+    helpWith: [],
+    note: "",
+    submittedAt: "",
+  };
+}
+
+function normaliseHelpingHandResponse(value: unknown): HelpingHandResponse | null {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return null;
+  }
+
+  const maybeResponse = value as Partial<HelpingHandResponse>;
+  const name = typeof maybeResponse.name === "string" ? maybeResponse.name.trim() : "";
+  const note = typeof maybeResponse.note === "string" ? maybeResponse.note.trim() : "";
+  const submittedAt = typeof maybeResponse.submittedAt === "string" ? maybeResponse.submittedAt : "";
+  const updatedAt = typeof maybeResponse.updatedAt === "string" ? maybeResponse.updatedAt : undefined;
+  const helpWith = Array.isArray(maybeResponse.helpWith)
+    ? maybeResponse.helpWith.filter((option): option is string => typeof option === "string" && helpingHandOptions.includes(option))
+    : [];
+
+  if (!name || helpWith.length === 0 || !submittedAt) {
+    return null;
+  }
+
+  return {
+    name,
+    helpWith,
+    note,
+    submittedAt,
+    ...(updatedAt ? { updatedAt } : {}),
+  };
+}
+
+function readStoredHelpingHandResponse(): HelpingHandResponse | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    return normaliseHelpingHandResponse(JSON.parse(window.localStorage.getItem(helpingHandStorageKey) ?? "null"));
+  } catch {
+    return null;
+  }
 }
 
 function formatInnerCircleDate(date: string) {
@@ -410,15 +464,29 @@ function RoleHelperSignup({
   onSave: (roleId: string) => void;
 }) {
   const savedHelperNames = [savedNames?.name1, savedNames?.name2].filter(Boolean).join(" & ");
-  const shouldShowForm = isEditing || !savedNames;
+  const helperLine = savedHelperNames || "To be confirmed";
 
   return (
-    <div className="mt-6 rounded-[1.15rem] border border-[#eaded6]/70 bg-white/42 p-4">
-      <p className="heading-micro mb-3">Helpers</p>
+    <div className="mt-6 rounded-[1.15rem] border border-[#eaded6]/60 bg-white/36 p-4">
+      <div className="grid gap-3">
+        <p className="type-card-body break-words" aria-live="polite">
+          <span className="font-semibold text-[#8f6a63]">Helpers:</span> {helperLine}
+        </p>
 
-      {shouldShowForm ? (
+        {!isEditing && (
+          <button
+            type="button"
+            onClick={() => onEdit(role.id)}
+            className="w-fit text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] underline decoration-[#d8bdb6] decoration-1 underline-offset-4 transition hover:text-[#6f5750] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
+          >
+            {savedHelperNames ? "Edit helpers" : "Offer to help with this"}
+          </button>
+        )}
+      </div>
+
+      {isEditing && (
         <form
-          className="grid gap-3"
+          className="mt-4 grid gap-3 border-t border-[#eaded6]/60 pt-4"
           onSubmit={(event) => {
             event.preventDefault();
             onSave(role.id);
@@ -461,19 +529,6 @@ function RoleHelperSignup({
             Save names
           </button>
         </form>
-      ) : (
-        <div className="grid gap-3">
-          <p className="type-card-body break-words" aria-live="polite">
-            <span className="font-semibold text-[#8f6a63]">Helpers:</span> {savedHelperNames}
-          </p>
-          <button
-            type="button"
-            onClick={() => onEdit(role.id)}
-            className="w-fit text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] underline decoration-[#d8bdb6] decoration-1 underline-offset-4 transition hover:text-[#6f5750] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
-          >
-            Edit names
-          </button>
-        </div>
       )}
     </div>
   );
@@ -517,7 +572,7 @@ function UpcomingBridalPartyDatesSection() {
   }, []);
 
   return (
-    <PrivateSection id="upcoming-dates" className="pt-12 md:pt-16">
+    <PrivateSection id="upcoming-dates" className="pt-4 md:pt-8">
       <SectionHeading
         eyebrow="UPCOMING DATES"
         title="Bridal party & fashion plans"
@@ -589,6 +644,201 @@ function UpcomingBridalPartyDatesSection() {
   );
 }
 
+function HelpingHandSection() {
+  const [savedResponse, setSavedResponse] = useState<HelpingHandResponse | null>(null);
+  const [draftResponse, setDraftResponse] = useState<HelpingHandResponse>(() => emptyHelpingHandResponse());
+  const [isEditing, setIsEditing] = useState(false);
+  const [hasLoadedResponse, setHasLoadedResponse] = useState(false);
+  const [error, setError] = useState("");
+  const selectedOptions = draftResponse.helpWith;
+
+  useEffect(() => {
+    const loadStoredResponse = window.setTimeout(() => {
+      const storedResponse = readStoredHelpingHandResponse();
+
+      if (storedResponse) {
+        setSavedResponse(storedResponse);
+        setDraftResponse(storedResponse);
+      }
+
+      setHasLoadedResponse(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadStoredResponse);
+    };
+  }, []);
+
+  const toggleHelpOption = (option: string) => {
+    setDraftResponse((currentResponse) => {
+      const optionIsSelected = currentResponse.helpWith.includes(option);
+
+      return {
+        ...currentResponse,
+        helpWith: optionIsSelected
+          ? currentResponse.helpWith.filter((currentOption) => currentOption !== option)
+          : [...currentResponse.helpWith, option],
+      };
+    });
+    setError("");
+  };
+
+  const handleHelpingHandSave = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    const name = draftResponse.name.trim();
+    const note = draftResponse.note.trim();
+    const helpWith = draftResponse.helpWith.filter((option) => helpingHandOptions.includes(option));
+
+    if (!name) {
+      setError("Please add your name.");
+      return;
+    }
+
+    if (helpWith.length === 0) {
+      setError("Please choose at least one way you would be happy to help.");
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const nextResponse: HelpingHandResponse = {
+      name,
+      helpWith,
+      note,
+      submittedAt: savedResponse?.submittedAt || now,
+      ...(savedResponse ? { updatedAt: now } : {}),
+    };
+
+    window.localStorage.setItem(helpingHandStorageKey, JSON.stringify(nextResponse));
+    setSavedResponse(nextResponse);
+    setDraftResponse(nextResponse);
+    setIsEditing(false);
+    setError("");
+  };
+
+  const showForm = !savedResponse || isEditing;
+
+  return (
+    <PrivateSection id="helping-hand" contentClassName="mx-auto max-w-4xl">
+      <div className="mx-auto mb-10 max-w-3xl text-center">
+        <p className="heading-micro mb-3">A HELPING HAND</p>
+        <h2 className="heading-primary">Little details, beautifully held</h2>
+        <div className="heading-copy mx-auto mt-4 grid max-w-[660px] gap-4">
+          <p>
+            There may be a few small moments in the lead-up or on the day where an extra pair of hands would mean the world. If you&rsquo;re happy for us to gently call on you, leave your name below and choose the things you&rsquo;d be comfortable helping with.
+          </p>
+          <p>No pressure at all &mdash; this simply helps us know who&rsquo;s happy to be asked.</p>
+        </div>
+      </div>
+
+      <SoftCard className="mx-auto max-w-3xl">
+        {hasLoadedResponse && !showForm && savedResponse && (
+          <div className="grid gap-5">
+            <div className="rounded-[1.2rem] border border-[#eaded6]/70 bg-white/42 p-4" aria-live="polite">
+              <p className="type-card-body break-words text-[#3f302b]">
+                Thank you &mdash; we&rsquo;ll only reach out if we need a little extra help.
+              </p>
+              <p className="type-card-body mt-3 break-words text-[#6f615c]">
+                <span className="font-semibold text-[#8f6a63]">Name:</span> {savedResponse.name}
+              </p>
+              <p className="type-card-body mt-2 break-words text-[#6f615c]">
+                <span className="font-semibold text-[#8f6a63]">Happy to help with:</span>{" "}
+                {savedResponse.helpWith.join(", ")}
+              </p>
+              {savedResponse.note && (
+                <p className="type-card-body mt-2 whitespace-pre-line break-words text-[#6f615c]">
+                  <span className="font-semibold text-[#8f6a63]">Note:</span> {savedResponse.note}
+                </p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setDraftResponse(savedResponse);
+                setIsEditing(true);
+              }}
+              className="w-fit text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] underline decoration-[#d8bdb6] decoration-1 underline-offset-4 transition hover:text-[#6f5750] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
+            >
+              Edit response
+            </button>
+          </div>
+        )}
+
+        {hasLoadedResponse && showForm && (
+          <form className="grid gap-5" onSubmit={handleHelpingHandSave}>
+            <label className="grid gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8c7a72]" htmlFor="helping-hand-name">
+              Name
+              <input
+                id="helping-hand-name"
+                value={draftResponse.name}
+                onChange={(event) => {
+                  setDraftResponse((currentResponse) => ({ ...currentResponse, name: event.target.value }));
+                  setError("");
+                }}
+                className="min-h-11 min-w-0 rounded-2xl border border-[#eaded6] bg-[#fffaf7]/86 px-4 font-serif text-[1rem] normal-case tracking-normal text-[#4f4641] shadow-[inset_0_0_0_1px_rgba(255,248,244,0.5)] outline-none transition placeholder:text-[#aa9991] focus:border-[#cbb6af] focus:ring-2 focus:ring-[#e8cfc8]/45"
+                placeholder="Your name"
+                autoComplete="name"
+                required
+              />
+            </label>
+
+            <fieldset className="grid gap-3">
+              <legend className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8c7a72]">
+                I&rsquo;d be happy to help with:
+              </legend>
+              <div className="flex flex-wrap gap-2">
+                {helpingHandOptions.map((option) => {
+                  const isSelected = selectedOptions.includes(option);
+
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => toggleHelpOption(option)}
+                      className={`min-h-11 rounded-full border px-4 py-2 text-left text-[0.76rem] font-semibold uppercase tracking-[0.1em] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70 ${
+                        isSelected
+                          ? "border-[#c9aaa0] bg-[#f4e4df] text-[#6f5750] shadow-[0_10px_22px_rgba(90,65,50,0.055)]"
+                          : "border-[#eaded6] bg-white/58 text-[#8c7a72] hover:border-[#d9c5bc] hover:bg-white/78"
+                      }`}
+                    >
+                      {option}
+                    </button>
+                  );
+                })}
+              </div>
+            </fieldset>
+
+            <label className="grid gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8c7a72]" htmlFor="helping-hand-note">
+              Anything we should know?
+              <textarea
+                id="helping-hand-note"
+                value={draftResponse.note}
+                onChange={(event) => setDraftResponse((currentResponse) => ({ ...currentResponse, note: event.target.value }))}
+                className="min-h-24 min-w-0 resize-none rounded-2xl border border-[#eaded6] bg-[#fffaf7]/86 px-4 py-3 font-serif text-[1rem] normal-case tracking-normal text-[#4f4641] shadow-[inset_0_0_0_1px_rgba(255,248,244,0.5)] outline-none transition placeholder:text-[#aa9991] focus:border-[#cbb6af] focus:ring-2 focus:ring-[#e8cfc8]/45"
+                placeholder="Optional note"
+              />
+            </label>
+
+            {error && (
+              <p className="type-caption text-[#8f6a63]" role="alert">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              className="w-fit rounded-full border border-[#d9c5bc] bg-[#fff8f4]/78 px-5 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] shadow-[0_10px_24px_rgba(90,65,50,0.045)] transition hover:border-[#cbb6af] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
+            >
+              I&rsquo;m happy to help
+            </button>
+          </form>
+        )}
+      </SoftCard>
+    </PrivateSection>
+  );
+}
+
 function LookbookGuideCard({
   guide,
   onOpen,
@@ -613,6 +863,10 @@ function LookbookGuideCard({
         </span>
         <span className="type-card-body mt-4 block max-w-2xl md:text-[1.08rem]">
           {guide.intro}
+        </span>
+
+        <span className="mt-5 inline-flex rounded-full border border-[#dccbc3] bg-white/58 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8f6a63] transition group-hover:border-[#c9aaa0] sm:hidden">
+          Open full guide{!hasPoster && hiddenNoteCount > 0 ? ` + ${hiddenNoteCount} more` : ""}
         </span>
 
         {guide.poster ? (
@@ -667,7 +921,7 @@ function LookbookMoodboard() {
         <SectionHeading
           eyebrow="STYLE NOTES"
           title="Lookbooks"
-          copy="A little visual guide for the people standing closest to us. These are here to help everyone understand the overall mood, colours, and level of formality - not to make anyone feel boxed in."
+          copy="A little visual guide for the people standing closest to us. These are here to help everyone understand the overall mood, colours, and level of formality — not to make anyone feel boxed in."
         />
 
         <div className="inner-lookbook-tabs mx-auto mb-8 flex max-w-4xl flex-wrap justify-center gap-2 rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/78 p-2 shadow-[0_12px_34px_rgba(90,65,50,0.045)]">
@@ -972,10 +1226,7 @@ function InnerCircleContent() {
       ...currentDrafts,
       [roleId]: roleHelpers[roleId] ?? currentDrafts[roleId] ?? emptyRoleHelperNames(),
     }));
-    setEditingRoleIds((currentEditingRoleIds) => ({
-      ...currentEditingRoleIds,
-      [roleId]: true,
-    }));
+    setEditingRoleIds({ [roleId]: true });
   };
 
   return (
@@ -992,15 +1243,15 @@ function InnerCircleContent() {
             A little space for the people helping us bring the day to life.
           </motion.p>
           <motion.p className="heading-copy mx-auto mt-6 max-w-2xl" {...heroReveal(0.4, 12)}>
-            This page is here to keep everyone gently in the loop as we get closer to the wedding. We&rsquo;ll use it for key dates, wedding-week reminders, small jobs, and anything our favourite people need to know.
+            This page is here to keep everyone gently in the loop as we get closer to the wedding. We&rsquo;ll use it for key dates, wedding-week reminders, style notes, and anything our favourite people need to know.
           </motion.p>
         </div>
-        <motion.nav aria-label="Inner Circle sections" className="mx-auto mt-10 flex max-w-4xl flex-wrap justify-center gap-2" {...heroReveal(0.54, 10)}>
+        <motion.nav aria-label="Inner Circle sections" className="mx-auto mt-8 flex max-w-[23rem] flex-wrap justify-center gap-2 sm:mt-10 sm:max-w-4xl" {...heroReveal(0.54, 10)}>
           {pageAnchors.map((anchor) => (
             <a
               key={anchor.href}
               href={anchor.href}
-              className="rounded-full border border-[#eaded6] bg-[#fffaf7]/76 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8c7a72] shadow-[0_8px_20px_rgba(90,65,50,0.04)] transition hover:border-[var(--color-divider)] hover:text-[#8f6a63]"
+              className="min-h-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/76 px-3.5 py-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#8c7a72] shadow-[0_8px_20px_rgba(90,65,50,0.04)] transition hover:border-[var(--color-divider)] hover:text-[#8f6a63] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70 sm:px-4"
             >
               {anchor.label}
             </a>
@@ -1033,14 +1284,12 @@ function InnerCircleContent() {
         </div>
       </PrivateSection>
 
-      <UpcomingBridalPartyDatesSection />
-
       <PrivateSection id="dates" contentClassName="mx-auto grid max-w-5xl items-start gap-6 md:grid-cols-[0.9fr_1.1fr]">
         <div>
           <p className="heading-micro mb-3">KEY DATES</p>
           <h2 className="heading-primary">Dates to hold</h2>
           <p className="heading-copy mt-5">
-            Exact rehearsal, getting-ready, and family-photo timings will be confirmed closer to the date.
+            A few anchor dates to keep in mind. The finer timings will be confirmed closer to the day.
           </p>
         </div>
         <SoftCard>
@@ -1055,8 +1304,12 @@ function InnerCircleContent() {
         </SoftCard>
       </PrivateSection>
 
+      <UpcomingBridalPartyDatesSection />
+
+      <LookbookMoodboard />
+
       <PrivateSection id="week">
-        <SectionHeading title="Wedding week reminders" copy="Small practical things that will help the week feel calm and unhurried." />
+        <SectionHeading title="A calm week before" copy="A few gentle reminders so the week feels easy, calm, and unhurried." />
         <SoftCard>
           <div className="grid gap-4 sm:grid-cols-2">
             {weekReminders.map((item) => (
@@ -1101,31 +1354,17 @@ function InnerCircleContent() {
         </div>
       </PrivateSection>
 
-      <LookbookMoodboard />
-
-      <PrivateSection>
-        <SectionHeading title="Little ways to help" copy="Nothing here needs to feel formal. These are simply the small things that make the day easier." />
-        <div className="grid gap-4 md:grid-cols-2">
-          {littleWaysToHelp.map((item) => (
-            <SoftCard key={item} className="p-5">
-              <p className="type-card-body flex items-start gap-3">
-                <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-[#b98278]" />
-                <span>{item}</span>
-              </p>
-            </SoftCard>
-          ))}
-        </div>
-      </PrivateSection>
+      <HelpingHandSection />
 
       <PrivateSection id="contact" contentClassName="mx-auto grid max-w-5xl items-start gap-6 md:grid-cols-[0.9fr_1.1fr]">
         <div>
           <p className="heading-micro mb-3">WHO TO CONTACT</p>
           <h2 className="heading-primary">Who to ask</h2>
           <p className="heading-copy mt-5">
-            Closer to the wedding, we&rsquo;ll add the best person to contact for different things so Sumaya and Adi aren&rsquo;t fielding every question on the day.
+            Closer to the wedding, we&rsquo;ll add the best person to contact for different things so the day stays calm and we can stay present.
           </p>
           <p className="type-card-body mt-4 text-[#8c7a72]">
-            No phone numbers are listed here yet. We&rsquo;ll only add real contact details when we are comfortable with how this page is being shared.
+            No phone numbers are listed here yet. We&rsquo;ll only add contact details once this page is ready to be shared privately.
           </p>
         </div>
         <SoftCard>
