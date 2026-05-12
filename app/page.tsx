@@ -1678,17 +1678,17 @@ export default function WeddingWebsiteStarter() {
             {
               icon: Flower2,
               title: "Garden Ceremony",
-              text: "A soft ceremony at Garden House, set among the greenery and romance of Caversham House.",
+              text: "Set among the greenery at Garden House.",
             },
             {
               icon: Utensils,
               title: "Dinner at Main House",
-              text: "An elegant sit-down reception with good food, warm speeches, and time shared around the table.",
+              text: "A sit-down reception and time shared around the table.",
             },
             {
               icon: Music,
               title: "Celebration",
-              text: "Music, drinks, and dancing as the evening unfolds.",
+              text: "Music and dancing as the evening unfolds.",
             },
           ].map((card, index) => (
             <motion.div
