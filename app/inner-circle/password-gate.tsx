@@ -7,11 +7,13 @@ import { motion, useReducedMotion } from "framer-motion";
 const INNER_CIRCLE_PASSWORD = "garden2026";
 const INNER_CIRCLE_ACCESS_KEY = "inner-circle-access";
 const INNER_CIRCLE_ACCESS_EVENT = "inner-circle-access-change";
+const WEDDING_DAY_ROLES_HELPERS_KEY = "weddingDayRolesHelpers";
 const innerRevealEase = [0.19, 1, 0.22, 1] as const;
 
 const pageAnchors = [
   { href: "#note", label: "Note" },
   { href: "#details", label: "Details" },
+  { href: "#upcoming-dates", label: "Upcoming" },
   { href: "#dates", label: "Dates" },
   { href: "#week", label: "Wedding week" },
   { href: "#roles", label: "Roles" },
@@ -44,6 +46,28 @@ type LookbookCategory = {
     caption: string;
     why: string;
   }>;
+};
+
+type DayRole = {
+  id: string;
+  title: string;
+  copy: string;
+};
+
+type RoleHelperNames = {
+  name1: string;
+  name2: string;
+};
+
+type RoleHelperMap = Record<string, RoleHelperNames>;
+
+type InnerCircleDateEvent = {
+  id: string;
+  title: string;
+  date: string;
+  time?: string;
+  location?: string;
+  notes?: string;
 };
 
 const lookbooks: LookbookCategory[] = [
@@ -112,63 +136,6 @@ const lookbooks: LookbookCategory[] = [
     },
     images: [],
   },
-  {
-    id: "family-inner-circle",
-    label: "Family",
-    brief: "Elegant, polished, and cohesive with the garden setting. Soft neutrals, pastels, and classic formal tones are all welcome.",
-    weLove: "Outfits that feel timeless, comfortable, and photo-ready.",
-    avoid: "Overly bright neon colours or anything too casual.",
-    comfort: "Choose an outfit you can sit, stand, walk, hug, and celebrate in comfortably.",
-    palette: [
-      { name: "Blush", hex: "#EBC8C4" },
-      { name: "Rose beige", hex: "#D8B7AE" },
-      { name: "Champagne", hex: "#E7D4B8" },
-      { name: "Sage", hex: "#AEBE9E" },
-      { name: "Navy", hex: "#1F2A44" },
-      { name: "Charcoal", hex: "#4B4A49" },
-    ],
-    guide: {
-      eyebrow: "GROOM FAMILY MORNING GUIDE",
-      title: "Getting Ready Lookbook",
-      intro: "A gentle family styling guide for coordinated tones, sarees, suit details, florals, jewellery, and relaxed photo moments.",
-      poster: {
-        src: "/images/lookbooks/groom-family-getting-ready.png",
-        alt: "Getting Ready Lookbook for the groom family with attire, saree, styling, floral, jewellery, hair, makeup, footwear, and photo notes.",
-      },
-      notes: [
-        { title: "Groom's mom attire", copy: "Please wear a saree in tones that complement the day. Blush, champagne, soft neutrals, or muted pastels are perfect." },
-        { title: "Groom's mom styling", copy: "Elegant and timeless draping styles that feel comfortable and refined." },
-        { title: "Groom's mom florals", copy: "A corsage will be provided on the day and added just before the ceremony." },
-        { title: "Groom's mom jewellery", copy: "Gold, pearl, or soft-toned jewellery works beautifully." },
-        { title: "Groom's sister attire", copy: "Please wear a saree that complements the overall palette. Soft blush, champagne, or neutral tones are ideal." },
-        { title: "Groom's sister hair", copy: "Soft waves, a low bun, or a romantic styled look will suit the overall aesthetic." },
-        { title: "Groom's sister makeup", copy: "Keep makeup soft and polished to match the overall aesthetic." },
-        { title: "Groom's dad attire", copy: "A suit in navy or classic dark tones, aligned with the groom party." },
-        { title: "Groom's dad florals", copy: "A boutonniere will be provided and placed just before the ceremony." },
-        { title: "Groom's dad details", copy: "Tie or pocket square can incorporate blush or soft neutral accents." },
-        { title: "Groom's dad footwear", copy: "Formal shoes, clean and polished." },
-        { title: "Photo note", copy: "We will capture a few relaxed family moments during the morning and after the ceremony." },
-      ],
-      footer: "Dress in coordinated tones, be ready for photos when needed, keep it relaxed and comfortable, and enjoy the day together.",
-    },
-    images: [],
-  },
-  {
-    id: "getting-ready",
-    label: "Getting Ready",
-    brief: "Soft, calm, pretty, and comfortable for the morning.",
-    weLove: "Robes, pyjamas, slippers, soft neutral tones, blush accents, and pieces that photograph beautifully.",
-    avoid: "Anything uncomfortable, overly busy, or difficult to change out of.",
-    comfort: "Prioritise easy layers, gentle fabrics, and pieces that will not disturb hair or makeup.",
-    palette: [
-      { name: "Warm ivory", hex: "#FFF8F4" },
-      { name: "Blush", hex: "#EBC8C4" },
-      { name: "Champagne", hex: "#E7D4B8" },
-      { name: "Soft taupe", hex: "#BBA9A0" },
-      { name: "Sage", hex: "#B9C7AA" },
-    ],
-    images: [],
-  },
 ];
 
 const keyDetails = [
@@ -209,38 +176,41 @@ const weekReminders = [
   "Help keep the week as calm as possible.",
 ];
 
-const dayRoles = [
+const dayRoles: DayRole[] = [
   {
+    id: "timeline-lead",
     title: "Timeline lead",
-    copy: "Keeps an eye on the day's flow and helps point people in the right direction.",
+    copy: "Keeps an eye on the day’s schedule and helps gently move people along when needed.",
   },
   {
-    title: "MC",
-    copy: "Helps guide guests through speeches, dinner, cake cutting, first dance, and key transitions.",
-  },
-  {
+    id: "family-photo-wrangler",
     title: "Family photo wrangler",
-    copy: "Helps gather family members quickly after the ceremony so photos don't take forever.",
+    copy: "Helps gather family members after the ceremony so group photos happen quickly and smoothly.",
   },
   {
+    id: "confetti-lead",
     title: "Confetti lead",
-    copy: "Makes sure confetti is handed out and ready for the ceremony exit.",
+    copy: "Makes sure confetti is handed out and guests are ready for the ceremony exit moment.",
   },
   {
+    id: "touch-up-kit-keeper",
     title: "Touch-up kit keeper",
     copy: "Keeps lipstick, tissues, blotting paper, perfume, pins, and small beauty items nearby.",
   },
   {
+    id: "emergency-kit-keeper",
     title: "Emergency kit keeper",
-    copy: "Keeps safety pins, plasters, pain relief, stain remover, fashion tape, sewing kit, and other just-in-case items.",
+    copy: "Keeps just-in-case items nearby, such as plasters, pain relief, stain remover, fashion tape, and a sewing kit.",
   },
   {
-    title: "Gift/card collector",
-    copy: "Makes sure cards and gifts are collected and kept safe at the end of the night.",
+    id: "gift-card-collector",
+    title: "Gift & card collector",
+    copy: "Makes sure cards and gifts are collected, kept safe, and taken to the right place at the end of the night.",
   },
   {
+    id: "transport-helper",
     title: "Transport helper",
-    copy: "Helps confirm the right people are in the right cars at the right time.",
+    copy: "Helps confirm the right people are in the right cars or transport at the right time.",
   },
 ];
 
@@ -262,6 +232,78 @@ const contactPlaceholders = [
   "Transport - TBC",
   "Emergency / urgent - TBC",
 ];
+
+function emptyRoleHelperNames(): RoleHelperNames {
+  return { name1: "", name2: "" };
+}
+
+function normaliseRoleHelperMap(value: unknown): RoleHelperMap {
+  if (!value || typeof value !== "object" || Array.isArray(value)) {
+    return {};
+  }
+
+  return Object.entries(value as Record<string, unknown>).reduce<RoleHelperMap>((helpers, [roleId, names]) => {
+    if (!names || typeof names !== "object" || Array.isArray(names)) {
+      return helpers;
+    }
+
+    const maybeNames = names as Partial<RoleHelperNames>;
+    const name1 = typeof maybeNames.name1 === "string" ? maybeNames.name1.trim() : "";
+    const name2 = typeof maybeNames.name2 === "string" ? maybeNames.name2.trim() : "";
+
+    if (name1 || name2) {
+      helpers[roleId] = { name1, name2 };
+    }
+
+    return helpers;
+  }, {});
+}
+
+function filterCurrentRoleHelpers(helpers: RoleHelperMap): RoleHelperMap {
+  return dayRoles.reduce<RoleHelperMap>((currentHelpers, role) => {
+    if (helpers[role.id]) {
+      currentHelpers[role.id] = helpers[role.id];
+    }
+
+    return currentHelpers;
+  }, {});
+}
+
+function readStoredRoleHelpers(): RoleHelperMap {
+  if (typeof window === "undefined") {
+    return {};
+  }
+
+  try {
+    return filterCurrentRoleHelpers(
+      normaliseRoleHelperMap(JSON.parse(window.localStorage.getItem(WEDDING_DAY_ROLES_HELPERS_KEY) ?? "{}")),
+    );
+  } catch {
+    return {};
+  }
+}
+
+function createRoleHelperDrafts(helpers: RoleHelperMap = {}): RoleHelperMap {
+  return dayRoles.reduce<RoleHelperMap>((drafts, role) => {
+    drafts[role.id] = helpers[role.id] ?? emptyRoleHelperNames();
+    return drafts;
+  }, {});
+}
+
+function formatInnerCircleDate(date: string) {
+  const normalizedDate = date.match(/^\d{4}-\d{2}-\d{2}$/) ? date : "";
+
+  if (!normalizedDate) {
+    return date;
+  }
+
+  return new Intl.DateTimeFormat("en-AU", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${normalizedDate}T00:00:00.000Z`));
+}
 
 function getInnerCircleAccessSnapshot() {
   if (typeof window === "undefined") {
@@ -345,6 +387,205 @@ function SoftCard({ children, className = "" }: { children: ReactNode; className
     >
       {children}
     </motion.div>
+  );
+}
+
+function RoleHelperSignup({
+  role,
+  savedNames,
+  draftNames,
+  error,
+  isEditing,
+  onChange,
+  onEdit,
+  onSave,
+}: {
+  role: DayRole;
+  savedNames?: RoleHelperNames;
+  draftNames: RoleHelperNames;
+  error?: string;
+  isEditing: boolean;
+  onChange: (roleId: string, field: keyof RoleHelperNames, value: string) => void;
+  onEdit: (roleId: string) => void;
+  onSave: (roleId: string) => void;
+}) {
+  const savedHelperNames = [savedNames?.name1, savedNames?.name2].filter(Boolean).join(" & ");
+  const shouldShowForm = isEditing || !savedNames;
+
+  return (
+    <div className="mt-6 rounded-[1.15rem] border border-[#eaded6]/70 bg-white/42 p-4">
+      <p className="heading-micro mb-3">Helpers</p>
+
+      {shouldShowForm ? (
+        <form
+          className="grid gap-3"
+          onSubmit={(event) => {
+            event.preventDefault();
+            onSave(role.id);
+          }}
+        >
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="grid gap-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8c7a72]" htmlFor={`${role.id}-helper-name-1`}>
+              Name 1
+              <input
+                id={`${role.id}-helper-name-1`}
+                value={draftNames.name1}
+                onChange={(event) => onChange(role.id, "name1", event.target.value)}
+                className="min-w-0 rounded-full border border-[#eaded6] bg-[#fffaf7]/86 px-4 py-2.5 font-serif text-[1rem] normal-case tracking-normal text-[#4f4641] shadow-[inset_0_0_0_1px_rgba(255,248,244,0.5)] outline-none transition focus:border-[#cbb6af] focus:ring-2 focus:ring-[#e8cfc8]/45"
+                autoComplete="name"
+              />
+            </label>
+
+            <label className="grid gap-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8c7a72]" htmlFor={`${role.id}-helper-name-2`}>
+              Name 2, optional
+              <input
+                id={`${role.id}-helper-name-2`}
+                value={draftNames.name2}
+                onChange={(event) => onChange(role.id, "name2", event.target.value)}
+                className="min-w-0 rounded-full border border-[#eaded6] bg-[#fffaf7]/86 px-4 py-2.5 font-serif text-[1rem] normal-case tracking-normal text-[#4f4641] shadow-[inset_0_0_0_1px_rgba(255,248,244,0.5)] outline-none transition focus:border-[#cbb6af] focus:ring-2 focus:ring-[#e8cfc8]/45"
+                autoComplete="name"
+              />
+            </label>
+          </div>
+
+          {error && (
+            <p className="type-caption text-[#8f6a63]" role="alert">
+              {error}
+            </p>
+          )}
+
+          <button
+            type="submit"
+            className="w-fit rounded-full border border-[#d9c5bc] bg-[#fff8f4]/78 px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] shadow-[0_10px_24px_rgba(90,65,50,0.045)] transition hover:border-[#cbb6af] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
+          >
+            Save names
+          </button>
+        </form>
+      ) : (
+        <div className="grid gap-3">
+          <p className="type-card-body break-words" aria-live="polite">
+            <span className="font-semibold text-[#8f6a63]">Helpers:</span> {savedHelperNames}
+          </p>
+          <button
+            type="button"
+            onClick={() => onEdit(role.id)}
+            className="w-fit text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] underline decoration-[#d8bdb6] decoration-1 underline-offset-4 transition hover:text-[#6f5750] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
+          >
+            Edit names
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function UpcomingBridalPartyDatesSection() {
+  const [events, setEvents] = useState<InnerCircleDateEvent[]>([]);
+  const [hasLoadedEvents, setHasLoadedEvents] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const visibleEvents = isExpanded ? events : events.slice(0, 3);
+  const hasMoreEvents = events.length > 3;
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadUpcomingDates() {
+      let nextEvents: InnerCircleDateEvent[] = [];
+
+      try {
+        const response = await fetch("/api/inner-circle/bridal-party-dates", { cache: "no-store" });
+
+        if (response.ok) {
+          const data = (await response.json()) as { events?: InnerCircleDateEvent[] };
+          nextEvents = Array.isArray(data.events) ? data.events : [];
+        }
+      } catch (error) {
+        console.error("Inner Circle upcoming dates load failed.", error);
+      }
+
+      if (!isCancelled) {
+        setEvents(nextEvents);
+        setHasLoadedEvents(true);
+      }
+    }
+
+    void loadUpcomingDates();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  return (
+    <PrivateSection id="upcoming-dates" className="pt-12 md:pt-16">
+      <SectionHeading
+        eyebrow="UPCOMING DATES"
+        title="Bridal party & fashion plans"
+        copy="A few key dates for fittings, outfit plans, and bridal party moments. We&rsquo;ll keep this updated as plans are confirmed."
+      />
+
+      {!hasLoadedEvents && (
+        <SoftCard className="mx-auto max-w-2xl text-center">
+          <p className="type-card-body">Loading upcoming dates...</p>
+        </SoftCard>
+      )}
+
+      {hasLoadedEvents && events.length === 0 && (
+        <SoftCard className="mx-auto max-w-2xl text-center">
+          <p className="type-card-body">No bridal party or fashion dates have been added yet.</p>
+        </SoftCard>
+      )}
+
+      {hasLoadedEvents && events.length > 0 && (
+        <>
+          <div id="inner-circle-upcoming-dates-list" className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {visibleEvents.map((event) => (
+              <SoftCard key={event.id} className="p-5 md:p-6">
+                <p className="heading-micro mb-3">{formatInnerCircleDate(event.date)}</p>
+                <h3 className="break-words font-serif text-[1.38rem] leading-tight text-[#3f302b] md:text-[1.5rem]">
+                  {event.title}
+                </h3>
+
+                {(event.time || event.location) && (
+                  <div className="mt-4 grid gap-2">
+                    {event.time && (
+                      <p className="type-card-body break-words text-[#6f615c]">
+                        <span className="font-semibold text-[#8f6a63]">Time:</span> {event.time}
+                      </p>
+                    )}
+                    {event.location && (
+                      <p className="type-card-body break-words text-[#6f615c]">
+                        <span className="font-semibold text-[#8f6a63]">Location:</span> {event.location}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {event.notes && (
+                  <p className="type-card-body mt-5 whitespace-pre-line break-words border-t border-[#eaded6]/70 pt-4 text-[#6f615c]">
+                    {event.notes}
+                  </p>
+                )}
+              </SoftCard>
+            ))}
+          </div>
+
+          {hasMoreEvents && (
+            <div className="mt-8 text-center">
+              <button
+                type="button"
+                aria-controls="inner-circle-upcoming-dates-list"
+                aria-expanded={isExpanded}
+                onClick={() => setIsExpanded((currentValue) => !currentValue)}
+                className="rounded-full border border-[#d9c5bc] bg-[#fff8f4]/78 px-5 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] shadow-[0_10px_24px_rgba(90,65,50,0.045)] transition hover:border-[#cbb6af] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
+              >
+                {isExpanded ? "Show fewer" : "View all dates"}
+              </button>
+            </div>
+          )}
+        </>
+      )}
+    </PrivateSection>
   );
 }
 
@@ -633,6 +874,11 @@ function LookbookMoodboard() {
 
 function InnerCircleContent() {
   const shouldReduceMotion = useReducedMotion();
+  const [roleHelpers, setRoleHelpers] = useState<RoleHelperMap>({});
+  const [roleHelperDrafts, setRoleHelperDrafts] = useState<RoleHelperMap>(() => createRoleHelperDrafts());
+  const [editingRoleIds, setEditingRoleIds] = useState<Record<string, boolean>>({});
+  const [roleHelperErrors, setRoleHelperErrors] = useState<Record<string, string>>({});
+  const [hasLoadedRoleHelpers, setHasLoadedRoleHelpers] = useState(false);
   const heroReveal = (delay = 0, y = 16) => ({
     initial: shouldReduceMotion ? false : { opacity: 0, y },
     animate: { opacity: 1, y: 0 },
@@ -646,6 +892,91 @@ function InnerCircleContent() {
       document.documentElement.classList.remove("inner-circle-editorial-scroll");
     };
   }, []);
+
+  useEffect(() => {
+    const loadStoredHelpers = window.setTimeout(() => {
+      const storedHelpers = readStoredRoleHelpers();
+      setRoleHelpers(storedHelpers);
+      setRoleHelperDrafts(createRoleHelperDrafts(storedHelpers));
+      setHasLoadedRoleHelpers(true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadStoredHelpers);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!hasLoadedRoleHelpers) {
+      return;
+    }
+
+    window.localStorage.setItem(WEDDING_DAY_ROLES_HELPERS_KEY, JSON.stringify(roleHelpers));
+  }, [hasLoadedRoleHelpers, roleHelpers]);
+
+  const handleRoleHelperDraftChange = (roleId: string, field: keyof RoleHelperNames, value: string) => {
+    setRoleHelperDrafts((currentDrafts) => ({
+      ...currentDrafts,
+      [roleId]: {
+        ...(currentDrafts[roleId] ?? emptyRoleHelperNames()),
+        [field]: value,
+      },
+    }));
+    setRoleHelperErrors((currentErrors) => {
+      if (!currentErrors[roleId]) {
+        return currentErrors;
+      }
+
+      const nextErrors = { ...currentErrors };
+      delete nextErrors[roleId];
+      return nextErrors;
+    });
+  };
+
+  const handleRoleHelperSave = (roleId: string) => {
+    const draft = roleHelperDrafts[roleId] ?? emptyRoleHelperNames();
+    const nextNames = {
+      name1: draft.name1.trim(),
+      name2: draft.name2.trim(),
+    };
+
+    if (!nextNames.name1 && !nextNames.name2) {
+      setRoleHelperErrors((currentErrors) => ({
+        ...currentErrors,
+        [roleId]: "Add at least one helper name.",
+      }));
+      return;
+    }
+
+    setRoleHelpers((currentHelpers) => ({
+      ...currentHelpers,
+      [roleId]: nextNames,
+    }));
+    setRoleHelperDrafts((currentDrafts) => ({
+      ...currentDrafts,
+      [roleId]: nextNames,
+    }));
+    setEditingRoleIds((currentEditingRoleIds) => ({
+      ...currentEditingRoleIds,
+      [roleId]: false,
+    }));
+    setRoleHelperErrors((currentErrors) => {
+      const nextErrors = { ...currentErrors };
+      delete nextErrors[roleId];
+      return nextErrors;
+    });
+  };
+
+  const handleRoleHelperEdit = (roleId: string) => {
+    setRoleHelperDrafts((currentDrafts) => ({
+      ...currentDrafts,
+      [roleId]: roleHelpers[roleId] ?? currentDrafts[roleId] ?? emptyRoleHelperNames(),
+    }));
+    setEditingRoleIds((currentEditingRoleIds) => ({
+      ...currentEditingRoleIds,
+      [roleId]: true,
+    }));
+  };
 
   return (
     <main className="inner-circle-page min-h-screen bg-[#fbf7f2] text-[#4f4641]">
@@ -702,6 +1033,8 @@ function InnerCircleContent() {
         </div>
       </PrivateSection>
 
+      <UpcomingBridalPartyDatesSection />
+
       <PrivateSection id="dates" contentClassName="mx-auto grid max-w-5xl items-start gap-6 md:grid-cols-[0.9fr_1.1fr]">
         <div>
           <p className="heading-micro mb-3">KEY DATES</p>
@@ -744,13 +1077,25 @@ function InnerCircleContent() {
         />
         <div className="grid gap-5 md:grid-cols-2">
           {dayRoles.map((role) => (
-            <SoftCard key={role.title}>
+            <SoftCard key={role.id} className="flex min-w-0 flex-col">
               <div className="mb-5 flex items-center gap-3">
                 <span className="h-px w-10 bg-[var(--color-divider)]" />
                 <span className="h-2 w-2 rotate-45 bg-[#cbb6af]" />
               </div>
               <h3 className="type-card-title">{role.title}</h3>
               <p className="type-card-body mt-4">{role.copy}</p>
+              <div className="mt-auto">
+                <RoleHelperSignup
+                  role={role}
+                  savedNames={roleHelpers[role.id]}
+                  draftNames={roleHelperDrafts[role.id] ?? emptyRoleHelperNames()}
+                  error={roleHelperErrors[role.id]}
+                  isEditing={Boolean(editingRoleIds[role.id])}
+                  onChange={handleRoleHelperDraftChange}
+                  onEdit={handleRoleHelperEdit}
+                  onSave={handleRoleHelperSave}
+                />
+              </div>
             </SoftCard>
           ))}
         </div>
