@@ -1665,7 +1665,9 @@ export default function WeddingWebsiteStarter() {
             The celebration
           </motion.p>
           <motion.h2 className="heading-primary" {...cinematicRevealMotion(0.14, 18, 1.02, 0.46)}>
-            A garden ceremony, an intimate dinner, and an evening to remember
+            From garden vows
+            <br />
+            to evening glow
           </motion.h2>
           <motion.p className="heading-copy mt-4" {...cinematicRevealMotion(0.3, 14, 0.92, 0.44)}>
             Our day has been designed to feel romantic, relaxed, and full of warmth &mdash; with beautiful food, music,
