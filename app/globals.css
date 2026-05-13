@@ -2241,38 +2241,36 @@ footer > * {
   }
 
   .dress-code-mobile-panels {
-    display: block;
+    display: grid;
     width: 100%;
-    background: linear-gradient(180deg, #fbf7f2 0%, #fbf7f2 49%, #f8f1ec 100%);
+    background:
+      linear-gradient(180deg, #fbf7f2 0%, #fbf7f2 50%, #f8f1ec 100%),
+      var(--atmosphere-paper-grain);
   }
 
   .dress-code-mobile-panel {
     position: relative;
-    min-height: 100svh;
-    min-height: 100dvh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    padding: clamp(2.85rem, 5.8svh, 4rem) var(--mobile-page-gutter) clamp(2.1rem, 4.3svh, 3.1rem);
-    scroll-snap-align: start;
+    min-height: 0;
+    display: block;
+    overflow: visible;
+    padding: clamp(2.75rem, 6.2svh, 4rem) var(--mobile-page-gutter);
+    scroll-snap-align: none;
     scroll-snap-stop: normal;
   }
 
   .dress-code-mobile-panel-primary {
-    padding-top: clamp(3.25rem, 6.2svh, 4.18rem);
-    padding-bottom: clamp(1.45rem, 3.15svh, 2.2rem);
+    padding-top: clamp(3.45rem, 7.2svh, 4.6rem);
+    padding-bottom: clamp(2rem, 4.6svh, 3.05rem);
     background:
-      linear-gradient(180deg, rgba(251, 247, 242, 0.96) 0%, rgba(251, 247, 242, 0.9) 72%, rgba(249, 241, 236, 0.72) 100%),
+      linear-gradient(180deg, rgba(251, 247, 242, 0.98) 0%, rgba(251, 247, 242, 0.94) 76%, rgba(249, 241, 236, 0.66) 100%),
       var(--atmosphere-paper-grain);
   }
 
   .dress-code-mobile-panel-classic {
-    align-items: center;
-    padding-top: clamp(3.2rem, 6.4svh, 4.35rem);
-    padding-bottom: clamp(1.5rem, 3.4svh, 2.25rem);
+    padding-top: clamp(2.45rem, 5.4svh, 3.45rem);
+    padding-bottom: clamp(3rem, 7svh, 4.35rem);
     background:
-      linear-gradient(180deg, rgba(251, 247, 242, 0.36) 0%, rgba(248, 241, 236, 0.72) 18%, rgba(247, 239, 233, 0.95) 58%, rgba(248, 241, 236, 0.86) 100%),
+      linear-gradient(180deg, rgba(251, 247, 242, 0.44) 0%, rgba(249, 242, 237, 0.76) 18%, rgba(247, 239, 233, 0.96) 62%, rgba(248, 241, 236, 0.9) 100%),
       var(--atmosphere-paper-grain);
   }
 
@@ -2280,8 +2278,10 @@ footer > * {
     content: "";
     position: absolute;
     inset: 0 0 auto;
-    height: clamp(5.8rem, 17svh, 8.2rem);
-    background: linear-gradient(180deg, rgba(251, 247, 242, 0.88) 0%, rgba(248, 241, 236, 0.46) 52%, rgba(248, 241, 236, 0) 100%);
+    height: clamp(3.8rem, 10svh, 5.2rem);
+    background:
+      radial-gradient(circle at 50% 0%, rgba(216, 188, 178, 0.16) 0%, rgba(216, 188, 178, 0) 58%),
+      linear-gradient(180deg, rgba(251, 247, 242, 0.82) 0%, rgba(248, 241, 236, 0.24) 68%, rgba(248, 241, 236, 0) 100%);
     pointer-events: none;
   }
 
@@ -2296,11 +2296,11 @@ footer > * {
 
   .dress-code-mobile-panel-primary .dress-code-mobile-panel-inner {
     max-width: min(100%, 356px);
-    transform: translateY(calc(-1 * clamp(0.72rem, 2.1dvh, 1.28rem)));
+    transform: none;
   }
 
   .dress-code-mobile-panel-classic .dress-code-mobile-panel-inner {
-    max-width: min(100%, 326px);
+    max-width: min(100%, 356px);
   }
 
   .dress-code-mobile-panel .heading-micro {
@@ -2326,7 +2326,7 @@ footer > * {
   }
 
   .dress-code-mobile-block {
-    margin-top: clamp(0.92rem, 2.1svh, 1.18rem);
+    margin-top: clamp(1.15rem, 2.8svh, 1.55rem);
   }
 
   .dress-code-mobile-panel:not(.dress-code-mobile-panel-primary) .dress-code-mobile-block {
@@ -2340,9 +2340,9 @@ footer > * {
 
   .dress-code-mobile-block .type-card-body {
     max-width: min(88vw, 350px);
-    margin: 0.56rem auto 0;
+    margin: 0.58rem auto 0;
     font-size: clamp(0.86rem, 2.5vw, 0.92rem);
-    line-height: 1.4;
+    line-height: 1.42;
   }
 
   .dress-code-mobile-block .type-card-body p + p {
@@ -2559,14 +2559,15 @@ footer > * {
   #dress-code .dress-code-mobile-panel-primary .swatchRow {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     max-width: 300px;
-    margin-top: clamp(1.18rem, 2.9svh, 1.48rem);
+    margin-top: clamp(1.22rem, 3svh, 1.55rem);
     gap: 0.88rem 0.48rem !important;
   }
 
   #dress-code .dress-code-mobile-panel-classic .swatchRow {
-    max-width: 226px;
-    margin-top: 0.98rem;
-    gap: 0.84rem 0.6rem !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 242px;
+    margin-top: clamp(1.22rem, 3svh, 1.55rem);
+    gap: 0.88rem 0.58rem !important;
   }
 
   #dress-code .dress-code-mobile-panels .swatchItem {
@@ -2595,38 +2596,42 @@ footer > * {
   }
 
   #dress-code .dress-code-mobile-panels .dress-palette-guidance {
-    margin-top: 0.78rem;
-    font-size: 0.94rem;
-    line-height: 1.38;
+    margin-top: 1.05rem;
+    font-size: 0.95rem;
+    line-height: 1.44;
   }
 
-  #dress-code .dress-code-mobile-etiquette {
-    width: min(100%, 304px);
-    margin-top: 0.54rem;
-    padding: 0.68rem 0.9rem 0.74rem;
-    border-color: rgba(232, 207, 200, 0.14);
-    border-radius: 1.05rem;
-    background: linear-gradient(180deg, rgba(255, 250, 247, 0.38) 0%, rgba(249, 239, 235, 0.28) 100%);
+  #dress-code .dress-code-mobile-notes {
+    display: grid;
+    width: min(100%, 338px);
+    margin-top: 1.14rem;
+    gap: 0.62rem;
+    text-align: left;
+  }
+
+  #dress-code .dress-code-mobile-note-row {
+    padding: 0.78rem 0.88rem 0.82rem;
+    border: 1px solid rgba(220, 188, 178, 0.28);
+    border-radius: 0.92rem;
+    background:
+      linear-gradient(135deg, rgba(255, 250, 247, 0.72) 0%, rgba(249, 239, 235, 0.48) 100%),
+      var(--atmosphere-paper-grain);
     box-shadow:
-      0 8px 22px rgba(101, 75, 62, 0.008),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.1);
+      0 10px 24px rgba(116, 82, 70, 0.035),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.22);
   }
 
-  #dress-code .dress-code-mobile-etiquette .type-card-title {
-    color: rgba(156, 122, 115, 0.82);
-    font-size: 1.02rem;
-    line-height: 1.04;
+  #dress-code .dress-code-mobile-note-row .type-card-title {
+    color: rgba(143, 106, 99, 0.9);
+    font-size: 0.96rem;
+    line-height: 1.05;
   }
 
-  #dress-code .dress-code-mobile-etiquette .type-card-title:not(:first-child) {
-    margin-top: 0.58rem;
-  }
-
-  #dress-code .dress-code-mobile-etiquette .type-card-body {
-    margin-top: 0.22rem;
-    color: rgba(116, 100, 95, 0.84);
-    font-size: 0.74rem;
-    line-height: 1.24;
+  #dress-code .dress-code-mobile-note-row .type-card-body {
+    margin-top: 0.28rem;
+    color: rgba(116, 100, 95, 0.9);
+    font-size: 0.78rem;
+    line-height: 1.34;
   }
 
   #itinerary.mobile-invite-section {
@@ -3173,7 +3178,6 @@ footer > * {
   .invite-page .mobile-invite-quote,
   .invite-page .mobile-invite-note,
   .invite-page #details.mobile-invite-section,
-  .invite-page .dress-code-mobile-panel,
   .invite-page #rsvp.mobile-invite-section,
   .invite-page .venue-mobile-panel-intro,
   .invite-page > footer {
@@ -3201,13 +3205,13 @@ footer > * {
   }
 
   .invite-page #dress-code.mobile-invite-section {
-    scroll-snap-align: none;
+    scroll-snap-align: start;
     scroll-snap-stop: normal;
   }
 
   .invite-page .dress-code-mobile-panel {
-    scroll-margin-top: calc((4.75rem + env(safe-area-inset-bottom)) - max(0.85rem, env(safe-area-inset-top)));
-    scroll-margin-bottom: 0;
+    scroll-snap-align: none;
+    scroll-margin: 0;
   }
 
   .inner-circle-page .inner-circle-hero,
@@ -3289,12 +3293,12 @@ footer > * {
   }
 
   #dress-code .dress-code-mobile-panel-primary .dress-code-mobile-panel-inner {
-    transform: translateY(-1rem);
+    transform: none;
   }
 
   #dress-code .dress-code-mobile-panel-primary .swatchRow {
-    margin-top: 0.82rem;
-    gap: 0.62rem 0.42rem !important;
+    margin-top: 1rem;
+    gap: 0.68rem 0.42rem !important;
   }
 
   #dress-code .dress-code-mobile-panels .swatchCircle {
@@ -3311,9 +3315,8 @@ footer > * {
   }
 
   #dress-code .dress-code-mobile-panel-classic {
-    align-items: flex-start;
-    padding-top: clamp(2.3rem, 5svh, 3rem);
-    padding-bottom: 1rem;
+    padding-top: 2.15rem;
+    padding-bottom: 2.75rem;
   }
 
   #dress-code .dress-code-mobile-panel-classic .heading-secondary {
@@ -3321,44 +3324,44 @@ footer > * {
   }
 
   #dress-code .dress-code-mobile-panel-classic .type-card-body {
-    margin-top: 0.32rem;
-    font-size: 0.78rem;
-    line-height: 1.24;
+    margin-top: 0.44rem;
+    font-size: 0.82rem;
+    line-height: 1.32;
   }
 
   #dress-code .dress-code-mobile-panel-classic .type-card-body p + p {
-    margin-top: 0.12rem;
+    margin-top: 0.2rem;
   }
 
   #dress-code .dress-code-mobile-panel-classic .swatchRow {
-    margin-top: 0.68rem;
-    gap: 0.42rem 0.42rem !important;
+    margin-top: 0.96rem;
+    gap: 0.62rem 0.46rem !important;
   }
 
   #dress-code .dress-code-mobile-panel-classic .dress-palette-guidance {
-    margin-top: 0.46rem;
-    font-size: 0.82rem;
-    line-height: 1.24;
+    margin-top: 0.86rem;
+    font-size: 0.86rem;
+    line-height: 1.32;
   }
 
-  #dress-code .dress-code-mobile-etiquette {
-    width: min(100%, 292px);
-    margin-top: 0.38rem;
-    padding: 0.48rem 0.72rem 0.52rem;
+  #dress-code .dress-code-mobile-notes {
+    width: min(100%, 306px);
+    margin-top: 0.9rem;
+    gap: 0.5rem;
   }
 
-  #dress-code .dress-code-mobile-etiquette .type-card-title {
+  #dress-code .dress-code-mobile-note-row {
+    padding: 0.64rem 0.76rem 0.68rem;
+  }
+
+  #dress-code .dress-code-mobile-note-row .type-card-title {
     font-size: 0.9rem;
   }
 
-  #dress-code .dress-code-mobile-etiquette .type-card-title:not(:first-child) {
-    margin-top: 0.34rem;
-  }
-
-  #dress-code .dress-code-mobile-etiquette .type-card-body {
-    margin-top: 0.16rem;
-    font-size: 0.66rem;
-    line-height: 1.18;
+  #dress-code .dress-code-mobile-note-row .type-card-body {
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+    line-height: 1.24;
   }
 }
 
@@ -3379,12 +3382,12 @@ footer > * {
 
 @media (max-width: 340px) {
   #dress-code .dress-code-mobile-panel-primary {
-    padding-bottom: 0.82rem;
+    padding-bottom: 1.65rem;
   }
 
   #dress-code .dress-code-mobile-panel-primary .dress-code-mobile-panel-inner {
     max-width: min(100%, 292px);
-    transform: translateY(-1.45rem);
+    transform: none;
   }
 
   #dress-code .dress-code-mobile-panel .heading-micro {
@@ -3408,7 +3411,7 @@ footer > * {
   }
 
   #dress-code .dress-code-mobile-block {
-    margin-top: 0.5rem;
+    margin-top: 0.86rem;
   }
 
   #dress-code .dress-code-mobile-block .heading-secondary {
@@ -3416,26 +3419,26 @@ footer > * {
   }
 
   #dress-code .dress-code-mobile-block .type-card-body {
-    margin-top: 0.32rem;
+    margin-top: 0.4rem;
     font-size: 0.77rem;
-    line-height: 1.2;
+    line-height: 1.28;
   }
 
   #dress-code .dress-code-mobile-block .type-card-body p + p {
-    margin-top: 0.14rem;
+    margin-top: 0.18rem;
   }
 
   #dress-code .dress-code-mobile-panel-primary .swatchRow {
     max-width: 252px;
-    margin-top: 0.48rem;
-    gap: 0.34rem 0.3rem !important;
+    margin-top: 0.8rem;
+    gap: 0.48rem 0.3rem !important;
   }
 
   #dress-code .dress-code-mobile-panels .swatchCircle {
-    width: 44px !important;
-    height: 44px !important;
-    min-width: 44px !important;
-    min-height: 44px !important;
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    min-height: 48px !important;
   }
 
   #dress-code .dress-code-mobile-panels .swatchLabel {
@@ -3444,6 +3447,10 @@ footer > * {
     font-size: 0.48rem;
     line-height: 1.05;
     letter-spacing: 0.075em;
+  }
+
+  #dress-code .dress-code-mobile-note-row {
+    padding: 0.62rem 0.7rem 0.66rem;
   }
 }
 
