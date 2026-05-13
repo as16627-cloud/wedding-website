@@ -824,6 +824,7 @@ export default function WeddingWebsiteStarter() {
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [hasCopiedVenueAddress, setHasCopiedVenueAddress] = useState(false);
   const [canPlayCelebrationVideo, setCanPlayCelebrationVideo] = useState(false);
+  const [canPlayQuoteVideo, setCanPlayQuoteVideo] = useState(false);
 
   const fadeAmbientAudio = useCallback((targetVolume: number, pauseWhenDone = false) => {
     const audio = ambientAudioRef.current;
@@ -897,17 +898,19 @@ export default function WeddingWebsiteStarter() {
   useEffect(() => {
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const mobileQuery = window.matchMedia("(max-width: 767px)");
-    const updateCelebrationVideoPreference = () => {
-      setCanPlayCelebrationVideo(!reducedMotionQuery.matches && mobileQuery.matches);
+    const updateDecorativeVideoPreference = () => {
+      const canPlayDecorativeMobileVideo = !reducedMotionQuery.matches && mobileQuery.matches;
+      setCanPlayCelebrationVideo(canPlayDecorativeMobileVideo);
+      setCanPlayQuoteVideo(canPlayDecorativeMobileVideo);
     };
 
-    updateCelebrationVideoPreference();
-    reducedMotionQuery.addEventListener("change", updateCelebrationVideoPreference);
-    mobileQuery.addEventListener("change", updateCelebrationVideoPreference);
+    updateDecorativeVideoPreference();
+    reducedMotionQuery.addEventListener("change", updateDecorativeVideoPreference);
+    mobileQuery.addEventListener("change", updateDecorativeVideoPreference);
 
     return () => {
-      reducedMotionQuery.removeEventListener("change", updateCelebrationVideoPreference);
-      mobileQuery.removeEventListener("change", updateCelebrationVideoPreference);
+      reducedMotionQuery.removeEventListener("change", updateDecorativeVideoPreference);
+      mobileQuery.removeEventListener("change", updateDecorativeVideoPreference);
     };
   }, []);
 
@@ -1418,7 +1421,7 @@ export default function WeddingWebsiteStarter() {
                 loading="eager"
                 fetchPriority="high"
                 className="sa-monogram h-auto object-contain"
-                style={{ width: "clamp(58px, 5vw, 76px)" }}
+                style={{ width: "clamp(62px, 5.4vw, 78px)" }}
               />
             </a>
 
@@ -1539,22 +1542,20 @@ export default function WeddingWebsiteStarter() {
                 {...heroDividerLineMotion}
               />
             </div>
-            <motion.p
-              className="type-meta mx-auto mt-9 max-w-[330px] sm:max-w-none"
+            <motion.div
+              className="hero-meta-group type-meta mx-auto"
               {...heroTextRevealMotion(heroRevealTiming.delays.dateVenue)}
             >
-              <span className="block sm:inline">01 November 2026</span>
-              <span className="mx-2 hidden text-[var(--color-divider)] opacity-90 sm:inline">&middot;</span>
-              <span className="mt-3 block sm:mt-0 sm:inline">Caversham House, Swan Valley</span>
-            </motion.p>
-            <motion.p
-              className="type-meta mt-7"
-              {...heroTextRevealMotion(heroRevealTiming.delays.timeLocation)}
-            >
-              <span className="block sm:inline">4:00 PM Ceremony</span>
-              <span className="mx-2 hidden text-[var(--color-divider)] opacity-90 sm:inline">&middot;</span>
-              <span className="mt-2 block sm:mt-0 sm:inline">Garden House</span>
-            </motion.p>
+              <p>01 November 2026</p>
+              <p>Caversham House, Swan Valley</p>
+              <p className="hero-meta-time">
+                <span>Ceremony at 4:00 PM</span>
+                <span className="hero-meta-dot" aria-hidden="true">
+                  &nbsp;&middot;&nbsp;
+                </span>
+                <span>Garden House</span>
+              </p>
+            </motion.div>
             <div className="hero-cta-group">
               <motion.div
                 className="hero-cta-reveal"
@@ -1594,7 +1595,23 @@ export default function WeddingWebsiteStarter() {
       </section>
 
       <section className="editorial-panel mobile-invite-quote bg-[#fbf7f2] md:px-6 md:py-24">
-        <motion.div {...cinematicRevealMotion(0, 18, 1.08, 0.38)} className="mx-auto max-w-[600px] text-center">
+        {canPlayQuoteVideo ? (
+          <>
+            <video
+              className="quote-video-layer pointer-events-none absolute inset-0 h-full w-full object-cover"
+              src="/videos/quote-soft-light-loop.mp4"
+              poster="/videos/quote-soft-light-poster.jpg"
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              aria-hidden="true"
+            />
+            <div className="quote-video-wash pointer-events-none absolute inset-0" aria-hidden="true" />
+          </>
+        ) : null}
+        <motion.div {...cinematicRevealMotion(0, 18, 1.08, 0.38)} className="quote-content-layer mx-auto max-w-[600px] text-center">
           <motion.blockquote className="type-quote" {...cinematicRevealMotion(0.08, 14, 1.08, 0.46)}>
             &ldquo;Whatever our souls are made of, his and mine are the same.&rdquo;
           </motion.blockquote>
