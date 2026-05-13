@@ -208,16 +208,431 @@ body {
 
 .invite-page :is(a, button):focus-visible,
 .inner-circle-page :is(a, button):focus-visible,
-.guest-rsvp-page :is(a, button):focus-visible {
+.guest-rsvp-page :is(a, button):focus-visible,
+.future-plans-page :is(a, button):focus-visible {
   outline: 2px solid rgba(156, 122, 115, 0.32);
   outline-offset: 4px;
 }
 
 .invite-page > section,
 .inner-circle-page > section,
-.guest-rsvp-page > section {
+.guest-rsvp-page > section,
+.future-plans-page > section {
   position: relative;
   z-index: 1;
+}
+
+@keyframes future-plans-light-drift {
+  0% {
+    opacity: 0.38;
+    transform: translate3d(-1.2rem, -0.8rem, 0) scale(1);
+  }
+
+  100% {
+    opacity: 0.62;
+    transform: translate3d(1rem, 0.9rem, 0) scale(1.035);
+  }
+}
+
+.future-plans-page {
+  position: relative;
+  isolation: isolate;
+  height: 100vh;
+  height: 100dvh;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scroll-snap-type: y proximity;
+  background:
+    radial-gradient(circle at 50% -12%, rgba(255, 248, 244, 0.95) 0%, rgba(251, 247, 242, 0.72) 44%, rgba(248, 241, 236, 0.94) 100%),
+    var(--atmosphere-paper-grain),
+    #fbf7f2;
+  background-size: auto, 88px 88px, auto;
+  color: var(--color-body-soft);
+  font-family: var(--font-serif);
+  scrollbar-width: none;
+}
+
+.future-plans-page::-webkit-scrollbar {
+  display: none;
+}
+
+.future-plans-page > section {
+  min-height: 100vh;
+  min-height: 100dvh;
+  scroll-snap-align: center;
+}
+
+.future-plans-page::before,
+.future-plans-page::after {
+  content: "";
+  position: fixed;
+  inset: auto;
+  z-index: 0;
+  width: 42vmax;
+  height: 42vmax;
+  border-radius: 999px;
+  pointer-events: none;
+  filter: blur(8px);
+  animation: future-plans-light-drift 9s var(--motion-cinematic-soft) infinite alternate;
+}
+
+.future-plans-page::before {
+  left: -20vmax;
+  top: -12vmax;
+  background: radial-gradient(circle, rgba(244, 214, 207, 0.34) 0%, rgba(244, 214, 207, 0) 68%);
+}
+
+.future-plans-page::after {
+  right: -24vmax;
+  bottom: -18vmax;
+  background: radial-gradient(circle, rgba(203, 182, 175, 0.22) 0%, rgba(203, 182, 175, 0) 68%);
+  animation-delay: -3.5s;
+}
+
+.future-plans-hero,
+.future-plans-experiences,
+.future-plans-closing {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: clamp(4.2rem, 8svh, 6.25rem) var(--mobile-page-gutter);
+}
+
+.future-plans-hero {
+  text-align: center;
+}
+
+.future-plans-hero-video,
+.future-plans-hero-wash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.future-plans-hero-video {
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  opacity: 0.52;
+  filter: sepia(0.05) saturate(1.02) contrast(1) brightness(1.04);
+}
+
+.future-plans-hero-wash {
+  z-index: 1;
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(255, 251, 248, 0.82) 0%, rgba(251, 247, 242, 0.58) 38%, rgba(251, 247, 242, 0.22) 68%, rgba(251, 247, 242, 0.08) 100%),
+    linear-gradient(180deg, rgba(251, 247, 242, 0.42) 0%, rgba(249, 239, 235, 0.18) 48%, rgba(251, 247, 242, 0.42) 100%);
+}
+
+.future-plans-hero-content,
+.future-plans-section-heading,
+.future-plans-closing-card {
+  position: relative;
+  z-index: 2;
+}
+
+.future-plans-hero-content {
+  width: min(100%, 43rem);
+  transform: translateY(-0.2rem);
+}
+
+.future-plans-kicker {
+  margin: 0 0 1rem;
+  color: var(--color-label);
+  font-family: var(--font-sans);
+  font-size: clamp(0.68rem, 2.4vw, 0.78rem);
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.future-plans-hero h1,
+.future-plans-section-heading h2 {
+  margin: 0;
+  color: var(--color-heading);
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.future-plans-hero h1 {
+  font-size: clamp(3.35rem, 15vw, 7rem);
+  line-height: 0.92;
+}
+
+.future-plans-subheading,
+.future-plans-body {
+  margin-inline: auto;
+  color: rgba(111, 94, 88, 0.9);
+  font-size: clamp(1.04rem, 3.4vw, 1.24rem);
+  letter-spacing: 0.01em;
+  text-wrap: pretty;
+}
+
+.future-plans-subheading {
+  max-width: 34rem;
+  margin-top: clamp(1.35rem, 3.6svh, 2.1rem);
+  line-height: 1.52;
+}
+
+.future-plans-body {
+  max-width: 38rem;
+  margin-top: clamp(0.9rem, 2.1svh, 1.2rem);
+  line-height: 1.6;
+}
+
+.future-plans-experiences {
+  align-content: center;
+  background:
+    linear-gradient(180deg, rgba(251, 247, 242, 0.92) 0%, rgba(248, 241, 236, 0.98) 100%),
+    var(--atmosphere-paper-grain);
+  background-size: auto, 88px 88px;
+  text-align: center;
+}
+
+.future-plans-section-heading {
+  width: min(100%, 44rem);
+}
+
+.future-plans-section-heading h2 {
+  font-size: clamp(2.45rem, 10.5vw, 4.7rem);
+  line-height: 0.98;
+}
+
+.future-plans-card-rail {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-auto-columns: minmax(17.6rem, 82vw);
+  grid-auto-flow: column;
+  gap: 1rem;
+  width: calc(100% + (var(--mobile-page-gutter) * 2));
+  max-width: 68rem;
+  margin-top: clamp(1.65rem, 4.4svh, 2.6rem);
+  margin-inline: calc(var(--mobile-page-gutter) * -1);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 0.2rem var(--mobile-page-gutter) 0.75rem;
+  scroll-padding-inline: var(--mobile-page-gutter);
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.future-plans-card-rail::-webkit-scrollbar {
+  display: none;
+}
+
+.future-plans-card {
+  position: relative;
+  min-height: 21rem;
+  padding: clamp(1.35rem, 5vw, 1.75rem);
+  border: 1px solid rgba(232, 207, 200, 0.42);
+  border-radius: var(--card-luxe-radius);
+  background:
+    linear-gradient(145deg, rgba(255, 250, 247, 0.72) 0%, rgba(248, 241, 236, 0.54) 100%),
+    var(--atmosphere-paper-grain);
+  background-size: auto, 70px 70px;
+  box-shadow: var(--card-luxe-shadow), inset 0 0 0 1px rgba(255, 248, 244, 0.22);
+  scroll-snap-align: center;
+  text-align: left;
+  backdrop-filter: blur(14px);
+  transition:
+    transform var(--motion-cinematic-duration) var(--motion-cinematic-ease),
+    border-color var(--motion-cinematic-duration) var(--motion-cinematic-ease),
+    box-shadow var(--motion-cinematic-duration) var(--motion-cinematic-ease);
+}
+
+.future-plans-card:hover,
+.future-plans-card:focus-within {
+  transform: translateY(-2px);
+  border-color: rgba(203, 182, 175, 0.66);
+  box-shadow: var(--card-luxe-shadow-hover), inset 0 0 0 1px rgba(255, 248, 244, 0.32);
+}
+
+.future-plans-card-ornament {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 0.65rem;
+  width: 7rem;
+  margin-bottom: 1.25rem;
+  color: rgba(203, 182, 175, 0.9);
+}
+
+.future-plans-card-ornament span {
+  height: 1px;
+  background: currentColor;
+}
+
+.future-plans-card-ornament i {
+  width: 0.34rem;
+  height: 0.34rem;
+  transform: rotate(45deg);
+  background: currentColor;
+}
+
+.future-plans-card-number {
+  margin: 0 0 0.5rem;
+  color: var(--color-label);
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+}
+
+.future-plans-card h3 {
+  margin: 0;
+  color: var(--color-heading);
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 7vw, 2.2rem);
+  font-weight: 400;
+  line-height: 1.02;
+}
+
+.future-plans-card > p:last-of-type {
+  margin: 0.78rem 0 1.35rem;
+  color: rgba(111, 94, 88, 0.88);
+  font-size: clamp(0.98rem, 3.4vw, 1.08rem);
+  line-height: 1.48;
+  text-wrap: pretty;
+}
+
+.future-plans-card-button {
+  display: inline-flex;
+  min-height: 2.72rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(203, 182, 175, 0.46);
+  border-radius: 999px;
+  background: rgba(255, 250, 247, 0.48);
+  color: rgba(156, 122, 115, 0.72);
+  font-family: var(--font-sans);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  line-height: 1;
+  padding: 0 1.15rem;
+  text-transform: uppercase;
+}
+
+.future-plans-card-button:disabled {
+  cursor: default;
+}
+
+.future-plans-closing {
+  min-height: 78vh;
+  min-height: 78dvh;
+  background:
+    radial-gradient(ellipse at 50% 38%, rgba(255, 250, 247, 0.92) 0%, rgba(251, 247, 242, 0.72) 58%, rgba(248, 241, 236, 0.96) 100%),
+    var(--atmosphere-paper-grain);
+  background-size: auto, 88px 88px;
+  text-align: center;
+}
+
+.future-plans-closing-card {
+  width: min(100%, 43rem);
+  padding: clamp(2.1rem, 7vw, 3.6rem);
+  border: 1px solid rgba(232, 207, 200, 0.32);
+  border-radius: var(--card-luxe-radius);
+  background: rgba(255, 250, 247, 0.42);
+  box-shadow: 0 24px 70px rgba(101, 75, 62, 0.024), inset 0 0 0 1px rgba(255, 248, 244, 0.18);
+}
+
+.future-plans-closing-card p {
+  margin: 0;
+  color: var(--color-heading);
+  font-family: var(--font-serif);
+  font-size: clamp(1.32rem, 5.6vw, 2.18rem);
+  font-style: italic;
+  line-height: 1.48;
+  text-wrap: pretty;
+}
+
+@media (min-width: 768px) {
+  .future-plans-hero,
+  .future-plans-experiences,
+  .future-plans-closing {
+    padding-inline: clamp(3rem, 6vw, 6rem);
+  }
+
+  .future-plans-card-rail {
+    grid-auto-flow: row;
+    grid-auto-columns: initial;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.1rem;
+    width: min(100%, 68rem);
+    margin-inline: auto;
+    overflow: visible;
+    padding: 0;
+    scroll-snap-type: none;
+  }
+
+  .future-plans-card:nth-child(4) {
+    grid-column: 1 / span 1;
+  }
+
+  .future-plans-card:nth-child(5) {
+    grid-column: 2 / span 1;
+  }
+}
+
+@media (min-width: 1024px) {
+  .future-plans-card {
+    min-height: 19.5rem;
+  }
+}
+
+@media (max-width: 380px) {
+  .future-plans-hero,
+  .future-plans-experiences,
+  .future-plans-closing {
+    padding-inline: 1.15rem;
+  }
+
+  .future-plans-hero h1 {
+    font-size: clamp(3rem, 14vw, 3.45rem);
+  }
+
+  .future-plans-subheading,
+  .future-plans-body {
+    font-size: 0.98rem;
+  }
+
+  .future-plans-card-rail {
+    grid-auto-columns: minmax(16.5rem, 84vw);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .future-plans-page {
+    scroll-behavior: auto;
+  }
+
+  .future-plans-page::before,
+  .future-plans-page::after {
+    animation: none;
+  }
+
+  .future-plans-hero {
+    background-image:
+      radial-gradient(ellipse at 50% 46%, rgba(255, 251, 248, 0.84) 0%, rgba(251, 247, 242, 0.66) 54%, rgba(248, 241, 236, 0.94) 100%),
+      url("/videos/quote-soft-light-poster.jpg");
+    background-position: center;
+    background-size: cover;
+  }
+
+  .future-plans-hero-video {
+    display: none;
+  }
+
+  .future-plans-card,
+  .future-plans-card:hover,
+  .future-plans-card:focus-within {
+    transform: none;
+  }
 }
 
 .font-serif {

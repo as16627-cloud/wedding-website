@@ -1283,6 +1283,7 @@ export default function WeddingWebsiteStarter() {
         </div>
 
         <nav className="absolute inset-x-0 top-0 z-40">
+          {/* Hidden registry/future funds page — do not link publicly until approved. */}
           <div className="mx-auto grid w-full max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-5 py-5 sm:px-8 md:px-12 md:py-6">
             <div className="type-nav hidden items-center justify-start gap-8 md:flex lg:gap-10">
               <a href="#details" className="nav-link">
@@ -2276,6 +2277,7 @@ export default function WeddingWebsiteStarter() {
           className="footer-utility-nav mt-8 flex items-center justify-center gap-5"
           {...cinematicRevealMotion(0.38, 8, 0.72, 0.4)}
         >
+          {/* Hidden registry/future funds page — do not link publicly until approved. */}
           <a href="/guest-list" className="type-nav text-[var(--color-label)] transition hover:text-[var(--color-heading)]">Guest List</a>
           <span className="text-[var(--color-divider-soft)]">&middot;</span>
           <a href="/inner-circle" className="type-nav text-[var(--color-label)] transition hover:text-[var(--color-heading)]">Inner Circle</a>
