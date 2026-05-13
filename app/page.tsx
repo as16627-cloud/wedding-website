@@ -2066,10 +2066,12 @@ export default function WeddingWebsiteStarter() {
                   <span className="h-px flex-1 bg-[var(--color-divider)] opacity-90" />
                 </div>
                 <p className="heading-copy mx-auto max-w-[560px]">
-                  A Swan Valley garden setting with a romantic ceremony at Garden House and a reception at Main House.
+                  Set in the Swan Valley on the banks of the Swan River, Caversham House feels like a private garden
+                  estate &mdash; with soft lawns, European-inspired grounds, and quiet corners made for celebration.
                 </p>
                 <p className="type-card-body mx-auto max-w-[520px]">
-                  A soft garden setting for the day to unfold slowly, warmly, and beautifully.
+                  It felt like the right place for a day that is romantic, relaxed, and full of warmth &mdash; from
+                  garden vows to dinner at Main House and an evening shared together.
                 </p>
               </div>
 
@@ -2086,7 +2088,7 @@ export default function WeddingWebsiteStarter() {
           >
             <div className="venue-mobile-panel-inner">
               <div className="card-luxe card-luxe-text venue-mobile-info-card">
-                <h3 className="type-card-title">Getting There &amp; Parking</h3>
+                <h3 className="type-card-title">Arrival &amp; Parking</h3>
                 <div className="type-card-body">
                   <p>
                     Caversham House
@@ -2095,11 +2097,11 @@ export default function WeddingWebsiteStarter() {
                   </p>
                   <div className="h-px w-full bg-[var(--color-divider)] opacity-90" />
                   <p>
-                    Parking is available at the Main House car park. Please follow signage upon arrival.
+                    Parking is available at the Main House car park. Please follow the venue signage when you arrive.
                   </p>
                   <p>
-                    We recommend arriving 20&ndash;30 minutes before the ceremony to allow time to settle into the
-                    gardens.
+                    To keep the day feeling relaxed, we recommend arriving 20&ndash;30 minutes before the ceremony so you
+                    have time to park, make your way through the gardens, and settle in before the vows.
                   </p>
                 </div>
                 <div className="venue-action-group">
@@ -2110,7 +2112,7 @@ export default function WeddingWebsiteStarter() {
                     rel="noopener noreferrer"
                   >
                     <MapPin className="h-4 w-4" />
-                    Open Maps
+                    Open Directions
                   </a>
                   <a
                     className="venue-action venue-action-secondary"
@@ -2149,8 +2151,8 @@ export default function WeddingWebsiteStarter() {
               We hope you can celebrate with us
             </motion.h2>
             <motion.p className="heading-copy mt-5" {...cinematicRevealMotion(0.34, 12, 0.9, 0.42)}>
-              Your formal invitation will include a private RSVP link created just for you. Please use that link so we
-              can recognise your invitation and save your response to the right guest record.
+              Your formal invitation will include a private RSVP link made just for you. Please use that link to confirm
+              your details and send us your response.
             </motion.p>
           </div>
 
@@ -2159,13 +2161,12 @@ export default function WeddingWebsiteStarter() {
             {...cinematicRevealMotion(0.48, 14, 0.9, 0.3)}
           >
             <p className="type-card-body mx-auto max-w-2xl">
-              There is no public name-search RSVP form, so your private link is the most reliable way for us to prefill
-              your invitation details and ask only the questions relevant to you.
+              No need to search for your name &mdash; your private link will take you straight to your RSVP.
             </p>
             <div className="rsvp-mobile-steps mt-6 md:hidden">
               <div>
                 <span>1</span>
-                <strong>Open private link</strong>
+                <strong>Open your link</strong>
               </div>
               <div>
                 <span>2</span>
@@ -2174,7 +2175,7 @@ export default function WeddingWebsiteStarter() {
             </div>
             <div className="mx-auto mt-6 h-px w-24 bg-[var(--color-divider)] opacity-90" />
             <p className="type-card-body mx-auto mt-6 max-w-xl">
-              If you cannot find your link, please message Sumaya or Aditya and we can send it again.
+              If you cannot find your link, please message Sumaya or Aditya and we&rsquo;ll send it again.
             </p>
           </motion.div>
 
