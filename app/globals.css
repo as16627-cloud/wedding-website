@@ -2017,7 +2017,13 @@ footer > * {
   }
 
   html.invite-editorial-scroll {
-    scroll-snap-type: y proximity;
+    height: 100%;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scroll-padding-top: 0;
+    scroll-padding-bottom: 0;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
   }
 
   html.inner-circle-editorial-scroll {
@@ -2030,7 +2036,7 @@ footer > * {
 
   .invite-page .editorial-panel {
     scroll-snap-align: start;
-    scroll-snap-stop: normal;
+    scroll-snap-stop: always;
   }
 
   .inner-circle-page .inner-editorial-panel {
@@ -2332,13 +2338,16 @@ footer > * {
   }
 
   .hero-section {
-    height: 108svh;
+    height: 100svh;
+    height: 100dvh;
   }
 
   .hero-inner,
   .hero-content {
     height: 100svh;
-    min-height: 640px;
+    height: 100dvh;
+    min-height: 100svh;
+    min-height: 100dvh;
   }
 
   .hero-estate-layer {
@@ -2580,7 +2589,7 @@ footer > * {
     min-height: var(--mobile-scene-min);
     align-items: center;
     padding: var(--mobile-scene-padding) var(--mobile-page-gutter);
-    scroll-margin-top: 18px;
+    scroll-margin-top: 0;
   }
 
   .mobile-invite-section > .relative {
@@ -2666,25 +2675,27 @@ footer > * {
 
   .dress-code-mobile-panel {
     position: relative;
-    min-height: 0;
-    display: block;
-    overflow: visible;
-    padding: clamp(2.75rem, 6.2svh, 4rem) var(--mobile-page-gutter);
-    scroll-snap-align: none;
-    scroll-snap-stop: normal;
+    min-height: 100svh;
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    overflow: clip;
+    padding: clamp(2.4rem, 5.2svh, 3.35rem) var(--mobile-page-gutter);
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .dress-code-mobile-panel-primary {
-    padding-top: clamp(3.45rem, 7.2svh, 4.6rem);
-    padding-bottom: clamp(2rem, 4.6svh, 3.05rem);
+    padding-top: clamp(2.75rem, 5.8svh, 3.9rem);
+    padding-bottom: clamp(2.55rem, 5.3svh, 3.6rem);
     background:
       linear-gradient(180deg, rgba(251, 247, 242, 0.98) 0%, rgba(251, 247, 242, 0.94) 76%, rgba(249, 241, 236, 0.66) 100%),
       var(--atmosphere-paper-grain);
   }
 
   .dress-code-mobile-panel-classic {
-    padding-top: clamp(2.45rem, 5.4svh, 3.45rem);
-    padding-bottom: clamp(3rem, 7svh, 4.35rem);
+    padding-top: clamp(2.6rem, 5.5svh, 3.7rem);
+    padding-bottom: clamp(2.65rem, 5.8svh, 3.95rem);
     background:
       linear-gradient(180deg, rgba(251, 247, 242, 0.44) 0%, rgba(249, 242, 237, 0.76) 18%, rgba(247, 239, 233, 0.96) 62%, rgba(248, 241, 236, 0.9) 100%),
       var(--atmosphere-paper-grain);
@@ -2800,6 +2811,7 @@ footer > * {
     isolation: isolate;
     overflow: hidden;
     min-height: 100svh;
+    min-height: 100dvh;
     display: grid;
     place-items: center;
     padding: 6rem var(--mobile-page-gutter);
@@ -2859,6 +2871,7 @@ footer > * {
 
   .mobile-invite-note {
     min-height: 100svh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -3240,22 +3253,24 @@ footer > * {
   }
 
   .venue-mobile-panel {
-    min-height: var(--mobile-scene-min-feature);
+    min-height: 100svh;
+    min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: var(--mobile-scene-padding) var(--mobile-page-gutter);
     scroll-snap-align: start;
-    scroll-snap-stop: normal;
+    scroll-snap-stop: always;
   }
 
   .venue-mobile-panel-intro {
-    justify-content: flex-start;
-    padding-top: clamp(3.85rem, 7svh, 4.85rem);
+    justify-content: center;
+    padding-top: var(--mobile-scene-padding);
   }
 
   .venue-mobile-panel-practical {
-    min-height: var(--mobile-scene-min-compact);
+    min-height: 100svh;
+    min-height: 100dvh;
     padding-top: clamp(2.7rem, 6svh, 3.85rem);
     padding-bottom: clamp(2.85rem, 6.4svh, 4.1rem);
   }
@@ -3404,6 +3419,7 @@ footer > * {
 
   #rsvp.mobile-invite-section {
     min-height: 100svh;
+    min-height: 100dvh;
     align-items: center;
     padding: clamp(1.36rem, 3.25svh, 2.05rem) var(--mobile-page-gutter) clamp(1.22rem, 2.82svh, 1.82rem);
     scroll-margin-top: 0;
@@ -3600,10 +3616,12 @@ footer > * {
 
   footer {
     padding-inline: var(--mobile-page-gutter);
-    min-height: 45svh;
+    min-height: 100svh;
+    min-height: 100dvh;
     display: grid;
     align-content: center;
-    padding-top: 1.62rem;
+    justify-items: center;
+    padding-top: calc(2.3rem + env(safe-area-inset-top));
     padding-bottom: calc(2.3rem + env(safe-area-inset-bottom));
   }
 
@@ -3613,6 +3631,7 @@ footer > * {
 
   .invite-page .hero-section {
     scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .invite-page .mobile-invite-quote,
@@ -3621,15 +3640,15 @@ footer > * {
   .invite-page #rsvp.mobile-invite-section,
   .invite-page .venue-mobile-panel-intro,
   .invite-page > footer {
-    scroll-snap-align: center;
-    scroll-snap-stop: normal;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .invite-page #itinerary.mobile-invite-section,
   .invite-page .venue-mobile-panel-practical,
   .invite-page #faq.mobile-invite-section {
     scroll-snap-align: start;
-    scroll-snap-stop: normal;
+    scroll-snap-stop: always;
   }
 
   .invite-page .mobile-invite-section,
@@ -3640,17 +3659,23 @@ footer > * {
   }
 
   .invite-page #details.mobile-invite-section {
-    scroll-margin-top: calc((4.75rem + env(safe-area-inset-bottom)) - max(0.85rem, env(safe-area-inset-top)));
+    scroll-margin-top: 0;
     scroll-margin-bottom: 0;
   }
 
   .invite-page #dress-code.mobile-invite-section {
     scroll-snap-align: start;
-    scroll-snap-stop: normal;
+    scroll-snap-stop: always;
+  }
+
+  .invite-page #venue.mobile-invite-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
   }
 
   .invite-page .dress-code-mobile-panel {
-    scroll-snap-align: none;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
     scroll-margin: 0;
   }
 

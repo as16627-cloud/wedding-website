@@ -1715,8 +1715,8 @@ export default function WeddingWebsiteStarter() {
         </div>
 
         <div className="dress-code-mobile-panels">
-          <motion.div {...dressRevealMotion(0, 8)} className="dress-code-mobile-panel dress-code-mobile-panel-primary">
-            <div className="dress-code-mobile-panel-inner">
+          <div className="dress-code-mobile-panel dress-code-mobile-panel-primary">
+            <motion.div {...dressRevealMotion(0, 8)} className="dress-code-mobile-panel-inner">
               <p className="heading-micro">
                 {dressCode.eyebrow}
               </p>
@@ -1749,11 +1749,11 @@ export default function WeddingWebsiteStarter() {
                   ))}
                 </div>
               </article>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
 
-          <motion.div {...dressRevealMotion(0.02, 8)} className="dress-code-mobile-panel dress-code-mobile-panel-classic">
-            <div className="dress-code-mobile-panel-inner">
+          <div className="dress-code-mobile-panel dress-code-mobile-panel-classic">
+            <motion.div {...dressRevealMotion(0.02, 8)} className="dress-code-mobile-panel-inner">
               <article className="dress-code-mobile-block">
                 <h3 className="heading-secondary">Classic Formal</h3>
                 <div className="type-card-body">
@@ -1791,8 +1791,8 @@ export default function WeddingWebsiteStarter() {
                   </p>
                 </div>
               </div>
-            </div>
-          </motion.div>
+            </motion.div>
+          </div>
         </div>
       </SoftSection>
 
@@ -1963,8 +1963,8 @@ export default function WeddingWebsiteStarter() {
         </div>
 
         <div className="venue-mobile-panels">
-          <motion.section className="venue-mobile-panel venue-mobile-panel-intro" {...cinematicRevealMotion(0, 14, 0.95, 0.18)}>
-            <div className="venue-mobile-panel-inner">
+          <section className="venue-mobile-panel venue-mobile-panel-intro">
+            <motion.div className="venue-mobile-panel-inner" {...cinematicRevealMotion(0, 14, 0.95, 0.18)}>
               <div className="mx-auto max-w-3xl text-center">
                 <p className="heading-micro">VENUE</p>
                 <h2 className="heading-primary">Caversham House</h2>
@@ -1986,15 +1986,14 @@ export default function WeddingWebsiteStarter() {
               <div className="venue-mobile-carousel relative isolate">
                 <VenueCarousel />
               </div>
-            </div>
-          </motion.section>
+            </motion.div>
+          </section>
 
-          <motion.section
+          <section
             id="venue-parking"
             className="venue-mobile-panel venue-mobile-panel-practical"
-            {...cinematicRevealMotion(0, 14, 0.95, 0.18)}
           >
-            <div className="venue-mobile-panel-inner">
+            <motion.div className="venue-mobile-panel-inner" {...cinematicRevealMotion(0, 14, 0.95, 0.18)}>
               <div className="card-luxe card-luxe-text venue-mobile-info-card">
                 <h3 className="type-card-title">Arrival &amp; Parking</h3>
                 <div className="type-card-body">
@@ -2041,8 +2040,8 @@ export default function WeddingWebsiteStarter() {
                   </button>
                 </div>
               </div>
-            </div>
-          </motion.section>
+            </motion.div>
+          </section>
         </div>
       </SoftSection>
 
