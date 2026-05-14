@@ -1709,7 +1709,7 @@ export default function WeddingWebsiteStarter() {
           >
             <h3 className="type-card-title">A gentle note</h3>
             <p className="type-card-body mx-auto mt-3 max-w-[600px]">
-              With love, please leave white, ivory, cream, and bridal tones for the bride.
+              With love, we kindly ask guests to avoid white and bridal shades on the day.
             </p>
 
             <h3 className="type-card-title mt-7">Garden shoes</h3>
@@ -1785,7 +1785,7 @@ export default function WeddingWebsiteStarter() {
                 <div className="dress-code-mobile-note-row">
                   <h3 className="type-card-title">A gentle note</h3>
                   <p className="type-card-body">
-                    With love, please leave white, ivory, cream, and bridal tones for the bride.
+                    With love, we kindly ask guests to avoid white and bridal shades on the day.
                   </p>
                 </div>
 

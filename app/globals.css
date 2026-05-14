@@ -2990,10 +2990,27 @@ footer > * {
 
   .mobile-editorial-callout {
     padding: 1.28rem;
-    border: 1px solid rgba(232, 207, 200, 0.34);
+    border: 1px solid rgba(232, 207, 200, 0.22);
     border-radius: var(--mobile-card-radius);
-    background: linear-gradient(180deg, rgba(252, 248, 245, 0.88) 0%, rgba(248, 241, 237, 0.82) 100%);
-    box-shadow: var(--mobile-card-shadow), inset 0 0 0 1px rgba(221, 191, 183, 0.13);
+    background:
+      linear-gradient(180deg, rgba(255, 251, 248, 0.78) 0%, rgba(250, 241, 238, 0.64) 100%),
+      var(--atmosphere-paper-grain);
+    box-shadow:
+      0 20px 52px rgba(116, 82, 70, 0.022),
+      0 4px 18px rgba(203, 182, 175, 0.024),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.18);
+  }
+
+  .mobile-editorial-callout .type-card-title {
+    color: rgba(143, 106, 99, 0.86);
+    font-weight: 400;
+    letter-spacing: 0.018em;
+  }
+
+  .mobile-editorial-callout .type-card-body {
+    max-width: 42ch;
+    color: rgba(120, 102, 98, 0.82);
+    line-height: 1.58;
   }
 
   .swatchRow {
@@ -3091,27 +3108,31 @@ footer > * {
 
   #dress-code .dress-code-mobile-note-row {
     padding: 0.78rem 0.88rem 0.82rem;
-    border: 1px solid rgba(220, 188, 178, 0.28);
+    border: 1px solid rgba(220, 188, 178, 0.2);
     border-radius: 0.92rem;
     background:
-      linear-gradient(135deg, rgba(255, 250, 247, 0.72) 0%, rgba(249, 239, 235, 0.48) 100%),
+      linear-gradient(135deg, rgba(255, 251, 248, 0.74) 0%, rgba(250, 240, 237, 0.5) 100%),
       var(--atmosphere-paper-grain);
     box-shadow:
-      0 10px 24px rgba(116, 82, 70, 0.035),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.22);
+      0 14px 34px rgba(116, 82, 70, 0.024),
+      0 2px 9px rgba(203, 182, 175, 0.022),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.18);
   }
 
   #dress-code .dress-code-mobile-note-row .type-card-title {
-    color: rgba(143, 106, 99, 0.9);
+    color: rgba(143, 106, 99, 0.86);
     font-size: 0.96rem;
     line-height: 1.05;
+    font-weight: 400;
+    letter-spacing: 0.018em;
   }
 
   #dress-code .dress-code-mobile-note-row .type-card-body {
-    margin-top: 0.28rem;
-    color: rgba(116, 100, 95, 0.9);
+    max-width: 30ch;
+    margin-top: 0.32rem;
+    color: rgba(120, 102, 98, 0.82);
     font-size: 0.78rem;
-    line-height: 1.34;
+    line-height: 1.46;
   }
 
   #itinerary.mobile-invite-section {
@@ -3868,9 +3889,9 @@ footer > * {
   }
 
   #dress-code .dress-code-mobile-note-row .type-card-body {
-    margin-top: 0.2rem;
-    font-size: 0.7rem;
-    line-height: 1.24;
+    margin-top: 0.24rem;
+    font-size: 0.72rem;
+    line-height: 1.34;
   }
 }
 
