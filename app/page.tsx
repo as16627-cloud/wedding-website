@@ -1406,7 +1406,7 @@ export default function WeddingWebsiteStarter() {
               className="type-section-eyebrow"
               {...heroTextRevealMotion(heroRevealTiming.delays.eyebrow)}
             >
-              We&rsquo;re Getting Married
+              AN INVITATION TO CELEBRATE
             </motion.p>
             <motion.h1 className="rose-gold-foil hero-title type-hero-title mt-8" {...heroNamesRevealMotion}>
               <span className="hero-name">Sumaya</span>
@@ -1460,7 +1460,7 @@ export default function WeddingWebsiteStarter() {
                   className="hero-primary-cta primary-cta type-button"
                 >
                   <CalendarPlus className="h-4 w-4" />
-                  SAVE THE DATE
+                  ADD TO CALENDAR
                 </a>
               </motion.div>
             </div>
