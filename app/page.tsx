@@ -199,7 +199,7 @@ const faqs = [
   {
     question: "What time should I arrive?",
     answer:
-      "The ceremony begins at 4:00 PM. We recommend arriving prior to 3:30 PM so you have time to park, find your seat, and enjoy the gardens before the ceremony begins.",
+      "The ceremony begins at 4:00 PM. We recommend arriving 20–30 minutes before the ceremony to allow time to settle into the gardens.",
   },
   {
     question: "Do we need to travel between the ceremony and reception?",
@@ -234,7 +234,7 @@ const faqs = [
   {
     question: "Is there parking at the venue?",
     answer:
-      "Parking details will be confirmed closer to the day. We recommend allowing extra time for arrival, especially if you are travelling from outside the Swan Valley.",
+      "Parking is available at the Main House car park. Please follow signage upon arrival.\n\nWe recommend arriving 20–30 minutes before the ceremony to allow time to settle into the gardens.",
   },
   {
     question: "Can we take photos during the ceremony?",
@@ -550,6 +550,7 @@ function Swatch({ swatch }: { swatch: DressCodeSwatch }) {
 function FaqItem({ item, index }: { item: Faq; index: number }) {
   const [open, setOpen] = useState(index === 0);
   const shouldReduceMotion = useReducedMotion();
+  const answerParagraphs = item.answer.split("\n\n");
 
   return (
     <motion.div
@@ -581,7 +582,11 @@ function FaqItem({ item, index }: { item: Faq; index: number }) {
             transition={{ duration: shouldReduceMotion ? 0 : 0.58, ease: cinematicRevealEase }}
             className="overflow-hidden"
           >
-            <p className="faq-answer type-card-body px-5 pb-5">{item.answer}</p>
+            <div className="faq-answer type-card-body px-5 pb-5">
+              {answerParagraphs.map((paragraph) => (
+                <p key={paragraph}>{paragraph}</p>
+              ))}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -2004,11 +2009,11 @@ export default function WeddingWebsiteStarter() {
                   </p>
                   <div className="h-px w-full bg-[var(--color-divider)] opacity-90" />
                   <p>
-                    Parking is available at the Main House car park. Please follow the venue signage when you arrive.
+                    Parking is available at the Main House car park. Please follow signage upon arrival.
                   </p>
                   <p>
-                    To keep the day feeling relaxed, we recommend arriving 20&ndash;30 minutes before the ceremony so you
-                    have time to park, make your way through the gardens, and settle in before the vows.
+                    We recommend arriving 20&ndash;30 minutes before the ceremony to allow time to settle into the
+                    gardens.
                   </p>
                 </div>
                 <div className="venue-action-group">

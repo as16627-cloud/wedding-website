@@ -1613,6 +1613,10 @@ footer span {
     opacity var(--motion-cinematic-duration) var(--motion-cinematic-ease);
 }
 
+.faq-answer p + p {
+  margin-top: 0.86rem;
+}
+
 .footer-utility-nav {
   align-items: center;
   column-gap: 1.32rem;
@@ -1859,15 +1863,18 @@ footer > * {
 .quote-video-layer {
   z-index: 0;
   display: block;
-  opacity: 0.94;
-  object-position: 50% 50%;
-  filter: sepia(0.03) saturate(1.04) contrast(1.02) brightness(0.99);
+  opacity: 0.92;
+  object-position: 52% 50%;
+  transform: scale(1.012);
+  filter: blur(0.65px) saturate(0.72) contrast(0.76) brightness(1.22) hue-rotate(-8deg);
 }
 
 .quote-video-wash {
   z-index: 10;
   background:
-    radial-gradient(ellipse at 50% 52%, rgba(255, 251, 248, 0.82) 0%, rgba(255, 251, 248, 0.54) 24%, rgba(251, 247, 242, 0.22) 42%, rgba(251, 247, 242, 0.06) 58%, rgba(251, 247, 242, 0) 74%);
+    radial-gradient(ellipse at 50% 52%, rgba(255, 252, 250, 0.76) 0%, rgba(252, 243, 241, 0.42) 30%, rgba(248, 236, 236, 0.14) 54%, rgba(251, 247, 242, 0.04) 78%),
+    linear-gradient(180deg, rgba(255, 250, 248, 0.42) 0%, rgba(247, 236, 234, 0.12) 46%, rgba(255, 251, 249, 0.36) 100%),
+    linear-gradient(90deg, rgba(248, 232, 232, 0.16) 0%, rgba(255, 252, 249, 0.04) 50%, rgba(241, 225, 224, 0.1) 100%);
 }
 
 .invite-page #details > .relative {
@@ -2837,9 +2844,10 @@ footer > * {
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 50% 50%;
-    opacity: 0.94;
-    filter: sepia(0.03) saturate(1.04) contrast(1.02) brightness(0.99);
+    object-position: 52% 50%;
+    opacity: 0.92;
+    transform: scale(1.012);
+    filter: blur(0.65px) saturate(0.72) contrast(0.76) brightness(1.22) hue-rotate(-8deg);
     pointer-events: none;
   }
 
@@ -2849,7 +2857,9 @@ footer > * {
     z-index: 10;
     display: block;
     background:
-      radial-gradient(ellipse at 50% 52%, rgba(255, 251, 248, 0.82) 0%, rgba(255, 251, 248, 0.54) 24%, rgba(251, 247, 242, 0.22) 42%, rgba(251, 247, 242, 0.06) 58%, rgba(251, 247, 242, 0) 74%);
+      radial-gradient(ellipse at 50% 52%, rgba(255, 252, 250, 0.76) 0%, rgba(252, 243, 241, 0.42) 30%, rgba(248, 236, 236, 0.14) 54%, rgba(251, 247, 242, 0.04) 78%),
+      linear-gradient(180deg, rgba(255, 250, 248, 0.42) 0%, rgba(247, 236, 234, 0.12) 46%, rgba(255, 251, 249, 0.36) 100%),
+      linear-gradient(90deg, rgba(248, 232, 232, 0.16) 0%, rgba(255, 252, 249, 0.04) 50%, rgba(241, 225, 224, 0.1) 100%);
     pointer-events: none;
   }
 
@@ -2859,10 +2869,19 @@ footer > * {
     width: 100%;
   }
 
+  .mobile-invite-quote .type-quote {
+    color: rgba(139, 104, 106, 0.94);
+    text-shadow: 0 1px 22px rgba(255, 251, 248, 0.46);
+  }
+
+  .mobile-invite-quote .type-quote-attribution {
+    color: rgba(151, 121, 116, 0.78);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .mobile-invite-quote {
       background-image:
-        linear-gradient(180deg, rgba(251, 247, 242, 0.88) 0%, rgba(251, 247, 242, 0.74) 48%, rgba(251, 247, 242, 0.9) 100%),
+        linear-gradient(180deg, rgba(255, 249, 246, 0.82) 0%, rgba(251, 241, 237, 0.64) 48%, rgba(255, 250, 247, 0.86) 100%),
         url("/videos/quote-soft-light-poster.jpg");
       background-position: center;
       background-size: cover;
