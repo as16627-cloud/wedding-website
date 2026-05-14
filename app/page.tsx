@@ -219,7 +219,7 @@ const faqs = [
   {
     question: "Are children allowed?",
     answer:
-      "To allow all guests to fully relax and enjoy the celebration, we have chosen for our wedding day to be an adults-only occasion, with the exception of our flower girl.",
+      "To allow all guests to fully relax and enjoy the celebration, we have chosen for our wedding day to be an adults-only occasion, with the exception of our flower girl and ringbearer.",
   },
   {
     question: "When should I RSVP by?",
