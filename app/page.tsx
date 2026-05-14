@@ -2066,6 +2066,9 @@ export default function WeddingWebsiteStarter() {
               Your formal invitation will include a private RSVP link made just for you. Please use that link to confirm
               your details and send us your response.
             </motion.p>
+            <motion.p className="rsvp-deadline-copy heading-copy mx-auto mt-3" {...cinematicRevealMotion(0.42, 10, 0.86, 0.38)}>
+              Kindly respond by Wednesday, 1 July 2026 through your private invitation link.
+            </motion.p>
           </div>
 
           <motion.div
@@ -2086,6 +2089,10 @@ export default function WeddingWebsiteStarter() {
               </div>
             </div>
             <div className="mx-auto mt-6 h-px w-24 bg-[var(--color-divider)] opacity-90" />
+            <p className="rsvp-change-note type-card-body mx-auto mt-6 max-w-xl">
+              Any changes after your RSVP are kindly requested by Saturday, 1 August 2026, so we can finalise seating,
+              dietary details, and table styling.
+            </p>
             <p className="type-card-body mx-auto mt-6 max-w-xl">
               If you cannot find your link, please message Sumaya or Aditya and we&rsquo;ll send it again.
             </p>
