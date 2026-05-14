@@ -224,7 +224,7 @@ const faqs = [
   {
     question: "When should I RSVP by?",
     answer:
-      "The final RSVP date will be added once formal invitations are sent. We kindly ask that guests RSVP by the due date so we can finalise numbers with the venue.",
+      "Please RSVP by Wednesday, 1 July 2026 using your private invitation link.\n\nIf your plans change after you respond, please let us know by Saturday, 1 August 2026 so we can finalise seating, dietary details, and table styling.",
   },
   {
     question: "Can I include dietary requirements?",
