@@ -1917,8 +1917,8 @@ footer > * {
 .celebration-video-wash {
   z-index: 1;
   background:
-    linear-gradient(180deg, rgba(251, 247, 242, 0.44) 0%, rgba(251, 247, 242, 0.28) 32%, rgba(248, 235, 230, 0.22) 66%, rgba(251, 247, 242, 0.52) 100%),
-    radial-gradient(circle at 50% 16%, rgba(255, 250, 247, 0.2) 0%, rgba(252, 242, 237, 0.28) 54%, rgba(251, 247, 242, 0.44) 100%);
+    linear-gradient(180deg, rgba(251, 247, 242, 0.43) 0%, rgba(251, 247, 242, 0.29) 34%, rgba(248, 235, 230, 0.21) 68%, rgba(251, 247, 242, 0.51) 100%),
+    radial-gradient(circle at 50% 16%, rgba(255, 250, 247, 0.19) 0%, rgba(252, 242, 237, 0.27) 56%, rgba(251, 247, 242, 0.43) 100%);
 }
 
 .quote-video-layer {
@@ -2821,6 +2821,7 @@ footer > * {
   }
 
   .dress-code-mobile-panel .heading-primary {
+    color: rgba(143, 106, 99, 0.965);
     font-size: clamp(1.95rem, 7.6vw, 2.36rem);
     line-height: 1.015;
   }
@@ -2832,7 +2833,7 @@ footer > * {
   .dress-code-mobile-panel .heading-copy {
     max-width: min(88vw, 356px);
     margin: 0.62rem auto 0;
-    color: rgba(116, 100, 95, 0.86);
+    color: rgba(116, 100, 95, 0.875);
     font-size: clamp(0.86rem, 2.55vw, 0.94rem);
     line-height: 1.48;
   }
@@ -2853,7 +2854,7 @@ footer > * {
   .dress-code-mobile-block .type-card-body {
     max-width: min(88vw, 350px);
     margin: 0.58rem auto 0;
-    color: rgba(116, 100, 95, 0.86);
+    color: rgba(116, 100, 95, 0.875);
     font-size: clamp(0.86rem, 2.5vw, 0.92rem);
     line-height: 1.48;
   }
@@ -2890,6 +2891,12 @@ footer > * {
 
   .mobile-section-marker span:first-child {
     color: var(--color-heading);
+  }
+
+  .invite-page #details .mobile-section-marker {
+    border-color: rgba(203, 182, 175, 0.13);
+    background: rgba(255, 250, 247, 0.43);
+    box-shadow: 0 10px 24px rgba(80, 60, 55, 0.014), inset 0 0 0 1px rgba(255, 248, 244, 0.095);
   }
 
   .mobile-invite-quote {
@@ -2996,13 +3003,13 @@ footer > * {
   .mobile-note-body {
     max-width: 36ch;
     margin-inline: auto;
-    color: rgba(116, 100, 95, 0.9);
+    color: rgba(116, 100, 95, 0.875);
     font-size: 14.6px;
-    line-height: 1.585;
+    line-height: 1.595;
   }
 
   .mobile-note-body p + p {
-    margin-top: 12.5px;
+    margin-top: 12.75px;
   }
 
   .mobile-note-signature {
@@ -3033,11 +3040,11 @@ footer > * {
     gap: 0.18rem 0.66rem;
     align-items: start;
     padding: 0.64rem 0.82rem;
-    border-color: rgba(232, 207, 200, 0.22);
+    border-color: rgba(232, 207, 200, 0.205);
     border-radius: 1.38rem;
-    background: linear-gradient(180deg, rgba(252, 248, 245, 0.56) 0%, rgba(250, 244, 241, 0.44) 100%);
-    box-shadow: 0 15px 39px rgba(101, 75, 62, 0.011), 0 2px 9px rgba(203, 182, 175, 0.022),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.145);
+    background: linear-gradient(180deg, rgba(252, 248, 245, 0.55) 0%, rgba(250, 244, 241, 0.43) 100%);
+    box-shadow: 0 14px 36px rgba(101, 75, 62, 0.01), 0 2px 8px rgba(203, 182, 175, 0.02),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.13);
     -webkit-backdrop-filter: blur(12px) saturate(1.02);
     backdrop-filter: blur(12px) saturate(1.02);
   }
@@ -3155,15 +3162,21 @@ footer > * {
     height: 56px !important;
     min-width: 56px !important;
     min-height: 56px !important;
+    border-color: rgba(255, 248, 244, 0.32);
+    box-shadow:
+      inset 0 1px 2px rgba(255, 250, 246, 0.3),
+      inset 0 -12px 21px rgba(80, 60, 55, 0.038),
+      0 15px 32px rgba(90, 65, 50, 0.028),
+      0 3px 10px rgba(203, 182, 175, 0.044) !important;
   }
 
   #dress-code .dress-code-mobile-panels .swatchLabel {
     max-width: 92px !important;
     margin-top: 0.54rem !important;
-    color: rgba(137, 115, 108, 0.7);
+    color: rgba(137, 115, 108, 0.69);
     font-size: 0.59rem;
     line-height: 1.18;
-    letter-spacing: 0.115em;
+    letter-spacing: 0.112em;
   }
 
   .dress-palette-guidance {
@@ -3189,19 +3202,19 @@ footer > * {
 
   #dress-code .dress-code-mobile-note-row {
     padding: 0.78rem 0.88rem 0.82rem;
-    border: 1px solid rgba(220, 188, 178, 0.18);
+    border: 1px solid rgba(220, 188, 178, 0.16);
     border-radius: 0.92rem;
     background:
-      linear-gradient(135deg, rgba(255, 251, 248, 0.7) 0%, rgba(250, 240, 237, 0.48) 100%),
+      linear-gradient(135deg, rgba(255, 251, 248, 0.66) 0%, rgba(250, 240, 237, 0.44) 100%),
       var(--atmosphere-paper-grain);
     box-shadow:
-      0 13px 31px rgba(116, 82, 70, 0.02),
-      0 2px 8px rgba(203, 182, 175, 0.02),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.15);
+      0 12px 28px rgba(116, 82, 70, 0.017),
+      0 2px 7px rgba(203, 182, 175, 0.017),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.12);
   }
 
   #dress-code .dress-code-mobile-note-row .type-card-title {
-    color: rgba(143, 106, 99, 0.86);
+    color: rgba(143, 106, 99, 0.835);
     font-size: 0.96rem;
     line-height: 1.05;
     font-weight: 400;
@@ -3211,7 +3224,7 @@ footer > * {
   #dress-code .dress-code-mobile-note-row .type-card-body {
     max-width: 30ch;
     margin-top: 0.32rem;
-    color: rgba(120, 102, 98, 0.82);
+    color: rgba(120, 102, 98, 0.805);
     font-size: 0.78rem;
     line-height: 1.46;
   }
