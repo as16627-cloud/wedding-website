@@ -1056,15 +1056,16 @@ a[class*="uppercase"] {
   content: "";
   position: absolute;
   z-index: -1;
-  inset: -0.34em -0.54em -0.22em;
-  border-radius: 999px;
-  background: rgba(222, 190, 184, 0.075);
+  inset: -0.38em -0.62em -0.25em -0.56em;
+  border-radius: 54% 46% 58% 42% / 48% 56% 44% 52%;
+  background: rgba(222, 190, 184, 0.058);
   box-shadow:
-    0 0 42px 18px rgba(222, 190, 184, 0.085),
-    0 10px 58px 24px rgba(244, 232, 228, 0.1);
-  filter: blur(22px);
-  opacity: 0.72;
+    -12px 4px 52px 24px rgba(222, 190, 184, 0.068),
+    14px 12px 66px 28px rgba(244, 232, 228, 0.088);
+  filter: blur(26px);
+  opacity: 0.66;
   pointer-events: none;
+  transform: rotate(-1.6deg) scale(1.025);
 }
 
 .hero-title .hero-name {
@@ -1082,12 +1083,13 @@ a[class*="uppercase"] {
 
 @media (min-width: 768px) {
   .hero-title::before {
-    inset: -0.42em -0.72em -0.28em;
+    inset: -0.48em -0.86em -0.32em -0.78em;
     box-shadow:
-      0 0 58px 24px rgba(222, 190, 184, 0.09),
-      0 14px 78px 32px rgba(244, 232, 228, 0.105);
-    filter: blur(30px);
-    opacity: 0.76;
+      -18px 6px 72px 30px rgba(222, 190, 184, 0.072),
+      20px 18px 94px 38px rgba(244, 232, 228, 0.09);
+    filter: blur(36px);
+    opacity: 0.7;
+    transform: rotate(-1.2deg) scale(1.04);
   }
 
   .hero-title .hero-name {
@@ -1108,7 +1110,7 @@ a[class*="uppercase"] {
 
 .hero-copy .type-section-eyebrow {
   letter-spacing: 0.205em;
-  color: rgba(143, 126, 120, 0.9);
+  color: rgba(139, 120, 114, 0.93);
 }
 
 .hero-copy .hero-title {
@@ -1266,17 +1268,19 @@ a[class*="uppercase"] {
 .hero-primary-cta {
   min-height: 48px;
   gap: 0.55rem;
+  border-color: rgba(255, 255, 255, 0.068);
+  background: linear-gradient(180deg, rgba(35, 42, 66, 0.962) 0%, rgba(29, 35, 56, 0.962) 100%);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.085),
-    0 8px 19px rgba(20, 26, 44, 0.17),
-    0 10px 28px rgba(184, 142, 134, 0.045);
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 7px 17px rgba(20, 26, 44, 0.15),
+    0 9px 26px rgba(184, 142, 134, 0.04);
 }
 
 .hero-primary-cta:hover {
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.105),
-    0 9px 21px rgba(20, 26, 44, 0.19),
-    0 11px 30px rgba(184, 142, 134, 0.052);
+    inset 0 1px 0 rgba(255, 255, 255, 0.088),
+    0 8px 19px rgba(20, 26, 44, 0.17),
+    0 10px 28px rgba(184, 142, 134, 0.046);
 }
 
 .hero-meta-group {
@@ -2485,8 +2489,8 @@ footer > * {
   .hero-copy .type-section-eyebrow {
     font-size: 0.7rem;
     letter-spacing: 0.205em;
-    color: rgba(143, 126, 120, 0.9);
-    opacity: 0.86;
+    color: rgba(139, 120, 114, 0.93);
+    opacity: 0.9;
   }
 
   .mobile-header-monogram {
@@ -2554,12 +2558,14 @@ footer > * {
   }
 
   .hero-title::before {
-    inset: -0.28em -0.42em -0.18em;
+    inset: -0.3em -0.46em -0.2em -0.42em;
+    border-radius: 55% 45% 57% 43% / 48% 55% 45% 52%;
     box-shadow:
-      0 0 32px 14px rgba(222, 190, 184, 0.075),
-      0 8px 46px 18px rgba(244, 232, 228, 0.09);
-    filter: blur(18px);
-    opacity: 0.6;
+      -8px 3px 36px 16px rgba(222, 190, 184, 0.06),
+      10px 8px 48px 19px rgba(244, 232, 228, 0.078);
+    filter: blur(20px);
+    opacity: 0.54;
+    transform: rotate(-1.4deg) scale(1.015);
   }
 
   .hero-title .hero-name,
@@ -2612,15 +2618,15 @@ footer > * {
     width: 100%;
     min-height: 42px;
     padding: 0 1rem;
-    border-color: rgba(58, 64, 91, 0.68);
-    background: linear-gradient(180deg, rgba(35, 42, 69, 0.965) 0%, rgba(28, 34, 56, 0.965) 100%);
+    border-color: rgba(58, 64, 91, 0.58);
+    background: linear-gradient(180deg, rgba(34, 41, 64, 0.955) 0%, rgba(29, 35, 56, 0.955) 100%);
     font-size: 0.76rem;
     font-weight: 500 !important;
     letter-spacing: 0.13em;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 4px 10px rgba(20, 26, 44, 0.105),
-      0 9px 24px rgba(184, 142, 134, 0.045);
+      inset 0 1px 0 rgba(255, 255, 255, 0.065),
+      0 4px 9px rgba(20, 26, 44, 0.092),
+      0 8px 22px rgba(184, 142, 134, 0.04);
   }
 
   .hero-primary-cta svg {
@@ -2632,9 +2638,9 @@ footer > * {
 
   .hero-primary-cta:hover {
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.105),
-      0 5px 12px rgba(20, 26, 44, 0.12),
-      0 10px 26px rgba(184, 142, 134, 0.052);
+      inset 0 1px 0 rgba(255, 255, 255, 0.085),
+      0 5px 11px rgba(20, 26, 44, 0.108),
+      0 9px 24px rgba(184, 142, 134, 0.046);
   }
 
   .mobile-scroll-cue {
