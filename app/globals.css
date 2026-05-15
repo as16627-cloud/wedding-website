@@ -1917,8 +1917,8 @@ footer > * {
 .celebration-video-wash {
   z-index: 1;
   background:
-    linear-gradient(180deg, rgba(251, 247, 242, 0.5) 0%, rgba(251, 247, 242, 0.2) 36%, rgba(248, 235, 230, 0.26) 64%, rgba(251, 247, 242, 0.58) 100%),
-    radial-gradient(circle at 50% 16%, rgba(255, 250, 247, 0.24) 0%, rgba(252, 242, 237, 0.34) 52%, rgba(251, 247, 242, 0.5) 100%);
+    linear-gradient(180deg, rgba(251, 247, 242, 0.46) 0%, rgba(251, 247, 242, 0.26) 34%, rgba(248, 235, 230, 0.23) 66%, rgba(251, 247, 242, 0.54) 100%),
+    radial-gradient(circle at 50% 16%, rgba(255, 250, 247, 0.22) 0%, rgba(252, 242, 237, 0.3) 52%, rgba(251, 247, 242, 0.46) 100%);
 }
 
 .quote-video-layer {
@@ -1933,9 +1933,9 @@ footer > * {
 .quote-video-wash {
   z-index: 10;
   background:
-    radial-gradient(ellipse at 50% 56%, rgba(255, 252, 250, 0.64) 0%, rgba(254, 248, 246, 0.54) 28%, rgba(252, 244, 241, 0.38) 52%, rgba(250, 241, 238, 0.2) 76%, rgba(251, 247, 242, 0.1) 100%),
-    linear-gradient(180deg, rgba(255, 250, 248, 0.3) 0%, rgba(253, 245, 242, 0.25) 34%, rgba(248, 237, 234, 0.18) 64%, rgba(255, 251, 249, 0.3) 100%),
-    linear-gradient(90deg, rgba(248, 232, 232, 0.08) 0%, rgba(255, 252, 249, 0.065) 46%, rgba(246, 231, 230, 0.07) 100%);
+    radial-gradient(ellipse at 50% 56%, rgba(255, 252, 250, 0.62) 0%, rgba(254, 248, 246, 0.55) 24%, rgba(252, 244, 241, 0.42) 46%, rgba(250, 241, 238, 0.24) 72%, rgba(251, 247, 242, 0.11) 100%),
+    linear-gradient(180deg, rgba(255, 250, 248, 0.28) 0%, rgba(253, 245, 242, 0.24) 36%, rgba(248, 237, 234, 0.18) 66%, rgba(255, 251, 249, 0.28) 100%),
+    linear-gradient(90deg, rgba(248, 232, 232, 0.07) 0%, rgba(255, 252, 249, 0.06) 48%, rgba(246, 231, 230, 0.065) 100%);
 }
 
 .invite-page #details > .relative {
@@ -2712,6 +2712,7 @@ footer > * {
   .invite-page #details .heading-primary {
     max-width: 10.8em;
     margin-inline: auto;
+    color: rgba(143, 106, 99, 0.99);
     font-size: clamp(2rem, 8.25vw, 2.58rem);
     line-height: 1;
   }
@@ -2931,9 +2932,9 @@ footer > * {
     z-index: 10;
     display: block;
     background:
-      radial-gradient(ellipse at 50% 56%, rgba(255, 252, 250, 0.64) 0%, rgba(254, 248, 246, 0.54) 28%, rgba(252, 244, 241, 0.38) 52%, rgba(250, 241, 238, 0.2) 76%, rgba(251, 247, 242, 0.1) 100%),
-      linear-gradient(180deg, rgba(255, 250, 248, 0.3) 0%, rgba(253, 245, 242, 0.25) 34%, rgba(248, 237, 234, 0.18) 64%, rgba(255, 251, 249, 0.3) 100%),
-      linear-gradient(90deg, rgba(248, 232, 232, 0.08) 0%, rgba(255, 252, 249, 0.065) 46%, rgba(246, 231, 230, 0.07) 100%);
+      radial-gradient(ellipse at 50% 56%, rgba(255, 252, 250, 0.62) 0%, rgba(254, 248, 246, 0.55) 24%, rgba(252, 244, 241, 0.42) 46%, rgba(250, 241, 238, 0.24) 72%, rgba(251, 247, 242, 0.11) 100%),
+      linear-gradient(180deg, rgba(255, 250, 248, 0.28) 0%, rgba(253, 245, 242, 0.24) 36%, rgba(248, 237, 234, 0.18) 66%, rgba(255, 251, 249, 0.28) 100%),
+      linear-gradient(90deg, rgba(248, 232, 232, 0.07) 0%, rgba(255, 252, 249, 0.06) 48%, rgba(246, 231, 230, 0.065) 100%);
     pointer-events: none;
   }
 
@@ -2950,7 +2951,8 @@ footer > * {
   }
 
   .mobile-invite-quote .type-quote-attribution {
-    color: rgba(151, 121, 116, 0.78);
+    margin-top: 2.05rem;
+    color: rgba(151, 121, 116, 0.74);
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -2980,8 +2982,8 @@ footer > * {
   }
 
   .mobile-note-title {
-    margin-bottom: 15px;
-    color: rgba(143, 106, 99, 0.96);
+    margin-bottom: 13px;
+    color: rgba(143, 106, 99, 0.97);
     font-size: 17px;
     line-height: 1.28;
     letter-spacing: 0.092em;
@@ -2992,11 +2994,11 @@ footer > * {
     margin-inline: auto;
     color: rgba(116, 100, 95, 0.9);
     font-size: 14.6px;
-    line-height: 1.56;
+    line-height: 1.575;
   }
 
   .mobile-note-body p + p {
-    margin-top: 11.5px;
+    margin-top: 12px;
   }
 
   .mobile-note-signature {
@@ -3024,13 +3026,13 @@ footer > * {
     gap: 0.18rem 0.66rem;
     align-items: start;
     padding: 0.64rem 0.82rem;
-    border-color: rgba(232, 207, 200, 0.3);
+    border-color: rgba(232, 207, 200, 0.24);
     border-radius: 1.38rem;
-    background: linear-gradient(180deg, rgba(252, 248, 245, 0.66) 0%, rgba(250, 244, 241, 0.54) 100%);
-    box-shadow: 0 18px 48px rgba(101, 75, 62, 0.014), 0 3px 12px rgba(203, 182, 175, 0.03),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.2);
-    -webkit-backdrop-filter: blur(14px) saturate(1.04);
-    backdrop-filter: blur(14px) saturate(1.04);
+    background: linear-gradient(180deg, rgba(252, 248, 245, 0.58) 0%, rgba(250, 244, 241, 0.46) 100%);
+    box-shadow: 0 16px 42px rgba(101, 75, 62, 0.012), 0 2px 10px rgba(203, 182, 175, 0.024),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.16);
+    -webkit-backdrop-filter: blur(12px) saturate(1.02);
+    backdrop-filter: blur(12px) saturate(1.02);
   }
 
   .invite-page #details .mobile-invite-card svg {
