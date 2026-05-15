@@ -1944,9 +1944,9 @@ footer > * {
 .quote-video-wash {
   z-index: 10;
   background:
-    radial-gradient(ellipse at 50% 56%, rgba(255, 252, 250, 0.59) 0%, rgba(254, 248, 246, 0.53) 27%, rgba(252, 244, 241, 0.39) 50%, rgba(250, 241, 238, 0.22) 75%, rgba(251, 247, 242, 0.1) 100%),
-    linear-gradient(180deg, rgba(255, 250, 248, 0.26) 0%, rgba(253, 245, 242, 0.23) 39%, rgba(248, 237, 234, 0.16) 69%, rgba(255, 251, 249, 0.26) 100%),
-    linear-gradient(90deg, rgba(248, 232, 232, 0.058) 0%, rgba(255, 252, 249, 0.055) 48%, rgba(246, 231, 230, 0.056) 100%);
+    radial-gradient(ellipse at 50% 56%, rgba(255, 252, 250, 0.585) 0%, rgba(254, 248, 246, 0.52) 27%, rgba(252, 244, 241, 0.382) 50%, rgba(250, 241, 238, 0.212) 75%, rgba(251, 247, 242, 0.096) 100%),
+    linear-gradient(180deg, rgba(255, 250, 248, 0.25) 0%, rgba(253, 245, 242, 0.222) 39%, rgba(248, 237, 234, 0.152) 69%, rgba(255, 251, 249, 0.25) 100%),
+    linear-gradient(90deg, rgba(248, 232, 232, 0.052) 0%, rgba(255, 252, 249, 0.052) 48%, rgba(246, 231, 230, 0.052) 100%);
 }
 
 .invite-page #details > .relative {
@@ -2832,7 +2832,7 @@ footer > * {
   }
 
   .dress-code-mobile-panel .heading-primary {
-    color: rgba(143, 106, 99, 0.918);
+    color: rgba(143, 106, 99, 0.895);
     font-size: clamp(1.95rem, 7.6vw, 2.36rem);
     line-height: 1.015;
   }
@@ -2844,9 +2844,9 @@ footer > * {
   .dress-code-mobile-panel .heading-copy {
     max-width: min(88vw, 356px);
     margin: 0.62rem auto 0;
-    color: rgba(116, 100, 95, 0.888);
+    color: rgba(116, 100, 95, 0.892);
     font-size: clamp(0.86rem, 2.55vw, 0.94rem);
-    line-height: 1.48;
+    line-height: 1.488;
   }
 
   .dress-code-mobile-block {
@@ -2865,9 +2865,9 @@ footer > * {
   .dress-code-mobile-block .type-card-body {
     max-width: min(88vw, 350px);
     margin: 0.58rem auto 0;
-    color: rgba(116, 100, 95, 0.888);
+    color: rgba(116, 100, 95, 0.892);
     font-size: clamp(0.86rem, 2.5vw, 0.92rem);
-    line-height: 1.48;
+    line-height: 1.488;
   }
 
   .dress-code-mobile-block .type-card-body p + p {
@@ -2905,9 +2905,9 @@ footer > * {
   }
 
   .invite-page #details .mobile-section-marker {
-    border-color: rgba(203, 182, 175, 0.112);
-    background: rgba(255, 250, 247, 0.39);
-    box-shadow: 0 8px 20px rgba(80, 60, 55, 0.011), inset 0 0 0 1px rgba(255, 248, 244, 0.078);
+    border-color: rgba(203, 182, 175, 0.106);
+    background: rgba(255, 250, 247, 0.375);
+    box-shadow: 0 8px 20px rgba(80, 60, 55, 0.009), inset 0 0 0 1px rgba(255, 248, 244, 0.07);
   }
 
   .mobile-invite-quote {
@@ -2954,9 +2954,9 @@ footer > * {
     z-index: 10;
     display: block;
     background:
-      radial-gradient(ellipse at 50% 56%, rgba(255, 252, 250, 0.59) 0%, rgba(254, 248, 246, 0.53) 27%, rgba(252, 244, 241, 0.39) 50%, rgba(250, 241, 238, 0.22) 75%, rgba(251, 247, 242, 0.1) 100%),
-      linear-gradient(180deg, rgba(255, 250, 248, 0.26) 0%, rgba(253, 245, 242, 0.23) 39%, rgba(248, 237, 234, 0.16) 69%, rgba(255, 251, 249, 0.26) 100%),
-      linear-gradient(90deg, rgba(248, 232, 232, 0.058) 0%, rgba(255, 252, 249, 0.055) 48%, rgba(246, 231, 230, 0.056) 100%);
+      radial-gradient(ellipse at 50% 56%, rgba(255, 252, 250, 0.585) 0%, rgba(254, 248, 246, 0.52) 27%, rgba(252, 244, 241, 0.382) 50%, rgba(250, 241, 238, 0.212) 75%, rgba(251, 247, 242, 0.096) 100%),
+      linear-gradient(180deg, rgba(255, 250, 248, 0.25) 0%, rgba(253, 245, 242, 0.222) 39%, rgba(248, 237, 234, 0.152) 69%, rgba(255, 251, 249, 0.25) 100%),
+      linear-gradient(90deg, rgba(248, 232, 232, 0.052) 0%, rgba(255, 252, 249, 0.052) 48%, rgba(246, 231, 230, 0.052) 100%);
     pointer-events: none;
   }
 
@@ -3005,18 +3005,18 @@ footer > * {
 
   .mobile-note-title {
     margin-bottom: 13px;
-    color: rgba(143, 106, 99, 0.935);
+    color: rgba(143, 106, 99, 0.918);
     font-size: 17px;
     line-height: 1.28;
-    letter-spacing: 0.085em;
+    letter-spacing: 0.082em;
   }
 
   .mobile-note-body {
     max-width: 36ch;
     margin-inline: auto;
-    color: rgba(116, 100, 95, 0.848);
+    color: rgba(116, 100, 95, 0.838);
     font-size: 14.6px;
-    line-height: 1.615;
+    line-height: 1.625;
   }
 
   .mobile-note-body p + p {
@@ -3051,11 +3051,11 @@ footer > * {
     gap: 0.18rem 0.66rem;
     align-items: start;
     padding: 0.64rem 0.82rem;
-    border-color: rgba(232, 207, 200, 0.18);
+    border-color: rgba(232, 207, 200, 0.166);
     border-radius: 1.38rem;
-    background: linear-gradient(180deg, rgba(252, 248, 245, 0.525) 0%, rgba(250, 244, 241, 0.405) 100%);
-    box-shadow: 0 12px 31px rgba(101, 75, 62, 0.008), 0 2px 6px rgba(203, 182, 175, 0.016),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.108);
+    background: linear-gradient(180deg, rgba(252, 248, 245, 0.505) 0%, rgba(250, 244, 241, 0.388) 100%);
+    box-shadow: 0 12px 31px rgba(101, 75, 62, 0.007), 0 2px 6px rgba(203, 182, 175, 0.014),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.096);
     -webkit-backdrop-filter: blur(12px) saturate(1.02);
     backdrop-filter: blur(12px) saturate(1.02);
   }
@@ -3154,14 +3154,14 @@ footer > * {
     grid-template-columns: repeat(3, minmax(0, 1fr));
     max-width: 300px;
     margin-top: clamp(1.26rem, 3.1svh, 1.62rem);
-    gap: 1.02rem 0.55rem !important;
+    gap: 1.04rem 0.56rem !important;
   }
 
   #dress-code .dress-code-mobile-panel-classic .swatchRow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     max-width: 242px;
     margin-top: clamp(1.26rem, 3.1svh, 1.62rem);
-    gap: 1.02rem 0.66rem !important;
+    gap: 1.04rem 0.67rem !important;
   }
 
   #dress-code .dress-code-mobile-panels .swatchItem {
@@ -3183,8 +3183,8 @@ footer > * {
 
   #dress-code .dress-code-mobile-panels .swatchLabel {
     max-width: 92px !important;
-    margin-top: 0.58rem !important;
-    color: rgba(137, 115, 108, 0.662);
+    margin-top: 0.6rem !important;
+    color: rgba(137, 115, 108, 0.65);
     font-size: 0.59rem;
     line-height: 1.18;
     letter-spacing: 0.104em;
@@ -3212,20 +3212,20 @@ footer > * {
   }
 
   #dress-code .dress-code-mobile-note-row {
-    padding: 0.78rem 1.08rem 0.82rem;
-    border: 1px solid rgba(220, 188, 178, 0.132);
+    padding: 0.78rem 1.18rem 0.82rem;
+    border: 1px solid rgba(220, 188, 178, 0.124);
     border-radius: 0.92rem;
     background:
-      linear-gradient(135deg, rgba(255, 251, 248, 0.61) 0%, rgba(250, 240, 237, 0.395) 100%),
+      linear-gradient(135deg, rgba(255, 251, 248, 0.59) 0%, rgba(250, 240, 237, 0.382) 100%),
       var(--atmosphere-paper-grain);
     box-shadow:
-      0 10px 23px rgba(116, 82, 70, 0.012),
-      0 2px 5px rgba(203, 182, 175, 0.012),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.095);
+      0 10px 23px rgba(116, 82, 70, 0.01),
+      0 2px 5px rgba(203, 182, 175, 0.01),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.085);
   }
 
   #dress-code .dress-code-mobile-note-row .type-card-title {
-    color: rgba(143, 106, 99, 0.798);
+    color: rgba(143, 106, 99, 0.772);
     font-size: 0.96rem;
     line-height: 1.05;
     font-weight: 400;
@@ -3233,11 +3233,11 @@ footer > * {
   }
 
   #dress-code .dress-code-mobile-note-row .type-card-body {
-    max-width: 31.5ch;
+    max-width: 30.8ch;
     margin-top: 0.32rem;
-    color: rgba(120, 102, 98, 0.782);
+    color: rgba(120, 102, 98, 0.772);
     font-size: 0.78rem;
-    line-height: 1.46;
+    line-height: 1.475;
   }
 
   #itinerary.mobile-invite-section {
@@ -3299,13 +3299,13 @@ footer > * {
     gap: 0 0.58rem;
     align-items: start;
     padding: 0.82rem 0.84rem;
-    border: 1px solid rgba(232, 207, 200, 0.272);
+    border: 1px solid rgba(232, 207, 200, 0.255);
     border-radius: var(--mobile-card-radius);
-    background: linear-gradient(180deg, rgba(252, 248, 245, 0.842) 0%, rgba(248, 241, 237, 0.775) 100%);
+    background: linear-gradient(180deg, rgba(252, 248, 245, 0.832) 0%, rgba(248, 241, 237, 0.762) 100%);
     box-shadow:
-      0 13px 31px rgba(116, 82, 70, 0.016),
-      0 3px 10px rgba(203, 182, 175, 0.016),
-      inset 0 0 0 1px rgba(221, 191, 183, 0.092);
+      0 13px 31px rgba(116, 82, 70, 0.014),
+      0 3px 10px rgba(203, 182, 175, 0.014),
+      inset 0 0 0 1px rgba(221, 191, 183, 0.082);
     overflow: hidden;
   }
 
@@ -3316,7 +3316,7 @@ footer > * {
     bottom: -0.75rem;
     left: calc(0.9rem + 3.5rem + 0.58rem + 0.5rem);
     width: 1px;
-    background: rgba(203, 182, 175, 0.255);
+    background: rgba(203, 182, 175, 0.228);
   }
 
   .itinerary-item > * {
@@ -3327,7 +3327,7 @@ footer > * {
   .itinerary-item .type-timeline-time {
     padding-top: 0.12rem;
     text-align: right;
-    color: rgba(137, 115, 108, 0.66);
+    color: rgba(137, 115, 108, 0.628);
     font-size: 0.62rem;
     line-height: 1.22;
     letter-spacing: 0.116em;
@@ -3342,14 +3342,14 @@ footer > * {
   .itinerary-marker > div {
     width: 0.95rem;
     height: 0.95rem;
-    border-color: rgba(203, 182, 175, 0.225) !important;
-    box-shadow: 0 0 0 4px rgba(203, 182, 175, 0.06) !important;
+    border-color: rgba(203, 182, 175, 0.205) !important;
+    box-shadow: 0 0 0 4px rgba(203, 182, 175, 0.052) !important;
   }
 
   .itinerary-marker span {
     width: 0.34rem;
     height: 0.34rem;
-    background: rgba(203, 182, 175, 0.68) !important;
+    background: rgba(203, 182, 175, 0.64) !important;
   }
 
   .itinerary-content {
@@ -3458,15 +3458,15 @@ footer > * {
 
   .venue-mobile-panel .heading-copy {
     max-width: 330px;
-    color: rgba(116, 100, 95, 0.858);
+    color: rgba(116, 100, 95, 0.848);
     font-size: 0.95rem;
-    line-height: 1.5;
+    line-height: 1.515;
   }
 
   .venue-mobile-panel .type-card-body {
-    color: rgba(120, 102, 98, 0.828);
+    color: rgba(120, 102, 98, 0.815);
     font-size: 0.92rem;
-    line-height: 1.465;
+    line-height: 1.482;
   }
 
   .venue-mobile-panel-intro .type-card-body {
@@ -3479,37 +3479,65 @@ footer > * {
 
   .venue-mobile-carousel .card-luxe-image {
     padding: 0.48rem;
-    border-color: rgba(232, 207, 200, 0.285);
+    border-color: rgba(232, 207, 200, 0.26);
     border-radius: var(--mobile-card-radius);
-    background: linear-gradient(180deg, rgba(252, 248, 245, 0.865) 0%, rgba(250, 244, 241, 0.765) 100%);
+    background: linear-gradient(180deg, rgba(252, 248, 245, 0.855) 0%, rgba(250, 244, 241, 0.748) 100%);
     box-shadow:
-      0 16px 38px rgba(101, 75, 62, 0.016),
-      0 3px 12px rgba(203, 182, 175, 0.018),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.112);
+      0 16px 38px rgba(101, 75, 62, 0.014),
+      0 3px 12px rgba(203, 182, 175, 0.016),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.1);
   }
 
   .venue-mobile-carousel .card-luxe-media-frame {
     height: clamp(232px, 32svh, 284px);
     aspect-ratio: auto;
     border-radius: 1.22rem;
-    box-shadow: inset 0 0 0 1px rgba(221, 191, 183, 0.17);
+    box-shadow: inset 0 0 0 1px rgba(221, 191, 183, 0.155);
   }
 
   .venue-mobile-carousel .venue-carousel-control {
     min-width: 38px;
     min-height: 38px;
-    border-color: rgba(232, 207, 200, 0.38);
+    border-color: rgba(232, 207, 200, 0.34);
+    background: rgba(255, 248, 244, 0.54);
   }
 
   .venue-mobile-carousel .venue-carousel-control svg {
     width: 1rem;
     height: 1rem;
-    opacity: 0.82;
+    opacity: 0.78;
+  }
+
+  .venue-mobile-carousel .venue-carousel-count {
+    border-color: rgba(203, 182, 175, 0.18);
+    background: rgba(255, 248, 244, 0.46);
+    color: rgba(143, 106, 99, 0.76);
+    box-shadow: 0 8px 19px rgba(80, 60, 55, 0.022);
+    opacity: 0.72;
+  }
+
+  .venue-mobile-carousel .venue-carousel-dot {
+    opacity: 0.66;
+    box-shadow: 0 1px 5px rgba(80, 60, 55, 0.026);
+  }
+
+  .venue-mobile-carousel .venue-carousel-dot.w-6 {
+    background-color: rgba(203, 182, 175, 0.66) !important;
+  }
+
+  .venue-mobile-carousel .venue-carousel-dot:not(.w-6) {
+    background-color: rgba(255, 248, 244, 0.5) !important;
   }
 
   .venue-mobile-info-card {
     padding: 1.54rem 1.22rem;
+    border-color: rgba(232, 207, 200, 0.295);
     border-radius: var(--mobile-card-radius-soft);
+    background: linear-gradient(180deg, rgba(252, 248, 245, 0.84) 0%, rgba(248, 241, 237, 0.76) 100%);
+    box-shadow:
+      0 16px 38px rgba(101, 75, 62, 0.014),
+      0 3px 10px rgba(203, 182, 175, 0.014),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.1);
   }
 
   .venue-mobile-info-card .type-card-title {
@@ -3520,7 +3548,7 @@ footer > * {
   .venue-mobile-info-card .type-card-body {
     margin-top: 0.72rem;
     font-size: 0.9rem;
-    line-height: 1.44;
+    line-height: 1.465;
   }
 
   .venue-mobile-info-card .type-card-body p + p {
@@ -3529,6 +3557,7 @@ footer > * {
 
   .venue-mobile-info-card .type-card-body .h-px {
     margin-block: 0.78rem;
+    opacity: 0.72 !important;
   }
 
   .venue-mobile-info-card .venue-action-group {
@@ -3551,6 +3580,14 @@ footer > * {
 
   .venue-mobile-info-card .venue-action-primary {
     flex-basis: 100%;
+    box-shadow: 0 7px 22px rgba(20, 26, 44, 0.135), inset 0 0 0 1px rgba(255, 248, 244, 0.13);
+  }
+
+  .venue-mobile-info-card .venue-action-secondary {
+    border-color: rgba(200, 170, 160, 0.32);
+    background: rgba(255, 255, 255, 0.52);
+    color: rgba(143, 106, 99, 0.86);
+    box-shadow: 0 5px 13px rgba(101, 75, 62, 0.022), inset 0 0 0 1px rgba(255, 248, 244, 0.14);
   }
 
   .venue-mobile-info-card .venue-action svg {
@@ -3597,6 +3634,11 @@ footer > * {
   #rsvp .card-luxe-dark {
     width: 100%;
     padding: clamp(1.1rem, 3.2svh, 1.5rem) 0.82rem;
+    border-color: rgba(255, 248, 244, 0.12);
+    box-shadow:
+      0 18px 50px rgba(20, 26, 44, 0.145),
+      0 5px 16px rgba(203, 182, 175, 0.038),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.095);
   }
 
   #rsvp .heading-micro {
@@ -3612,6 +3654,7 @@ footer > * {
     max-width: 340px;
     margin-top: 0.68rem;
     margin-inline: auto;
+    color: rgba(216, 199, 194, 0.9);
     font-size: 0.94rem;
     line-height: 1.5;
   }
@@ -3619,30 +3662,35 @@ footer > * {
   #rsvp .rsvp-deadline-copy {
     max-width: 320px;
     margin-top: 0.54rem;
+    color: rgba(216, 199, 194, 0.88);
     font-size: 0.9rem;
-    line-height: 1.42;
+    line-height: 1.44;
   }
 
   #rsvp .card-luxe-dark .card-luxe-text {
     margin-top: 0.82rem;
     padding: 0.88rem 0.8rem;
+    border-color: rgba(232, 207, 200, 0.28);
     border-radius: var(--mobile-card-radius);
+    background: linear-gradient(180deg, rgba(255, 250, 247, 0.82) 0%, rgba(250, 244, 241, 0.76) 100%);
     box-shadow:
-      0 24px 66px rgba(101, 75, 62, 0.02),
-      0 4px 15px rgba(203, 182, 175, 0.034),
-      inset 0 0 0 1px rgba(232, 207, 200, 0.11);
+      0 22px 60px rgba(101, 75, 62, 0.016),
+      0 4px 14px rgba(203, 182, 175, 0.028),
+      inset 0 0 0 1px rgba(232, 207, 200, 0.095);
   }
 
   #rsvp .card-luxe-dark .card-luxe-text .type-card-body {
     max-width: 330px;
+    color: rgba(92, 80, 76, 0.84);
     font-size: 0.89rem;
-    line-height: 1.44;
+    line-height: 1.46;
   }
 
   #rsvp .rsvp-change-note {
     max-width: 320px;
+    color: rgba(92, 80, 76, 0.8);
     font-size: 0.86rem;
-    line-height: 1.42;
+    line-height: 1.44;
   }
 
   #rsvp .rsvp-mobile-steps {
@@ -3654,38 +3702,51 @@ footer > * {
   #rsvp .rsvp-mobile-steps div {
     min-height: 69px;
     padding: 0.5rem 0.4rem;
-    border-color: rgba(201, 181, 173, 0.14);
+    border-color: rgba(201, 181, 173, 0.118);
     border-radius: 1.08rem;
-    background: rgba(255, 248, 244, 0.52);
-    box-shadow: inset 0 0 0 1px rgba(255, 248, 244, 0.12);
+    background: rgba(255, 248, 244, 0.49);
+    box-shadow: inset 0 0 0 1px rgba(255, 248, 244, 0.095);
   }
 
   #rsvp .rsvp-mobile-steps span {
     width: 2.14rem;
     height: 2.14rem;
-    background: rgba(248, 235, 230, 0.68);
-    color: rgba(156, 122, 115, 0.82);
+    background: rgba(248, 235, 230, 0.63);
+    color: rgba(156, 122, 115, 0.78);
     font-size: 0.92rem;
-    box-shadow: 0 4px 12px rgba(101, 75, 62, 0.026), inset 0 0 0 1px rgba(255, 248, 244, 0.2);
+    box-shadow: 0 4px 12px rgba(101, 75, 62, 0.02), inset 0 0 0 1px rgba(255, 248, 244, 0.17);
   }
 
   #rsvp .rsvp-mobile-steps strong {
+    color: rgba(88, 73, 68, 0.84);
     font-size: 0.74rem;
     line-height: 1.16;
+    letter-spacing: 0.075em;
   }
 
   #rsvp .card-luxe-text .h-px {
     margin-top: 0.95rem;
+    opacity: 0.72 !important;
   }
 
   #rsvp .card-luxe-text .h-px + .type-card-body {
     margin-top: 0.76rem;
     font-size: 0.89rem;
-    line-height: 1.42;
+    line-height: 1.44;
   }
 
   #rsvp .rsvp-change-note + .type-card-body {
     margin-top: 0.58rem;
+  }
+
+  #rsvp .card-luxe-dark .card-luxe-text .rsvp-change-note {
+    color: rgba(92, 80, 76, 0.8);
+    font-size: 0.86rem;
+    line-height: 1.44;
+  }
+
+  #rsvp .card-luxe-dark .card-luxe-text .rsvp-change-note + .type-card-body {
+    color: rgba(92, 80, 76, 0.82);
   }
 
   .rsvp-mobile-steps {
@@ -4006,7 +4067,7 @@ footer > * {
   }
 
   #dress-code .dress-code-mobile-note-row {
-    padding: 0.64rem 0.9rem 0.68rem;
+    padding: 0.64rem 0.96rem 0.68rem;
   }
 
   #dress-code .dress-code-mobile-note-row .type-card-title {
@@ -4105,7 +4166,7 @@ footer > * {
   }
 
   #dress-code .dress-code-mobile-note-row {
-    padding: 0.62rem 0.82rem 0.66rem;
+    padding: 0.62rem 0.88rem 0.66rem;
   }
 }
 
