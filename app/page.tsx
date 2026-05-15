@@ -2282,7 +2282,7 @@ export default function WeddingWebsiteStarter() {
           {...cinematicRevealMotion(0.28, 10, 0.82, 0.44)}
         >
           <Mail className="h-4 w-4" />
-          Wedding website and RSVP system in progress
+          More details will continue unfolding here as we get closer to the celebration.
         </motion.div>
         <motion.div
           className="footer-utility-nav mt-8 flex items-center justify-center gap-5"
