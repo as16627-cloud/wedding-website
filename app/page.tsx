@@ -73,7 +73,7 @@ const venueImages = [
 const chapterStoryCards = [
   {
     id: "different-beginnings",
-    src: "/images/story/different-beginnings.png",
+    src: "/images/story/story-card-different-beginnings-refined.png",
     alt: "Watercolor story card titled Different Beginnings, showing Kerala, Saudi Arabia, and Chennai.",
   },
   {
