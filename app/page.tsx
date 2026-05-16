@@ -70,6 +70,24 @@ const venueImages = [
   { src: "/images/venue3.png", alt: "Caversham House garden lawn and gazebo" },
 ];
 
+const chapterStoryCards = [
+  {
+    id: "different-beginnings",
+    src: "/images/story/different-beginnings.png",
+    alt: "Watercolor story card titled Different Beginnings, showing Kerala, Saudi Arabia, and Chennai.",
+  },
+  {
+    id: "the-beginning",
+    src: "/images/story/the-beginning.png",
+    alt: "Watercolor story card titled The Beginning, set in Geelong, Victoria.",
+  },
+  {
+    id: "this-chapter",
+    src: "/images/story/this-chapter.png",
+    alt: "Watercolor story card titled This Chapter, showing a shared life in Perth, Western Australia.",
+  },
+];
+
 const venueAutoPlayDelay = 6800;
 const venueManualPauseDelay = 7600;
 const venueSwipeThreshold = 40;
@@ -1544,6 +1562,45 @@ export default function WeddingWebsiteStarter() {
             <p>Sumaya &amp; Aditya</p>
           </motion.div>
         </motion.div>
+      </section>
+
+      <section id="chapter-story" className="editorial-panel chapter-story-section">
+        <div className="chapter-story-inner">
+          <motion.div
+            className="chapter-story-heading"
+            {...cinematicRevealMotion(0, 14, 0.96, 0.36)}
+          >
+            <h2 className="heading-primary">Celebrating This Chapter</h2>
+            <p className="heading-copy">A few moments that led us here.</p>
+          </motion.div>
+
+          <div className="chapter-story-list" aria-label="Celebrating this chapter story cards">
+            {chapterStoryCards.map((card, index) => (
+              <motion.figure
+                key={card.id}
+                className="chapter-story-card"
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.22 }}
+                transition={{
+                  duration: shouldReduceMotion ? 0 : 0.98,
+                  delay: shouldReduceMotion ? 0 : 0.08 + index * 0.1,
+                  ease: cinematicRevealEase,
+                }}
+              >
+                <Image
+                  src={card.src}
+                  alt={card.alt}
+                  width={1536}
+                  height={1024}
+                  quality={100}
+                  sizes="(max-width: 767px) calc(100vw - 1rem), (max-width: 1279px) min(88vw, 920px), 1040px"
+                  className="chapter-story-image"
+                />
+              </motion.figure>
+            ))}
+          </div>
+        </div>
       </section>
 
       <SoftSection
