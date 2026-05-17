@@ -1179,12 +1179,16 @@ a[class*="uppercase"] {
 }
 
 .nav-link:hover,
-.nav-link:focus-visible {
+.nav-link:focus-visible,
+.nav-link[aria-current="page"],
+.nav-link[data-active="true"] {
   color: var(--color-rose-gold);
 }
 
 .nav-link:hover::after,
-.nav-link:focus-visible::after {
+.nav-link:focus-visible::after,
+.nav-link[aria-current="page"]::after,
+.nav-link[data-active="true"]::after {
   width: 100%;
 }
 
@@ -1664,9 +1668,17 @@ a[class*="uppercase"] {
   }
 
   .hero-section nav .type-nav {
-    gap: clamp(1.75rem, 2.35vw, 2.4rem);
+    gap: clamp(1rem, 1.45vw, 1.65rem);
     color: rgba(116, 98, 93, 0.64);
     letter-spacing: 0.15em;
+  }
+
+  .hero-section nav .hero-nav-left {
+    padding-right: clamp(1rem, 2.2vw, 2.4rem);
+  }
+
+  .hero-section nav .hero-nav-right {
+    padding-left: clamp(1rem, 2.2vw, 2.4rem);
   }
 
   .hero-section nav .secondary-cta {
@@ -5184,11 +5196,11 @@ footer > * {
   }
 
   .mobile-invite-note {
-    min-height: clamp(560px, 68vh, 740px);
+    min-height: clamp(580px, 69vh, 760px);
     display: grid;
     place-items: center;
-    margin-top: clamp(-5.75rem, -6vw, -3.75rem);
-    padding-block: clamp(4.5rem, 6vw, 6.25rem) clamp(5.4rem, 7vw, 7.25rem);
+    margin-top: clamp(-6.15rem, -6.4vw, -4.1rem);
+    padding-block: clamp(4.75rem, 6.2vw, 6.5rem) clamp(5.6rem, 7vw, 7.35rem);
     background:
       radial-gradient(ellipse at 50% 0%, rgba(255, 248, 244, 0.48), rgba(251, 247, 242, 0) 56%),
       radial-gradient(ellipse at 50% 28%, rgba(232, 196, 191, 0.06), rgba(251, 247, 242, 0) 64%),
@@ -5210,28 +5222,30 @@ footer > * {
   }
 
   .mobile-invite-note-inner {
-    max-width: var(--content-prose-narrow);
+    width: min(100%, 780px);
+    max-width: 780px;
     padding-inline: var(--content-shell-gutter);
   }
 
   .mobile-note-title {
-    margin-bottom: 1.25rem;
-    letter-spacing: 0.075em;
+    margin-bottom: 1.35rem;
+    font-size: clamp(1.32rem, 1.45vw, 1.48rem);
+    letter-spacing: 0.068em;
   }
 
   .mobile-note-body {
-    max-width: 43ch;
+    max-width: 52ch;
     margin-inline: auto;
-    font-size: clamp(1.03rem, 1.25vw, 1.12rem);
-    line-height: 1.74;
+    font-size: clamp(1.1rem, 1.34vw, 1.2rem);
+    line-height: 1.78;
   }
 
   .mobile-note-body p + p {
-    margin-top: 1.18rem;
+    margin-top: 1.28rem;
   }
 
   .mobile-note-signature {
-    margin-top: 2.05rem;
+    margin-top: 2.28rem;
   }
 
   .invite-page .chapter-story-section {
@@ -5605,6 +5619,18 @@ footer > * {
     letter-spacing: 0.215em;
   }
 
+  .hero-section nav .type-nav {
+    gap: clamp(1.18rem, 1.55vw, 1.95rem);
+  }
+
+  .hero-section nav .hero-nav-left {
+    padding-right: clamp(1.35rem, 2.4vw, 3rem);
+  }
+
+  .hero-section nav .hero-nav-right {
+    padding-left: clamp(1.35rem, 2.4vw, 3rem);
+  }
+
   .mobile-invite-quote {
     min-height: clamp(600px, 72vh, 780px);
     padding-top: clamp(5.6rem, 6.8vw, 7.2rem);
@@ -5612,14 +5638,16 @@ footer > * {
   }
 
   .mobile-invite-note {
-    min-height: clamp(540px, 66vh, 720px);
-    margin-top: clamp(-7rem, -6.2vw, -4.75rem);
-    padding-top: clamp(4rem, 5.2vw, 5.65rem);
-    padding-bottom: clamp(5.6rem, 7vw, 7.4rem);
+    min-height: clamp(570px, 68vh, 740px);
+    margin-top: clamp(-7.4rem, -6.6vw, -5.1rem);
+    padding-top: clamp(4.25rem, 5.4vw, 5.85rem);
+    padding-bottom: clamp(5.9rem, 7.2vw, 7.6rem);
   }
 
   .mobile-invite-note-inner {
-    transform: translateY(clamp(-1.15rem, -1.25vw, -0.55rem));
+    width: min(100%, 792px);
+    max-width: 792px;
+    transform: translateY(clamp(-1rem, -1vw, -0.45rem));
   }
 
   #dress-code .dress-code-desktop-flow .swatchRow {

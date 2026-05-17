@@ -514,10 +514,11 @@ const mobileEditorialNavItems = [
   { href: "#cover", step: "00", label: "Cover" },
   { href: "#details", step: "01", label: "Details" },
   { href: "#dress-code", step: "02", label: "Dress Code" },
-  { href: "#itinerary", step: "03", label: "Itinerary" },
-  { href: "#venue", step: "04", label: "Venue" },
-  { href: "#rsvp", step: "05", label: "RSVP" },
-  { href: "#faq", step: "06", label: "FAQ" },
+  { href: "#chapter-story", step: "03", label: "Story" },
+  { href: "#itinerary", step: "04", label: "Itinerary" },
+  { href: "#venue", step: "05", label: "Venue" },
+  { href: "#rsvp", step: "06", label: "RSVP" },
+  { href: "#faq", step: "07", label: "FAQ" },
 ];
 
 function SectionProgressCue({ step, label }: { step?: string; label?: string }) {
@@ -1506,12 +1507,15 @@ export default function WeddingWebsiteStarter() {
         <nav className="absolute inset-x-0 top-0 z-40">
           {/* Hidden registry/future funds page — do not link publicly until approved. */}
           <div className="mx-auto grid w-full max-w-[1440px] grid-cols-[1fr_auto_1fr] items-center px-5 py-5 sm:px-8 md:px-12 md:py-6">
-            <div className="type-nav hidden items-center justify-start gap-8 md:flex lg:gap-10">
+            <div className="type-nav hero-nav-left hidden items-center justify-end md:flex">
               <a href="#details" className="nav-link">
                 Details
               </a>
               <a href="#dress-code" className="nav-link">
                 Dress Code
+              </a>
+              <a href="#chapter-story" className="nav-link">
+                Story
               </a>
             </div>
 
@@ -1533,7 +1537,7 @@ export default function WeddingWebsiteStarter() {
               />
             </a>
 
-            <div className="type-nav hidden items-center justify-end gap-8 md:flex lg:gap-10">
+            <div className="type-nav hero-nav-right hidden items-center justify-start md:flex">
               <a href="#itinerary" className="nav-link">
                 Itinerary
               </a>
@@ -1545,6 +1549,9 @@ export default function WeddingWebsiteStarter() {
                 className="secondary-cta type-button px-[18px] py-2.5"
               >
                 RSVP
+              </a>
+              <a href="#faq" className="nav-link">
+                FAQ
               </a>
             </div>
 
