@@ -5144,13 +5144,28 @@ footer > * {
   }
 
   .mobile-invite-quote {
-    min-height: clamp(660px, 82vh, 860px);
+    min-height: clamp(600px, 74vh, 780px);
     display: grid;
     place-items: center;
-    padding: var(--section-rhythm-lg) var(--content-shell-gutter);
+    padding: clamp(5.25rem, 7vw, 7rem) var(--content-shell-gutter) clamp(4.2rem, 5.5vw, 5.8rem);
     background:
       radial-gradient(ellipse at 50% 46%, rgba(255, 250, 247, 0.72) 0%, rgba(251, 247, 242, 0.46) 46%, rgba(248, 238, 234, 0.34) 100%),
-      linear-gradient(180deg, #fbf7f2 0%, rgba(248, 241, 236, 0.72) 52%, #fbf7f2 100%);
+      radial-gradient(ellipse at 50% 100%, rgba(232, 196, 191, 0.075), rgba(251, 247, 242, 0) 54%),
+      linear-gradient(180deg, #fbf7f2 0%, rgba(248, 241, 236, 0.66) 52%, rgba(251, 247, 242, 0.98) 100%);
+  }
+
+  .invite-page .mobile-invite-quote::after {
+    content: "";
+    position: absolute;
+    inset: auto -12% -18%;
+    z-index: 0;
+    height: 32%;
+    border-radius: 999px;
+    background:
+      radial-gradient(ellipse at 50% 48%, rgba(228, 195, 188, 0.105), rgba(255, 248, 244, 0) 72%);
+    filter: blur(36px);
+    opacity: 0.46;
+    pointer-events: none;
   }
 
   .mobile-invite-quote > .quote-content-layer {
@@ -5169,10 +5184,29 @@ footer > * {
   }
 
   .mobile-invite-note {
-    min-height: clamp(660px, 82vh, 860px);
+    min-height: clamp(560px, 68vh, 740px);
     display: grid;
     place-items: center;
-    padding-block: var(--section-rhythm-lg);
+    margin-top: clamp(-5.75rem, -6vw, -3.75rem);
+    padding-block: clamp(4.5rem, 6vw, 6.25rem) clamp(5.4rem, 7vw, 7.25rem);
+    background:
+      radial-gradient(ellipse at 50% 0%, rgba(255, 248, 244, 0.48), rgba(251, 247, 242, 0) 56%),
+      radial-gradient(ellipse at 50% 28%, rgba(232, 196, 191, 0.06), rgba(251, 247, 242, 0) 64%),
+      linear-gradient(180deg, rgba(251, 247, 242, 0.98) 0%, rgba(249, 242, 237, 0.4) 48%, rgba(251, 247, 242, 0.98) 100%);
+  }
+
+  .mobile-invite-note::before {
+    content: "";
+    position: absolute;
+    inset: -14% -16% auto;
+    z-index: 0;
+    height: 38%;
+    border-radius: 999px;
+    background:
+      radial-gradient(ellipse at 50% 46%, rgba(226, 196, 190, 0.095), rgba(255, 248, 244, 0) 74%);
+    filter: blur(40px);
+    opacity: 0.42;
+    pointer-events: none;
   }
 
   .mobile-invite-note-inner {
@@ -5569,6 +5603,23 @@ footer > * {
 
   .hero-copy .type-section-eyebrow {
     letter-spacing: 0.215em;
+  }
+
+  .mobile-invite-quote {
+    min-height: clamp(600px, 72vh, 780px);
+    padding-top: clamp(5.6rem, 6.8vw, 7.2rem);
+    padding-bottom: clamp(3.8rem, 5vw, 5.25rem);
+  }
+
+  .mobile-invite-note {
+    min-height: clamp(540px, 66vh, 720px);
+    margin-top: clamp(-7rem, -6.2vw, -4.75rem);
+    padding-top: clamp(4rem, 5.2vw, 5.65rem);
+    padding-bottom: clamp(5.6rem, 7vw, 7.4rem);
+  }
+
+  .mobile-invite-note-inner {
+    transform: translateY(clamp(-1.15rem, -1.25vw, -0.55rem));
   }
 
   #dress-code .dress-code-desktop-flow .swatchRow {
