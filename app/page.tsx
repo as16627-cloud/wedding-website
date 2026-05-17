@@ -1028,6 +1028,7 @@ export default function WeddingWebsiteStarter() {
     let isStoryInView = false;
 
     const updateStorySnapMode = () => {
+      root.classList.toggle("chapter-story-focus-active", isStoryInView);
       root.classList.toggle("chapter-story-snap-active", isStoryInView && mobileQuery.matches);
     };
 
@@ -1048,6 +1049,7 @@ export default function WeddingWebsiteStarter() {
     return () => {
       observer.disconnect();
       mobileQuery.removeEventListener("change", updateStorySnapMode);
+      root.classList.remove("chapter-story-focus-active");
       root.classList.remove("chapter-story-snap-active");
     };
   }, []);
@@ -1799,7 +1801,7 @@ export default function WeddingWebsiteStarter() {
                   width={1536}
                   height={1024}
                   quality={100}
-                  sizes="(max-width: 767px) calc(100vw - 1rem), (max-width: 1279px) min(88vw, 920px), 1040px"
+                  sizes="(max-width: 767px) calc(100vw - 1rem), (max-width: 1279px) min(88vw, 980px), 1160px"
                   className="chapter-story-image"
                 />
               </motion.figure>

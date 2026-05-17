@@ -5249,12 +5249,41 @@ footer > * {
   }
 
   .invite-page .chapter-story-section {
-    padding-block: clamp(6.5rem, 8vw, 8.5rem) clamp(6.2rem, 7vw, 8rem);
+    padding-block: clamp(8rem, 9.2vw, 10.8rem) clamp(8.2rem, 9.8vw, 11.2rem);
     padding-inline: var(--content-shell-gutter);
+    background:
+      radial-gradient(ellipse at 50% 13%, rgba(255, 250, 246, 0.78) 0%, rgba(250, 239, 234, 0.42) 42%, rgba(251, 247, 242, 0.08) 72%),
+      radial-gradient(ellipse at 16% 42%, rgba(224, 189, 181, 0.095), rgba(251, 247, 242, 0) 54%),
+      radial-gradient(ellipse at 84% 64%, rgba(214, 185, 170, 0.08), rgba(251, 247, 242, 0) 58%),
+      linear-gradient(180deg, #fbf7f2 0%, rgba(248, 235, 230, 0.36) 44%, rgba(251, 247, 242, 0.96) 100%);
+  }
+
+  .invite-page .chapter-story-section::before {
+    inset: 4% -24% auto;
+    z-index: 0;
+    height: 46%;
+    background:
+      radial-gradient(ellipse at 50% 50%, rgba(232, 196, 191, 0.14), rgba(255, 248, 244, 0) 72%);
+    filter: blur(52px);
+    opacity: 0.5;
+  }
+
+  .invite-page .editorial-panel.chapter-story-section::after {
+    content: "";
+    position: absolute;
+    inset: auto -20% -6%;
+    z-index: 0;
+    height: 44%;
+    border-radius: 999px;
+    background:
+      radial-gradient(ellipse at 50% 48%, rgba(222, 193, 184, 0.12), rgba(255, 248, 244, 0) 72%);
+    filter: blur(54px);
+    opacity: 0.42;
+    pointer-events: none;
   }
 
   .chapter-story-inner {
-    width: min(100%, var(--content-media));
+    width: min(100%, 1280px);
   }
 
   .chapter-story-heading {
@@ -5274,23 +5303,42 @@ footer > * {
 
   .chapter-story-list {
     gap: 0;
-    margin-top: clamp(4.6rem, 6vw, 6rem);
+    margin-top: clamp(5.7rem, 7vw, 7.4rem);
   }
 
   .chapter-story-card + .chapter-story-card {
-    margin-top: clamp(2.9rem, 3.8vw, 3.5rem);
+    margin-top: clamp(3.7rem, 4.8vw, 4.8rem);
   }
 
   .chapter-story-card:nth-child(3) {
-    margin-top: clamp(4.25rem, 5.4vw, 5.25rem);
+    margin-top: clamp(5.25rem, 6.4vw, 6.55rem);
+  }
+
+  .chapter-story-card:last-child {
+    margin-bottom: clamp(2.8rem, 4.2vw, 4.4rem);
   }
 
   .chapter-story-card {
-    width: min(100%, 1040px);
-    border-radius: 1.55rem;
+    width: min(100%, 1120px);
+    border-radius: 1.65rem;
     box-shadow:
-      0 30px 86px rgba(101, 75, 62, 0.026),
-      0 6px 24px rgba(203, 182, 175, 0.038);
+      0 38px 108px rgba(101, 75, 62, 0.024),
+      0 8px 28px rgba(203, 182, 175, 0.032);
+  }
+
+  .chapter-story-card::before {
+    inset: -0.75rem;
+    filter: blur(26px);
+    opacity: 0.44;
+  }
+
+  html.chapter-story-focus-active .ambient-audio-control:not(:focus-within) {
+    opacity: 0.68;
+  }
+
+  html.chapter-story-focus-active .ambient-audio-control:hover,
+  html.chapter-story-focus-active .ambient-audio-control:focus-within {
+    opacity: 0.95;
   }
 
   .invite-page #details.mobile-invite-section {
@@ -5648,6 +5696,22 @@ footer > * {
     width: min(100%, 792px);
     max-width: 792px;
     transform: translateY(clamp(-1rem, -1vw, -0.45rem));
+  }
+
+  .invite-page .chapter-story-section {
+    padding-block: clamp(8.8rem, 10vw, 12.25rem) clamp(9.4rem, 11vw, 13rem);
+  }
+
+  .chapter-story-inner {
+    width: min(100%, 1320px);
+  }
+
+  .chapter-story-list {
+    margin-top: clamp(6.15rem, 7.4vw, 8rem);
+  }
+
+  .chapter-story-card {
+    width: min(100%, 1160px);
   }
 
   #dress-code .dress-code-desktop-flow .swatchRow {
