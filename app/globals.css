@@ -2376,6 +2376,7 @@ footer > * {
 
 .chapter-story-card {
   position: relative;
+  isolation: isolate;
   width: min(100%, 46rem);
   margin: 0;
   border-radius: clamp(1.05rem, 4vw, 1.45rem);
@@ -2397,6 +2398,21 @@ footer > * {
   opacity: 0.58;
 }
 
+.chapter-story-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgba(164, 134, 112, 0.09) 0%, rgba(210, 183, 158, 0.055) 42%, rgba(132, 105, 92, 0.085) 100%),
+    radial-gradient(ellipse at 50% 18%, rgba(255, 244, 235, 0.14), rgba(255, 248, 244, 0) 58%),
+    radial-gradient(ellipse at 50% 72%, rgba(181, 144, 130, 0.08), rgba(255, 248, 244, 0) 66%);
+  mix-blend-mode: multiply;
+  opacity: 0.52;
+}
+
 .chapter-story-card + .chapter-story-card {
   margin-top: clamp(2.75rem, 6svh, 3.5rem);
 }
@@ -2410,10 +2426,13 @@ footer > * {
 }
 
 .chapter-story-image {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: auto;
   border-radius: inherit;
+  filter: brightness(0.965) saturate(0.88) contrast(0.965) sepia(0.035);
 }
 
 @keyframes chapter-story-haze-drift {
