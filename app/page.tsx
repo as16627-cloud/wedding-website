@@ -1748,7 +1748,7 @@ export default function WeddingWebsiteStarter() {
               shared together in one beautiful place.
             </p>
             <p>
-              Thank you for being part of this chapter with us. We truly cannot wait to celebrate with you.
+              We truly cannot wait to celebrate this beautiful day with you.
             </p>
           </motion.div>
           <motion.div
