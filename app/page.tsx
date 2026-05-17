@@ -83,7 +83,7 @@ const chapterStoryCards = [
   },
   {
     id: "this-chapter",
-    src: "/images/story/this-chapter.png",
+    src: "/images/story/story-card-this-chapter-refined.png",
     alt: "Watercolor story card titled This Chapter, showing a shared life in Perth, Western Australia.",
   },
 ];
