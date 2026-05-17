@@ -1617,41 +1617,42 @@ footer span {
 
 .itinerary-line {
   background:
-    linear-gradient(180deg, transparent 0%, rgba(203, 182, 175, 0.28) 14%, rgba(203, 182, 175, 0.34) 52%, rgba(203, 182, 175, 0.18) 86%, transparent 100%) !important;
-  opacity: 0.36;
+    linear-gradient(180deg, transparent 0%, rgba(203, 182, 175, 0.12) 14%, rgba(203, 182, 175, 0.18) 52%, rgba(203, 182, 175, 0.09) 86%, transparent 100%) !important;
+  opacity: 0.18;
 }
 
 #itinerary .itinerary-content .h-px {
   background:
-    linear-gradient(90deg, transparent 0%, rgba(203, 182, 175, 0.22) 14%, rgba(203, 182, 175, 0.3) 50%, rgba(203, 182, 175, 0.16) 86%, transparent 100%) !important;
-  opacity: 0.34;
+    linear-gradient(90deg, transparent 0%, rgba(203, 182, 175, 0.14) 14%, rgba(203, 182, 175, 0.2) 50%, rgba(203, 182, 175, 0.1) 86%, transparent 100%) !important;
+  opacity: 0.26;
 }
 
 .itinerary-marker > div {
-  border-color: rgba(214, 188, 190, 0.24) !important;
-  background: rgba(255, 250, 248, 0.82) !important;
+  border-color: rgba(214, 188, 190, 0.14) !important;
+  background: rgba(255, 250, 248, 0.74) !important;
   box-shadow:
-    0 2px 10px rgba(170, 145, 150, 0.06),
-    0 0 0 5px rgba(203, 182, 175, 0.07) !important;
+    0 2px 8px rgba(170, 145, 150, 0.04),
+    0 0 0 5px rgba(203, 182, 175, 0.038) !important;
 }
 
 .itinerary-marker span {
-  background: rgba(172, 144, 148, 0.56) !important;
-  opacity: 0.72;
+  background: rgba(172, 144, 148, 0.48) !important;
+  opacity: 0.64;
 }
 
 .mobile-invite-card svg,
 .itinerary-content svg,
 .mobile-scroll-cue {
-  color: rgba(172, 144, 148, 0.62);
-  opacity: 0.66;
+  color: rgba(170, 145, 150, 0.58);
+  opacity: 0.62;
   stroke-width: 1.75;
 }
 
 #itinerary.mobile-invite-section {
   background:
-    radial-gradient(ellipse at 50% 4%, rgba(255, 248, 244, 0.64) 0%, rgba(251, 247, 242, 0.08) 58%, transparent 78%),
-    radial-gradient(ellipse at 50% 70%, rgba(232, 196, 191, 0.16), rgba(251, 247, 242, 0) 66%),
+    radial-gradient(ellipse at 50% 4%, rgba(255, 248, 244, 0.66) 0%, rgba(251, 247, 242, 0.09) 58%, transparent 78%),
+    radial-gradient(ellipse at 50% 62%, rgba(232, 196, 191, 0.13), rgba(251, 247, 242, 0) 66%),
+    radial-gradient(ellipse at 46% 100%, rgba(207, 180, 170, 0.08), transparent 62%),
     linear-gradient(180deg, #fbf7f2 0%, rgba(249, 242, 237, 0.58) 48%, #fbf7f2 100%);
 }
 
@@ -1663,9 +1664,9 @@ footer span {
   height: 48%;
   border-radius: 999px;
   background:
-    radial-gradient(ellipse at 50% 48%, rgba(221, 191, 183, 0.18), rgba(255, 248, 244, 0) 70%);
-  filter: blur(30px);
-  opacity: 0.56;
+    radial-gradient(ellipse at 50% 48%, rgba(221, 191, 183, 0.15), rgba(255, 248, 244, 0) 72%);
+  filter: blur(34px);
+  opacity: 0.5;
   pointer-events: none;
 }
 
@@ -1681,6 +1682,10 @@ footer span {
 
 .itinerary-item-4 {
   margin-top: clamp(0.42rem, 1.55svh, 0.72rem);
+}
+
+.itinerary-item-5 {
+  margin-top: clamp(0.28rem, 1.2svh, 0.56rem);
 }
 
 .itinerary-item-6 {
@@ -3805,7 +3810,7 @@ footer > * {
 
   .itinerary-list {
     max-width: var(--mobile-scene-width);
-    gap: 0.66rem;
+    gap: 0.74rem;
   }
 
   .itinerary-line {
@@ -3818,15 +3823,16 @@ footer > * {
     grid-template-columns: 3.5rem 1rem minmax(0, 1fr);
     gap: 0 0.58rem;
     align-items: start;
-    padding: 0.96rem 0.9rem;
-    border: 1px solid rgba(219, 198, 201, 0.18);
+    padding: 1.08rem 0.98rem 1.14rem;
+    border: 1px solid rgba(219, 198, 201, 0.14);
     border-radius: var(--mobile-card-radius);
     background:
-      radial-gradient(ellipse at 50% 0%, rgba(255, 252, 250, 0.34), rgba(255, 252, 250, 0) 68%),
-      rgba(255, 252, 250, 0.62);
+      radial-gradient(ellipse at 52% 0%, rgba(255, 252, 250, 0.34), rgba(255, 252, 250, 0) 68%),
+      linear-gradient(90deg, rgba(255, 250, 248, 0.44), rgba(255, 252, 250, 0.62) 42%, rgba(255, 252, 250, 0.58)),
+      rgba(255, 252, 250, 0.58);
     box-shadow:
-      0 10px 30px rgba(160, 135, 140, 0.04),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.12);
+      0 10px 28px rgba(160, 135, 140, 0.032),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.1);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
     overflow: hidden;
@@ -3835,47 +3841,60 @@ footer > * {
   .itinerary-item::before {
     content: "";
     position: absolute;
-    top: -0.75rem;
-    bottom: -0.75rem;
-    left: calc(0.9rem + 3.5rem + 0.58rem + 0.5rem);
+    top: -0.9rem;
+    bottom: -0.9rem;
+    left: calc(0.98rem + 3.5rem + 0.58rem + 0.5rem);
+    z-index: 1;
     width: 1px;
     background:
-      linear-gradient(180deg, transparent 0%, rgba(203, 182, 175, 0.2) 18%, rgba(203, 182, 175, 0.32) 50%, rgba(203, 182, 175, 0.16) 82%, transparent 100%);
-    opacity: 0.7;
+      linear-gradient(180deg, transparent 0%, rgba(203, 182, 175, 0.09) 18%, rgba(203, 182, 175, 0.18) 50%, rgba(203, 182, 175, 0.08) 82%, transparent 100%);
+    opacity: 0.46;
+  }
+
+  .itinerary-item::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background:
+      radial-gradient(ellipse at 16% 34%, rgba(245, 230, 226, 0.26), transparent 48%),
+      radial-gradient(ellipse at 68% 0%, rgba(255, 248, 244, 0.28), transparent 56%);
+    opacity: 0.54;
+    pointer-events: none;
   }
 
   .itinerary-item > * {
     position: relative;
-    z-index: 1;
+    z-index: 2;
   }
 
   .itinerary-item .type-timeline-time {
-    padding-top: 0.12rem;
+    padding-top: 0.18rem;
     text-align: right;
-    color: rgba(137, 115, 108, 0.54);
+    color: rgba(154, 132, 136, 0.62);
     font-size: 0.62rem;
     line-height: 1.22;
-    letter-spacing: 0.116em;
+    letter-spacing: 0.08em;
   }
 
   .itinerary-marker {
     display: flex;
     justify-content: center;
-    padding-top: 0.18rem;
+    padding-top: 0.24rem;
   }
 
   .itinerary-marker > div {
     width: 0.95rem;
     height: 0.95rem;
-    border-color: rgba(214, 188, 190, 0.22) !important;
-    background: rgba(255, 250, 248, 0.82) !important;
-    box-shadow: 0 2px 10px rgba(170, 145, 150, 0.045), 0 0 0 4px rgba(203, 182, 175, 0.038) !important;
+    border-color: rgba(214, 188, 190, 0.14) !important;
+    background: rgba(255, 250, 248, 0.74) !important;
+    box-shadow: 0 2px 8px rgba(170, 145, 150, 0.032), 0 0 0 4px rgba(203, 182, 175, 0.026) !important;
   }
 
   .itinerary-marker span {
     width: 0.34rem;
     height: 0.34rem;
-    background: rgba(172, 144, 148, 0.52) !important;
+    background: rgba(172, 144, 148, 0.46) !important;
   }
 
   .itinerary-content {
@@ -3889,14 +3908,14 @@ footer > * {
   .itinerary-content .flex {
     margin-top: 0;
     align-items: center;
-    gap: 0.58rem;
+    gap: 0.68rem;
   }
 
   .itinerary-content svg {
     width: 1.35rem;
     height: 1.35rem;
-    color: rgba(172, 144, 148, 0.58);
-    opacity: 0.62;
+    color: rgba(170, 145, 150, 0.58);
+    opacity: 0.58;
   }
 
   .itinerary-content .type-timeline-title {
@@ -3910,10 +3929,10 @@ footer > * {
 
   .itinerary-content .type-card-body {
     max-width: none;
-    margin-top: 0.36rem;
-    color: rgba(112, 92, 96, 0.8);
+    margin-top: 0.48rem;
+    color: rgba(112, 92, 96, 0.78);
     font-size: 0.86rem;
-    line-height: 1.43;
+    line-height: 1.5;
   }
 
   #itinerary .itinerary-list + div {
@@ -5013,7 +5032,30 @@ footer > * {
   }
 
   .itinerary-item {
-    padding-block: 0.35rem;
+    position: relative;
+    padding-block: 0.5rem;
+  }
+
+  .itinerary-item::after {
+    content: "";
+    position: absolute;
+    inset: 0.16rem -0.35rem 1.84rem -0.35rem;
+    z-index: 0;
+    border: 1px solid rgba(219, 198, 201, 0.075);
+    border-radius: 1.72rem;
+    background:
+      radial-gradient(ellipse at 10% 36%, rgba(245, 230, 226, 0.22), transparent 46%),
+      radial-gradient(ellipse at 54% 0%, rgba(255, 252, 250, 0.3), transparent 62%),
+      linear-gradient(90deg, rgba(255, 250, 248, 0.25), rgba(255, 252, 250, 0.18) 38%, rgba(255, 252, 250, 0));
+    box-shadow:
+      0 12px 34px rgba(160, 135, 140, 0.022),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.08);
+    pointer-events: none;
+  }
+
+  .itinerary-item > * {
+    position: relative;
+    z-index: 1;
   }
 
   .itinerary-item-2 {
@@ -5021,39 +5063,51 @@ footer > * {
   }
 
   .itinerary-item-4 {
-    margin-top: clamp(0.55rem, 1.15vw, 0.9rem);
+    margin-top: clamp(0.7rem, 1.28vw, 1.06rem);
+  }
+
+  .itinerary-item-5 {
+    margin-top: clamp(0.46rem, 0.98vw, 0.82rem);
   }
 
   .itinerary-item-6 {
-    margin-top: clamp(0.45rem, 0.95vw, 0.78rem);
+    margin-top: clamp(0.58rem, 1.08vw, 0.94rem);
   }
 
   .itinerary-item .type-timeline-time {
-    color: rgba(137, 115, 108, 0.58);
+    padding-top: 0.38rem;
+    color: rgba(154, 132, 136, 0.68);
+    letter-spacing: 0.03em;
   }
 
   .itinerary-content {
-    padding-bottom: 2rem;
+    padding-bottom: 2.24rem;
   }
 
   .itinerary-content > div:first-child {
-    padding: clamp(1.05rem, 1.6vw, 1.35rem) clamp(1.12rem, 2.2vw, 1.65rem);
-    border: 1px solid rgba(219, 198, 201, 0.18);
+    padding: clamp(1.22rem, 1.82vw, 1.58rem) clamp(1.28rem, 2.34vw, 1.84rem);
+    border: 1px solid rgba(219, 198, 201, 0.12);
     border-radius: 1.35rem;
     background:
-      radial-gradient(ellipse at 50% 0%, rgba(255, 252, 250, 0.32), rgba(255, 252, 250, 0) 68%),
-      rgba(255, 252, 250, 0.62);
+      radial-gradient(ellipse at 50% 0%, rgba(255, 252, 250, 0.3), rgba(255, 252, 250, 0) 68%),
+      linear-gradient(90deg, rgba(255, 250, 248, 0.54), rgba(255, 252, 250, 0.58)),
+      rgba(255, 252, 250, 0.56);
     box-shadow:
-      0 10px 30px rgba(160, 135, 140, 0.04),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.1);
+      0 10px 28px rgba(160, 135, 140, 0.03),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.08);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
   }
 
+  .itinerary-content .flex {
+    gap: 1.08rem;
+  }
+
   .itinerary-content .type-card-body {
     max-width: 40rem;
-    color: rgba(112, 92, 96, 0.8);
-    line-height: 1.58;
+    margin-top: 1.08rem;
+    color: rgba(112, 92, 96, 0.78);
+    line-height: 1.66;
   }
 
   #venue.mobile-invite-section {
