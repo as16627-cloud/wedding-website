@@ -1911,8 +1911,8 @@ footer span {
   max-width: 36ch;
 }
 
-.rsvp-change-note {
-  max-width: 39ch;
+.rsvp-support-note {
+  max-width: 38ch;
 }
 
 #rsvp .card-luxe-dark {
@@ -1947,13 +1947,9 @@ footer span {
   line-height: 1.7;
 }
 
-#rsvp .rsvp-reassurance-copy {
-  color: rgba(126, 100, 96, 0.72);
-}
-
-#rsvp .rsvp-change-note {
-  color: rgba(92, 76, 72, 0.78);
-  line-height: 1.68;
+#rsvp .rsvp-support-note {
+  color: rgba(106, 84, 80, 0.76);
+  line-height: 1.72;
 }
 
 #rsvp .rsvp-mobile-steps div {
@@ -1965,8 +1961,9 @@ footer span {
 }
 
 #rsvp .rsvp-mobile-steps strong {
-  color: rgba(132, 91, 82, 0.82);
-  letter-spacing: 0.055em;
+  color: rgba(132, 91, 82, 0.76);
+  font-weight: 500;
+  letter-spacing: 0.042em;
 }
 
 .footer-utility-nav {
@@ -4205,7 +4202,7 @@ footer > * {
 
   #rsvp .card-luxe-dark .card-luxe-text {
     margin-top: 1.05rem;
-    padding: 1.05rem 0.88rem;
+    padding: 1.18rem 1rem;
     border-color: rgba(222, 205, 207, 0.28);
     border-radius: var(--mobile-card-radius);
     background: rgba(255, 250, 248, 0.9);
@@ -4224,49 +4221,44 @@ footer > * {
     letter-spacing: 0.01em;
   }
 
-  #rsvp .card-luxe-dark .card-luxe-text .rsvp-reassurance-copy {
-    color: rgba(126, 100, 96, 0.72);
-    font-size: 0.86rem;
-  }
-
-  #rsvp .rsvp-change-note {
-    max-width: 320px;
-    color: rgba(92, 76, 72, 0.76);
-    font-size: 0.86rem;
-    line-height: 1.58;
+  #rsvp .rsvp-support-note {
+    max-width: 292px;
+    color: rgba(106, 84, 80, 0.76);
+    font-size: 0.87rem;
+    line-height: 1.62;
   }
 
   #rsvp .rsvp-mobile-steps {
-    max-width: 238px;
-    margin: 0.9rem auto 0;
-    gap: 0.56rem;
+    max-width: 248px;
+    margin: 0 auto;
+    gap: 0.6rem;
   }
 
   #rsvp .rsvp-mobile-steps div {
     min-height: 69px;
     padding: 0.5rem 0.4rem;
-    border-color: rgba(214, 188, 190, 0.22);
+    border-color: rgba(214, 188, 190, 0.19);
     border-radius: 1.08rem;
-    background: rgba(255, 248, 245, 0.78);
+    background: rgba(255, 248, 245, 0.74);
     box-shadow:
-      0 6px 18px rgba(60, 40, 50, 0.045),
+      0 6px 18px rgba(60, 40, 50, 0.038),
       inset 0 0 0 1px rgba(255, 248, 244, 0.12);
   }
 
   #rsvp .rsvp-mobile-steps span {
     width: 2.14rem;
     height: 2.14rem;
-    background: rgba(248, 235, 230, 0.595);
+    background: rgba(248, 235, 230, 0.52);
     color: rgba(156, 122, 115, 0.75);
     font-size: 0.92rem;
     box-shadow: 0 4px 12px rgba(101, 75, 62, 0.017), inset 0 0 0 1px rgba(255, 248, 244, 0.15);
   }
 
   #rsvp .rsvp-mobile-steps strong {
-    color: rgba(132, 91, 82, 0.82);
-    font-size: 0.74rem;
+    color: rgba(132, 91, 82, 0.76);
+    font-size: 0.72rem;
     line-height: 1.16;
-    letter-spacing: 0.055em;
+    letter-spacing: 0.042em;
   }
 
   #rsvp .card-luxe-text .h-px {
@@ -4278,20 +4270,6 @@ footer > * {
     margin-top: 0.88rem;
     font-size: 0.89rem;
     line-height: 1.58;
-  }
-
-  #rsvp .rsvp-change-note + .type-card-body {
-    margin-top: 0.74rem;
-  }
-
-  #rsvp .card-luxe-dark .card-luxe-text .rsvp-change-note {
-    color: rgba(92, 76, 72, 0.76);
-    font-size: 0.86rem;
-    line-height: 1.58;
-  }
-
-  #rsvp .card-luxe-dark .card-luxe-text .rsvp-change-note + .type-card-body {
-    color: rgba(92, 76, 72, 0.8);
   }
 
   .rsvp-mobile-steps {

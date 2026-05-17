@@ -2319,25 +2319,18 @@ export default function WeddingWebsiteStarter() {
             </motion.h2>
             <motion.p className="heading-copy mt-5" {...cinematicRevealMotion(0.34, 12, 0.9, 0.42)}>
               Your formal invitation will include a private RSVP link created especially for you.
-              That link will take you directly to your RSVP, where you&rsquo;ll be able to confirm your details and response
-              with ease.
+              That link will take you directly to your RSVP, where you&rsquo;ll be able to confirm your response with ease.
             </motion.p>
             <motion.p className="rsvp-deadline-copy heading-copy mx-auto mt-3" {...cinematicRevealMotion(0.42, 10, 0.86, 0.38)}>
-              Kindly respond by Wednesday, 1 July 2026 through your private invitation link.
+              Kindly respond by Wednesday, 1 July 2026.
             </motion.p>
           </div>
 
           <motion.div
-            className="card-luxe card-luxe-text mt-10 p-6 text-center text-[var(--color-body)] md:p-8"
+            className="card-luxe card-luxe-text rsvp-invitation-panel mt-10 p-7 text-center text-[var(--color-body)] md:p-10"
             {...cinematicRevealMotion(0.48, 14, 0.9, 0.3)}
           >
-            <p className="type-card-body mx-auto max-w-2xl">
-              Your private invitation link will take you directly to your RSVP &mdash; no guest lookup required.
-            </p>
-            <p className="rsvp-reassurance-copy type-card-body mx-auto mt-4 max-w-xl">
-              If you&rsquo;ve already responded, your invitation link will always take you back to your RSVP details.
-            </p>
-            <div className="rsvp-mobile-steps mt-6 md:hidden">
+            <div className="rsvp-mobile-steps md:hidden">
               <div>
                 <span>1</span>
                 <strong>Open your link</strong>
@@ -2347,14 +2340,8 @@ export default function WeddingWebsiteStarter() {
                 <strong>Confirm details</strong>
               </div>
             </div>
-            <div className="mx-auto mt-6 h-px w-24 bg-[var(--color-divider)] opacity-90" />
-            <p className="rsvp-change-note type-card-body mx-auto mt-6 max-w-xl">
-              If your plans change after submitting your RSVP, please let us know by Saturday, 1 August 2026 so we can
-              finalise seating, dining selections, and celebration details with care.
-            </p>
-            <p className="type-card-body mx-auto mt-6 max-w-xl">
-              If your invitation link is missing or no longer working, feel free to message Sumaya or Aditya and we&rsquo;ll
-              happily resend it.
+            <p className="rsvp-support-note type-card-body mx-auto mt-6 max-w-lg md:mt-0">
+              If you need to make any changes or resend your invitation link, we&rsquo;re always happy to help.
             </p>
           </motion.div>
 
