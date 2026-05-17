@@ -1264,7 +1264,7 @@ export default function WeddingWebsiteStarter() {
     : "translate-y-1.5 opacity-70 sm:translate-y-2.5 sm:opacity-60";
   const audioToggleMotionClass = shouldReduceMotion
     ? ""
-    : "transition-[opacity,transform,box-shadow,border-color,background-color,color] duration-[400ms] ease-out hover:scale-[1.02]";
+    : "transition-[opacity,transform,box-shadow,border-color,background-color,color] duration-[320ms] ease-out";
   const heroRevealTiming = isHeroMobile
     ? {
         textDuration: 1.08,
@@ -1417,7 +1417,7 @@ export default function WeddingWebsiteStarter() {
             aria-pressed={isAmbientAudioOn}
             aria-label={isAmbientAudioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
             onClick={handleAmbientAudioToggle}
-            className="ambient-audio-toggle type-button inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[rgba(232,207,200,0.78)] bg-[#fffaf7]/76 px-3 py-1.5 text-[var(--color-navy)] shadow-[0_8px_24px_rgba(90,65,50,0.08)] hover:border-[rgba(28,34,56,0.22)] hover:bg-[#fffdf9]/88 hover:text-[var(--color-navy-dark)] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.45)] sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2"
+            className="ambient-audio-toggle type-button inline-flex items-center justify-center rounded-full border focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.34)]"
           >
             {isAmbientAudioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
             <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>

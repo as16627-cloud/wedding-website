@@ -1351,56 +1351,66 @@ a[class*="uppercase"] {
   gap: 0.34rem;
 }
 
-.ambient-audio-toggle {
-  width: auto;
-  max-width: calc(100vw - 2rem);
-  border-color: rgba(200, 170, 160, 0.4);
-  background: rgba(255, 255, 255, 0.6);
-  color: var(--color-rose-gold);
-}
-
+.ambient-audio-toggle,
 .ambient-audio-menu-toggle {
   display: inline-flex;
-  width: 2.38rem;
-  height: 2.38rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  min-height: 2.5rem;
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid rgba(213, 184, 176, 0.5);
-  background: rgba(255, 250, 247, 0.7);
-  color: rgba(137, 94, 87, 0.76);
+  border: 1px solid rgba(214, 188, 190, 0.16);
+  background: rgba(255, 248, 244, 0.18);
+  color: rgba(148, 118, 120, 0.72);
   box-shadow:
-    0 8px 22px rgba(90, 65, 50, 0.055),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+    0 4px 18px rgba(180, 155, 158, 0.1),
+    inset 0 1px 3px rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   transition:
-    border-color 280ms ease,
-    background-color 280ms ease,
-    color 280ms ease,
-    opacity 280ms ease,
-    transform 280ms ease,
-    box-shadow 280ms ease;
+    background-color 220ms ease,
+    border-color 220ms ease,
+    color 220ms ease,
+    opacity 220ms ease,
+    transform 220ms ease,
+    box-shadow 220ms ease;
 }
 
+.ambient-audio-toggle span {
+  display: none;
+}
+
+.ambient-audio-toggle[aria-pressed="true"] {
+  border-color: rgba(214, 188, 190, 0.22);
+  background: rgba(255, 248, 244, 0.24);
+  color: rgba(148, 118, 120, 0.84);
+}
+
+.ambient-audio-toggle:hover,
 .ambient-audio-menu-toggle:hover,
 .ambient-audio-menu-toggle[aria-expanded="true"] {
   transform: translateY(-1px);
-  border-color: rgba(192, 138, 122, 0.34);
-  background: rgba(255, 252, 248, 0.86);
-  color: rgba(111, 75, 70, 0.86);
+  border-color: rgba(214, 188, 190, 0.24);
+  background: rgba(255, 248, 244, 0.28);
+  color: rgba(148, 118, 120, 0.88);
   box-shadow:
-    0 10px 26px rgba(90, 65, 50, 0.065),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    0 5px 20px rgba(180, 155, 158, 0.12),
+    inset 0 1px 3px rgba(255, 255, 255, 0.2);
 }
 
+.ambient-audio-toggle:focus-visible,
 .ambient-audio-menu-toggle:focus-visible {
   outline: 2px solid rgba(192, 138, 122, 0.42);
   outline-offset: 3px;
 }
 
+.ambient-audio-toggle svg,
 .ambient-audio-menu-toggle svg {
   width: 0.96rem;
   height: 0.96rem;
   stroke-width: 1.65;
+  opacity: 0.82;
 }
 
 .ambient-audio-menu {
@@ -2518,17 +2528,16 @@ footer > * {
 
   .ambient-audio-toggle {
     width: 44px;
+    height: 44px;
     min-height: 44px;
     padding: 0;
-    opacity: 0.32;
-    border-color: rgba(200, 170, 160, 0.4);
-    background: rgba(255, 250, 247, 0.62);
-    color: var(--color-navy);
-    box-shadow: 0 3px 10px rgba(20, 26, 44, 0.028), inset 0 0 0 1px rgba(255, 255, 255, 0.13);
-  }
-
-  .ambient-audio-toggle span {
-    display: none;
+    opacity: 0.42;
+    border-color: rgba(214, 188, 190, 0.15);
+    background: rgba(255, 248, 244, 0.18);
+    color: rgba(148, 118, 120, 0.72);
+    box-shadow:
+      0 4px 16px rgba(180, 155, 158, 0.08),
+      inset 0 1px 3px rgba(255, 255, 255, 0.16);
   }
 
   .ambient-audio-toggle svg {
@@ -2539,14 +2548,22 @@ footer > * {
   .ambient-audio-menu-toggle {
     width: 44px;
     height: 44px;
-    opacity: 0.5;
-    border-color: rgba(200, 170, 160, 0.36);
-    background: rgba(255, 250, 247, 0.58);
-    box-shadow: 0 3px 10px rgba(20, 26, 44, 0.025), inset 0 0 0 1px rgba(255, 255, 255, 0.13);
+    min-height: 44px;
+    opacity: 0.42;
+    border-color: rgba(214, 188, 190, 0.15);
+    background: rgba(255, 248, 244, 0.18);
+    color: rgba(148, 118, 120, 0.72);
+    box-shadow:
+      0 4px 16px rgba(180, 155, 158, 0.08),
+      inset 0 1px 3px rgba(255, 255, 255, 0.16);
+  }
+
+  .ambient-audio-toggle[aria-pressed="true"] {
+    opacity: 0.58;
   }
 
   .ambient-audio-menu-toggle[aria-expanded="true"] {
-    opacity: 0.72;
+    opacity: 0.62;
   }
 
   .ambient-audio-menu {
@@ -4542,7 +4559,7 @@ footer > * {
   .ambient-audio-toggle {
     left: auto;
     right: 2rem;
-    width: auto;
+    width: 2.5rem;
   }
 }
 
