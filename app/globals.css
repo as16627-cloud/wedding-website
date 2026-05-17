@@ -1332,15 +1332,184 @@ a[class*="uppercase"] {
   display: none;
 }
 
-.ambient-audio-toggle {
+.ambient-audio-control {
   left: auto;
   right: max(1rem, env(safe-area-inset-right));
   bottom: max(1rem, env(safe-area-inset-bottom));
+  display: flex;
+  width: auto;
+  max-width: min(18rem, calc(100vw - 2rem));
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.48rem;
+}
+
+.ambient-audio-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.34rem;
+}
+
+.ambient-audio-toggle {
   width: auto;
   max-width: calc(100vw - 2rem);
   border-color: rgba(200, 170, 160, 0.4);
   background: rgba(255, 255, 255, 0.6);
   color: var(--color-rose-gold);
+}
+
+.ambient-audio-menu-toggle {
+  display: inline-flex;
+  width: 2.38rem;
+  height: 2.38rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(213, 184, 176, 0.5);
+  background: rgba(255, 250, 247, 0.7);
+  color: rgba(137, 94, 87, 0.76);
+  box-shadow:
+    0 8px 22px rgba(90, 65, 50, 0.055),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  transition:
+    border-color 280ms ease,
+    background-color 280ms ease,
+    color 280ms ease,
+    opacity 280ms ease,
+    transform 280ms ease,
+    box-shadow 280ms ease;
+}
+
+.ambient-audio-menu-toggle:hover,
+.ambient-audio-menu-toggle[aria-expanded="true"] {
+  transform: translateY(-1px);
+  border-color: rgba(192, 138, 122, 0.34);
+  background: rgba(255, 252, 248, 0.86);
+  color: rgba(111, 75, 70, 0.86);
+  box-shadow:
+    0 10px 26px rgba(90, 65, 50, 0.065),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.ambient-audio-menu-toggle:focus-visible {
+  outline: 2px solid rgba(192, 138, 122, 0.42);
+  outline-offset: 3px;
+}
+
+.ambient-audio-menu-toggle svg {
+  width: 0.96rem;
+  height: 0.96rem;
+  stroke-width: 1.65;
+}
+
+.ambient-audio-menu {
+  width: min(17.5rem, calc(100vw - 2rem));
+  padding: 0.78rem;
+  border: 1px solid rgba(224, 199, 191, 0.46);
+  border-radius: 1.15rem;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 250, 247, 0.92), rgba(255, 247, 242, 0.78) 58%, rgba(255, 247, 242, 0.7) 100%);
+  color: var(--color-heading);
+  box-shadow:
+    0 18px 44px rgba(92, 68, 58, 0.075),
+    0 4px 16px rgba(201, 165, 154, 0.05),
+    inset 0 1px 0 rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  transform-origin: right bottom;
+}
+
+.ambient-audio-menu-kicker {
+  margin: 0 0 0.52rem;
+  color: rgba(137, 94, 87, 0.58);
+  font-family: var(--font-body);
+  font-size: 0.58rem;
+  letter-spacing: 0.16em;
+  line-height: 1;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.ambient-audio-track-list {
+  display: grid;
+  gap: 0.34rem;
+}
+
+.ambient-audio-track-option {
+  display: grid;
+  width: 100%;
+  grid-template-columns: 1.4rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.42rem;
+  border-radius: 0.88rem;
+  border: 1px solid rgba(226, 199, 190, 0.28);
+  background: rgba(255, 252, 248, 0.48);
+  padding: 0.58rem 0.66rem;
+  color: rgba(80, 56, 51, 0.76);
+  text-align: left;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.12);
+  transition:
+    border-color 260ms ease,
+    background-color 260ms ease,
+    color 260ms ease,
+    opacity 260ms ease,
+    transform 260ms ease;
+}
+
+.ambient-audio-track-option:hover {
+  transform: translateY(-1px);
+  border-color: rgba(200, 154, 143, 0.34);
+  background: rgba(255, 253, 249, 0.66);
+  color: rgba(72, 48, 44, 0.84);
+}
+
+.ambient-audio-track-option:focus-visible {
+  outline: 2px solid rgba(192, 138, 122, 0.38);
+  outline-offset: 2px;
+}
+
+.ambient-audio-track-option-active {
+  border-color: rgba(192, 138, 122, 0.42);
+  background: rgba(255, 248, 244, 0.76);
+  color: rgba(67, 45, 42, 0.88);
+}
+
+.ambient-audio-track-option-special {
+  color: rgba(107, 77, 72, 0.68);
+}
+
+.ambient-audio-track-mark {
+  display: inline-flex;
+  width: 1.4rem;
+  height: 1.4rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(245, 224, 217, 0.34);
+  color: rgba(173, 120, 107, 0.78);
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  line-height: 1;
+}
+
+.ambient-audio-track-copy {
+  min-width: 0;
+  font-family: var(--font-body);
+  font-size: 0.74rem;
+  letter-spacing: 0.055em;
+  line-height: 1.25;
+}
+
+.ambient-audio-track-title,
+.ambient-audio-track-subtitle {
+  display: inline;
+}
+
+.ambient-audio-track-subtitle {
+  color: rgba(137, 94, 87, 0.58);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
 }
 
 .hero-section {
@@ -2336,9 +2505,18 @@ footer > * {
    * unobtrusive global audio control.
    */
 
-  .ambient-audio-toggle {
+  .ambient-audio-control {
     right: max(0.22rem, env(safe-area-inset-right));
     bottom: max(0.22rem, env(safe-area-inset-bottom));
+    max-width: min(15.8rem, calc(100vw - 0.44rem));
+    gap: 0.32rem;
+  }
+
+  .ambient-audio-actions {
+    gap: 0.24rem;
+  }
+
+  .ambient-audio-toggle {
     width: 44px;
     min-height: 44px;
     padding: 0;
@@ -2356,6 +2534,58 @@ footer > * {
   .ambient-audio-toggle svg {
     width: 0.96rem;
     height: 0.96rem;
+  }
+
+  .ambient-audio-menu-toggle {
+    width: 44px;
+    height: 44px;
+    opacity: 0.5;
+    border-color: rgba(200, 170, 160, 0.36);
+    background: rgba(255, 250, 247, 0.58);
+    box-shadow: 0 3px 10px rgba(20, 26, 44, 0.025), inset 0 0 0 1px rgba(255, 255, 255, 0.13);
+  }
+
+  .ambient-audio-menu-toggle[aria-expanded="true"] {
+    opacity: 0.72;
+  }
+
+  .ambient-audio-menu {
+    width: min(15.45rem, calc(100vw - 0.7rem));
+    padding: 0.66rem;
+    border-radius: 1rem;
+    border-color: rgba(224, 199, 191, 0.38);
+    box-shadow:
+      0 12px 34px rgba(92, 68, 58, 0.06),
+      0 3px 12px rgba(201, 165, 154, 0.04),
+      inset 0 1px 0 rgba(255, 255, 255, 0.34);
+  }
+
+  .ambient-audio-menu-kicker {
+    margin-bottom: 0.44rem;
+    font-size: 0.53rem;
+    letter-spacing: 0.14em;
+  }
+
+  .ambient-audio-track-option {
+    grid-template-columns: 1.24rem minmax(0, 1fr);
+    gap: 0.36rem;
+    border-radius: 0.78rem;
+    padding: 0.5rem 0.56rem;
+  }
+
+  .ambient-audio-track-mark {
+    width: 1.24rem;
+    height: 1.24rem;
+    font-size: 0.76rem;
+  }
+
+  .ambient-audio-track-copy {
+    font-size: 0.68rem;
+    letter-spacing: 0.045em;
+  }
+
+  .ambient-audio-track-subtitle {
+    font-size: 0.62rem;
   }
 
   .mobile-nav-toggle {
@@ -4305,6 +4535,10 @@ footer > * {
 }
 
 @media (min-width: 640px) {
+  .ambient-audio-control {
+    right: 2rem;
+  }
+
   .ambient-audio-toggle {
     left: auto;
     right: 2rem;

@@ -94,7 +94,24 @@ const venueSwipeThreshold = 40;
 const gateOpenEase = [0.16, 1, 0.3, 1] as const;
 const invitationRevealEase = [0.22, 1, 0.36, 1] as const;
 const cinematicRevealEase = [0.19, 1, 0.22, 1] as const;
-const ambientAudioSrc = "/audio/until-i-found-you-violin-piano-wedding-version.mp3";
+const ambientAudioTracks = [
+  {
+    id: "until-i-found-you",
+    label: "Until I Found You",
+    mark: "♪",
+    subtitle: "",
+    src: "/audio/until-i-found-you-violin-piano-wedding-version.mp3",
+  },
+  {
+    id: "turning-page",
+    label: "Turning Page",
+    mark: "♡",
+    subtitle: "Our Story",
+    src: "/audio/turning-page-sleeping-at-last-violin-cover-daniel-jang.mp3",
+  },
+] as const;
+type AmbientAudioTrackId = (typeof ambientAudioTracks)[number]["id"];
+const defaultAmbientAudioTrackId = ambientAudioTracks[0].id;
 const ambientAudioTargetVolume = 0.22;
 const ambientAudioFadeDuration = 1800;
 
@@ -823,6 +840,8 @@ export default function WeddingWebsiteStarter() {
   const heroRef = useRef<HTMLElement | null>(null);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
   const ambientAudioFadeRef = useRef<number | null>(null);
+  const previousAmbientTrackIdRef = useRef<AmbientAudioTrackId>(defaultAmbientAudioTrackId);
+  const shouldResumeSelectedTrackRef = useRef(false);
   const copiedVenueTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [guestInviteToken] = useState("");
   const [guestName, setGuestName] = useState("");
@@ -839,6 +858,9 @@ export default function WeddingWebsiteStarter() {
   const [isMobileGateOpened, setIsMobileGateOpened] = useState(false);
   const [isMobileHeroCopyVisible, setIsMobileHeroCopyVisible] = useState(false);
   const [isAmbientAudioOn, setIsAmbientAudioOn] = useState(false);
+  const [activeAmbientTrackId, setActiveAmbientTrackId] =
+    useState<AmbientAudioTrackId>(defaultAmbientAudioTrackId);
+  const [isAudioMenuOpen, setIsAudioMenuOpen] = useState(false);
   const [isAudioToggleVisible, setIsAudioToggleVisible] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [hasCopiedVenueAddress, setHasCopiedVenueAddress] = useState(false);
@@ -905,6 +927,80 @@ export default function WeddingWebsiteStarter() {
       audio.volume = 0;
     }
   }, [fadeAmbientAudio, isAmbientAudioOn]);
+
+  const handleAmbientTrackSelect = useCallback(
+    (trackId: AmbientAudioTrackId) => {
+      if (trackId === activeAmbientTrackId) {
+        setIsAudioMenuOpen(false);
+        return;
+      }
+
+      const audio = ambientAudioRef.current;
+      shouldResumeSelectedTrackRef.current = isAmbientAudioOn;
+
+      if (ambientAudioFadeRef.current) {
+        window.cancelAnimationFrame(ambientAudioFadeRef.current);
+        ambientAudioFadeRef.current = null;
+      }
+
+      if (audio) {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 0;
+      }
+
+      setActiveAmbientTrackId(trackId);
+      setIsAudioMenuOpen(false);
+    },
+    [activeAmbientTrackId, isAmbientAudioOn],
+  );
+
+  const handleAudioControlKeyDown = useCallback((event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Escape") {
+      setIsAudioMenuOpen(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (previousAmbientTrackIdRef.current === activeAmbientTrackId) {
+      return;
+    }
+
+    previousAmbientTrackIdRef.current = activeAmbientTrackId;
+
+    const audio = ambientAudioRef.current;
+    const shouldResume = shouldResumeSelectedTrackRef.current;
+    shouldResumeSelectedTrackRef.current = false;
+
+    if (!audio) {
+      return;
+    }
+
+    audio.pause();
+    audio.currentTime = 0;
+    audio.volume = 0;
+    audio.loop = true;
+
+    if (!shouldResume) {
+      return;
+    }
+
+    async function playSelectedTrack() {
+      if (!audio) return;
+
+      try {
+        await audio.play();
+        setIsAmbientAudioOn(true);
+        fadeAmbientAudio(ambientAudioTargetVolume);
+      } catch {
+        setIsAmbientAudioOn(false);
+        audio.pause();
+        audio.volume = 0;
+      }
+    }
+
+    void playSelectedTrack();
+  }, [activeAmbientTrackId, fadeAmbientAudio]);
 
   useEffect(() => {
     document.documentElement.classList.add("invite-editorial-scroll");
@@ -1161,6 +1257,8 @@ export default function WeddingWebsiteStarter() {
         rotateY: { duration: shouldReduceMotion ? 0 : 2.1, delay: shouldReduceMotion ? 0 : 0.12, ease: gateOpenEase },
         scale: { duration: shouldReduceMotion ? 0 : 1.4, ease: gateOpenEase },
       };
+  const activeAmbientTrack =
+    ambientAudioTracks.find((track) => track.id === activeAmbientTrackId) ?? ambientAudioTracks[0];
   const audioToggleRevealClass = isAudioToggleVisible
     ? "translate-y-0 opacity-70 sm:opacity-100"
     : "translate-y-1.5 opacity-70 sm:translate-y-2.5 sm:opacity-60";
@@ -1266,17 +1364,76 @@ export default function WeddingWebsiteStarter() {
   });
   return (
     <main className="invite-page min-h-screen bg-[#fbf7f2] text-[var(--color-body)]">
-      <audio ref={ambientAudioRef} src={ambientAudioSrc} preload="none" loop />
-      <button
-        type="button"
-        aria-pressed={isAmbientAudioOn}
-        aria-label={isAmbientAudioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
-        onClick={handleAmbientAudioToggle}
-        className={`ambient-audio-toggle type-button fixed bottom-4 right-4 z-50 inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[rgba(232,207,200,0.78)] bg-[#fffaf7]/76 px-3 py-1.5 text-[var(--color-navy)] shadow-[0_8px_24px_rgba(90,65,50,0.08)] hover:border-[rgba(28,34,56,0.22)] hover:bg-[#fffdf9]/88 hover:text-[var(--color-navy-dark)] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.45)] sm:bottom-6 sm:right-6 sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2 ${audioToggleRevealClass} ${audioToggleMotionClass}`}
+      <audio ref={ambientAudioRef} src={activeAmbientTrack.src} preload="none" loop />
+      <div
+        className={`ambient-audio-control fixed bottom-4 right-4 z-50 ${audioToggleRevealClass} ${audioToggleMotionClass}`}
+        onKeyDown={handleAudioControlKeyDown}
       >
-        {isAmbientAudioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
-        <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
-      </button>
+        <AnimatePresence>
+          {isAudioMenuOpen ? (
+            <motion.div
+              id="ambient-audio-menu"
+              className="ambient-audio-menu"
+              initial={shouldReduceMotion ? false : { opacity: 0, y: 8, scale: 0.985 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={shouldReduceMotion ? undefined : { opacity: 0, y: 6, scale: 0.985 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.28, ease: cinematicRevealEase }}
+            >
+              <p className="ambient-audio-menu-kicker">Music for our story</p>
+              <div className="ambient-audio-track-list" aria-label="Ambient music choices">
+                {ambientAudioTracks.map((track) => {
+                  const isActiveTrack = track.id === activeAmbientTrackId;
+
+                  return (
+                    <button
+                      key={track.id}
+                      type="button"
+                      aria-pressed={isActiveTrack}
+                      onClick={() => handleAmbientTrackSelect(track.id)}
+                      className={`ambient-audio-track-option ${
+                        isActiveTrack ? "ambient-audio-track-option-active" : ""
+                      } ${track.id === "turning-page" ? "ambient-audio-track-option-special" : ""}`}
+                    >
+                      <span className="ambient-audio-track-mark" aria-hidden="true">
+                        {track.mark}
+                      </span>
+                      <span className="ambient-audio-track-copy">
+                        <span className="ambient-audio-track-title">{track.label}</span>
+                        {track.subtitle ? (
+                          <span className="ambient-audio-track-subtitle"> — {track.subtitle}</span>
+                        ) : null}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          ) : null}
+        </AnimatePresence>
+
+        <div className="ambient-audio-actions">
+          <button
+            type="button"
+            aria-pressed={isAmbientAudioOn}
+            aria-label={isAmbientAudioOn ? "Turn ambient sound off" : "Turn ambient sound on"}
+            onClick={handleAmbientAudioToggle}
+            className="ambient-audio-toggle type-button inline-flex min-h-10 items-center justify-center gap-1.5 rounded-full border border-[rgba(232,207,200,0.78)] bg-[#fffaf7]/76 px-3 py-1.5 text-[var(--color-navy)] shadow-[0_8px_24px_rgba(90,65,50,0.08)] hover:border-[rgba(28,34,56,0.22)] hover:bg-[#fffdf9]/88 hover:text-[var(--color-navy-dark)] hover:opacity-100 hover:shadow-[0_10px_26px_rgba(90,65,50,0.07)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[rgba(192,138,122,0.45)] sm:min-h-11 sm:gap-2 sm:px-4 sm:py-2"
+          >
+            {isAmbientAudioOn ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
+            <span>{isAmbientAudioOn ? "Sound On" : "Sound"}</span>
+          </button>
+          <button
+            type="button"
+            aria-label={isAudioMenuOpen ? "Hide music choices" : "Choose ambient music"}
+            aria-controls="ambient-audio-menu"
+            aria-expanded={isAudioMenuOpen}
+            onClick={() => setIsAudioMenuOpen((current) => !current)}
+            className="ambient-audio-menu-toggle type-button"
+          >
+            <Music aria-hidden="true" />
+          </button>
+        </div>
+      </div>
 
       <section
         id="cover"
