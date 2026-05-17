@@ -2277,8 +2277,9 @@ export default function WeddingWebsiteStarter() {
               We hope you can celebrate with us
             </motion.h2>
             <motion.p className="heading-copy mt-5" {...cinematicRevealMotion(0.34, 12, 0.9, 0.42)}>
-              Your formal invitation will include a private RSVP link made just for you. Please use that link to confirm
-              your details and send us your response.
+              Your formal invitation will include a private RSVP link created especially for you.
+              That link will take you directly to your RSVP, where you&rsquo;ll be able to confirm your details and response
+              with ease.
             </motion.p>
             <motion.p className="rsvp-deadline-copy heading-copy mx-auto mt-3" {...cinematicRevealMotion(0.42, 10, 0.86, 0.38)}>
               Kindly respond by Wednesday, 1 July 2026 through your private invitation link.
@@ -2290,7 +2291,10 @@ export default function WeddingWebsiteStarter() {
             {...cinematicRevealMotion(0.48, 14, 0.9, 0.3)}
           >
             <p className="type-card-body mx-auto max-w-2xl">
-              No need to search for your name &mdash; your private link will take you straight to your RSVP.
+              Your private invitation link will take you directly to your RSVP &mdash; no guest lookup required.
+            </p>
+            <p className="rsvp-reassurance-copy type-card-body mx-auto mt-4 max-w-xl">
+              If you&rsquo;ve already responded, your invitation link will always take you back to your RSVP details.
             </p>
             <div className="rsvp-mobile-steps mt-6 md:hidden">
               <div>
@@ -2304,11 +2308,12 @@ export default function WeddingWebsiteStarter() {
             </div>
             <div className="mx-auto mt-6 h-px w-24 bg-[var(--color-divider)] opacity-90" />
             <p className="rsvp-change-note type-card-body mx-auto mt-6 max-w-xl">
-              Any changes after your RSVP are kindly requested by Saturday, 1 August 2026, so we can finalise seating,
-              dietary details, and table styling.
+              If your plans change after submitting your RSVP, please let us know by Saturday, 1 August 2026 so we can
+              finalise seating, dining selections, and celebration details with care.
             </p>
             <p className="type-card-body mx-auto mt-6 max-w-xl">
-              If you cannot find your link, please message Sumaya or Aditya and we&rsquo;ll send it again.
+              If your invitation link is missing or no longer working, feel free to message Sumaya or Aditya and we&rsquo;ll
+              happily resend it.
             </p>
           </motion.div>
 

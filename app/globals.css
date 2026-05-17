@@ -1867,6 +1867,60 @@ footer span {
   max-width: 39ch;
 }
 
+#rsvp .card-luxe-dark {
+  border-color: rgba(255, 248, 244, 0.13);
+  background: linear-gradient(180deg, #20244a 0%, #1a1f43 100%);
+  box-shadow:
+    0 26px 76px rgba(20, 26, 44, 0.14),
+    0 8px 26px rgba(203, 182, 175, 0.038),
+    inset 0 0 0 1px rgba(255, 248, 244, 0.095);
+}
+
+#rsvp .card-luxe-dark .heading-copy,
+#rsvp .rsvp-deadline-copy {
+  color: rgba(255, 248, 245, 0.84);
+  letter-spacing: 0.01em;
+  line-height: 1.75;
+}
+
+#rsvp .card-luxe-dark .card-luxe-text {
+  border: 1px solid rgba(222, 205, 207, 0.28);
+  background: rgba(255, 250, 248, 0.92);
+  box-shadow:
+    0 10px 30px rgba(80, 60, 70, 0.08),
+    inset 0 0 0 1px rgba(255, 248, 244, 0.26);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+#rsvp .card-luxe-dark .card-luxe-text .type-card-body {
+  color: rgba(92, 76, 72, 0.82);
+  letter-spacing: 0.01em;
+  line-height: 1.7;
+}
+
+#rsvp .rsvp-reassurance-copy {
+  color: rgba(126, 100, 96, 0.72);
+}
+
+#rsvp .rsvp-change-note {
+  color: rgba(92, 76, 72, 0.78);
+  line-height: 1.68;
+}
+
+#rsvp .rsvp-mobile-steps div {
+  border-color: rgba(214, 188, 190, 0.24);
+  background: rgba(255, 248, 245, 0.82);
+  box-shadow:
+    0 6px 18px rgba(60, 40, 50, 0.06),
+    inset 0 0 0 1px rgba(255, 248, 244, 0.18);
+}
+
+#rsvp .rsvp-mobile-steps strong {
+  color: rgba(132, 91, 82, 0.82);
+  letter-spacing: 0.055em;
+}
+
 .footer-utility-nav {
   align-items: center;
   column-gap: 1.32rem;
@@ -3985,12 +4039,13 @@ footer > * {
 
   #rsvp .card-luxe-dark {
     width: 100%;
-    padding: clamp(1.1rem, 3.2svh, 1.5rem) 0.82rem;
-    border-color: rgba(255, 248, 244, 0.108);
+    padding: clamp(1.18rem, 3.25svh, 1.62rem) 0.86rem;
+    border-color: rgba(255, 248, 244, 0.12);
+    background: linear-gradient(180deg, #20244a 0%, #1a1f43 100%);
     box-shadow:
-      0 18px 50px rgba(20, 26, 44, 0.136),
-      0 5px 16px rgba(203, 182, 175, 0.034),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.086);
+      0 18px 50px rgba(20, 26, 44, 0.126),
+      0 5px 16px rgba(203, 182, 175, 0.03),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.082);
   }
 
   #rsvp .heading-micro {
@@ -4004,60 +4059,71 @@ footer > * {
 
   #rsvp .card-luxe-dark .heading-copy {
     max-width: 340px;
-    margin-top: 0.68rem;
+    margin-top: 0.82rem;
     margin-inline: auto;
-    color: rgba(216, 199, 194, 0.885);
+    color: rgba(255, 248, 245, 0.84);
     font-size: 0.94rem;
-    line-height: 1.51;
+    line-height: 1.62;
+    letter-spacing: 0.01em;
   }
 
   #rsvp .rsvp-deadline-copy {
     max-width: 320px;
-    margin-top: 0.54rem;
-    color: rgba(216, 199, 194, 0.865);
+    margin-top: 0.72rem;
+    color: rgba(255, 248, 245, 0.82);
     font-size: 0.9rem;
-    line-height: 1.45;
+    line-height: 1.55;
+    letter-spacing: 0.01em;
   }
 
   #rsvp .card-luxe-dark .card-luxe-text {
-    margin-top: 0.82rem;
-    padding: 0.88rem 0.8rem;
-    border-color: rgba(232, 207, 200, 0.258);
+    margin-top: 1.05rem;
+    padding: 1.05rem 0.88rem;
+    border-color: rgba(222, 205, 207, 0.28);
     border-radius: var(--mobile-card-radius);
-    background: linear-gradient(180deg, rgba(255, 250, 247, 0.805) 0%, rgba(250, 244, 241, 0.742) 100%);
+    background: rgba(255, 250, 248, 0.9);
     box-shadow:
-      0 22px 60px rgba(101, 75, 62, 0.014),
-      0 4px 14px rgba(203, 182, 175, 0.024),
-      inset 0 0 0 1px rgba(232, 207, 200, 0.084);
+      0 10px 30px rgba(80, 60, 70, 0.07),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.18);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
 
   #rsvp .card-luxe-dark .card-luxe-text .type-card-body {
     max-width: 330px;
-    color: rgba(92, 80, 76, 0.824);
+    color: rgba(92, 76, 72, 0.82);
     font-size: 0.89rem;
-    line-height: 1.47;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+  }
+
+  #rsvp .card-luxe-dark .card-luxe-text .rsvp-reassurance-copy {
+    color: rgba(126, 100, 96, 0.72);
+    font-size: 0.86rem;
   }
 
   #rsvp .rsvp-change-note {
     max-width: 320px;
-    color: rgba(92, 80, 76, 0.785);
+    color: rgba(92, 76, 72, 0.76);
     font-size: 0.86rem;
-    line-height: 1.452;
+    line-height: 1.58;
   }
 
   #rsvp .rsvp-mobile-steps {
     max-width: 238px;
-    margin: 0.66rem auto 0;
-    gap: 0.5rem;
+    margin: 0.9rem auto 0;
+    gap: 0.56rem;
   }
 
   #rsvp .rsvp-mobile-steps div {
     min-height: 69px;
     padding: 0.5rem 0.4rem;
-    border-color: rgba(201, 181, 173, 0.104);
+    border-color: rgba(214, 188, 190, 0.22);
     border-radius: 1.08rem;
-    background: rgba(255, 248, 244, 0.465);
-    box-shadow: inset 0 0 0 1px rgba(255, 248, 244, 0.082);
+    background: rgba(255, 248, 245, 0.78);
+    box-shadow:
+      0 6px 18px rgba(60, 40, 50, 0.045),
+      inset 0 0 0 1px rgba(255, 248, 244, 0.12);
   }
 
   #rsvp .rsvp-mobile-steps span {
@@ -4070,35 +4136,35 @@ footer > * {
   }
 
   #rsvp .rsvp-mobile-steps strong {
-    color: rgba(88, 73, 68, 0.815);
+    color: rgba(132, 91, 82, 0.82);
     font-size: 0.74rem;
     line-height: 1.16;
-    letter-spacing: 0.075em;
+    letter-spacing: 0.055em;
   }
 
   #rsvp .card-luxe-text .h-px {
-    margin-top: 0.95rem;
+    margin-top: 1.08rem;
     opacity: 0.66 !important;
   }
 
   #rsvp .card-luxe-text .h-px + .type-card-body {
-    margin-top: 0.76rem;
+    margin-top: 0.88rem;
     font-size: 0.89rem;
-    line-height: 1.452;
+    line-height: 1.58;
   }
 
   #rsvp .rsvp-change-note + .type-card-body {
-    margin-top: 0.58rem;
+    margin-top: 0.74rem;
   }
 
   #rsvp .card-luxe-dark .card-luxe-text .rsvp-change-note {
-    color: rgba(92, 80, 76, 0.785);
+    color: rgba(92, 76, 72, 0.76);
     font-size: 0.86rem;
-    line-height: 1.452;
+    line-height: 1.58;
   }
 
   #rsvp .card-luxe-dark .card-luxe-text .rsvp-change-note + .type-card-body {
-    color: rgba(92, 80, 76, 0.805);
+    color: rgba(92, 76, 72, 0.8);
   }
 
   .rsvp-mobile-steps {
