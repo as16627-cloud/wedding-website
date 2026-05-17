@@ -2308,9 +2308,37 @@ footer::before {
   pointer-events: none;
 }
 
+footer::after {
+  content: "";
+  position: absolute;
+  inset: auto -24% -10%;
+  z-index: 0;
+  height: 58%;
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse at 50% 54%, rgba(244, 220, 214, 0.12), rgba(255, 248, 244, 0) 70%),
+    radial-gradient(ellipse at 50% 92%, rgba(255, 250, 247, 0.42), rgba(251, 247, 242, 0) 68%);
+  filter: blur(38px);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
 footer > * {
   position: relative;
   z-index: 1;
+}
+
+.footer-closing-line {
+  max-width: 34rem;
+  margin: clamp(4.8rem, 11svh, 7.25rem) auto clamp(2.6rem, 7svh, 5.25rem);
+  color: rgba(142, 118, 122, 0.74);
+  font-family: var(--font-serif);
+  font-size: clamp(1.24rem, 5.6vw, 1.72rem);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  line-height: 1.8;
+  text-align: center;
+  text-wrap: balance;
 }
 
 .invite-page .editorial-panel:not(.hero-section),
@@ -4550,13 +4578,13 @@ footer > * {
 
   footer {
     padding-inline: var(--mobile-page-gutter);
-    min-height: 100svh;
-    min-height: 100dvh;
+    min-height: 112svh;
+    min-height: 112dvh;
     display: grid;
     align-content: center;
     justify-items: center;
     padding-top: calc(2.3rem + env(safe-area-inset-top));
-    padding-bottom: calc(2.3rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(3.8rem + env(safe-area-inset-bottom));
   }
 
   .invite-page footer .card-luxe-pill {
@@ -4579,6 +4607,11 @@ footer > * {
 
   .invite-page footer .footer-utility-nav {
     display: none;
+  }
+
+  .invite-page footer .footer-closing-line {
+    margin-top: clamp(4.2rem, 10svh, 6.4rem);
+    margin-bottom: clamp(2.8rem, 7svh, 4.7rem);
   }
 
   .invite-page .hero-section {
@@ -5333,7 +5366,7 @@ footer > * {
   }
 
   .invite-page > footer {
-    min-height: clamp(520px, 72vh, 720px);
+    min-height: clamp(640px, 82vh, 860px);
     display: grid;
     align-content: center;
     justify-items: center;
@@ -5347,6 +5380,13 @@ footer > * {
   .invite-page footer .card-luxe-pill {
     max-width: 46rem;
     line-height: 1.52;
+  }
+
+  .invite-page footer .footer-closing-line {
+    max-width: 38rem;
+    margin-top: clamp(5.8rem, 8vw, 8.5rem);
+    margin-bottom: clamp(3.4rem, 5vw, 5.6rem);
+    font-size: clamp(1.45rem, 1.8vw, 1.86rem);
   }
 }
 

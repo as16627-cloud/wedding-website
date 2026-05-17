@@ -2542,6 +2542,12 @@ export default function WeddingWebsiteStarter() {
           <span className="text-[var(--color-divider-soft)]">&middot;</span>
           <a href="/private-planning" className="type-nav text-[var(--color-label)] transition hover:text-[var(--color-heading)]">Planning</a>
         </motion.div>
+        <motion.p
+          className="footer-closing-line"
+          {...cinematicRevealMotion(0.52, 10, 1.2, 0.34)}
+        >
+          And now, the next chapter begins.
+        </motion.p>
       </motion.footer>
     </main>
   );
