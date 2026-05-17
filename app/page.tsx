@@ -842,6 +842,7 @@ function VenueCarousel() {
 export default function WeddingWebsiteStarter() {
   const shouldReduceMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement | null>(null);
+  const chapterStorySectionRef = useRef<HTMLElement | null>(null);
   const ambientAudioRef = useRef<HTMLAudioElement | null>(null);
   const ambientAudioFadeRef = useRef<number | null>(null);
   const previousAmbientTrackIdRef = useRef<AmbientAudioTrackId>(defaultAmbientAudioTrackId);
@@ -1011,6 +1012,42 @@ export default function WeddingWebsiteStarter() {
 
     return () => {
       document.documentElement.classList.remove("invite-editorial-scroll");
+    };
+  }, []);
+
+  useEffect(() => {
+    const chapterStorySection = chapterStorySectionRef.current;
+
+    if (!chapterStorySection) {
+      return;
+    }
+
+    const root = document.documentElement;
+    const mobileQuery = window.matchMedia("(max-width: 767px)");
+    let isStoryInView = false;
+
+    const updateStorySnapMode = () => {
+      root.classList.toggle("chapter-story-snap-active", isStoryInView && mobileQuery.matches);
+    };
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isStoryInView = Boolean(entry?.isIntersecting);
+        updateStorySnapMode();
+      },
+      {
+        rootMargin: "-10% 0px -10% 0px",
+        threshold: 0.08,
+      },
+    );
+
+    observer.observe(chapterStorySection);
+    mobileQuery.addEventListener("change", updateStorySnapMode);
+
+    return () => {
+      observer.disconnect();
+      mobileQuery.removeEventListener("change", updateStorySnapMode);
+      root.classList.remove("chapter-story-snap-active");
     };
   }, []);
 
@@ -1725,7 +1762,7 @@ export default function WeddingWebsiteStarter() {
         </motion.div>
       </section>
 
-      <section id="chapter-story" className="editorial-panel chapter-story-section">
+      <section ref={chapterStorySectionRef} id="chapter-story" className="editorial-panel chapter-story-section">
         <div className="chapter-story-inner">
           <motion.div
             className="chapter-story-heading"

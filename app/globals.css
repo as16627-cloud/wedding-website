@@ -2457,6 +2457,11 @@ footer > * {
     -webkit-overflow-scrolling: touch;
   }
 
+  html.invite-editorial-scroll.chapter-story-snap-active {
+    scroll-behavior: smooth;
+    scroll-snap-type: y proximity;
+  }
+
   html.inner-circle-editorial-scroll {
     scroll-snap-type: y proximity;
   }
@@ -2468,6 +2473,25 @@ footer > * {
   .invite-page .editorial-panel {
     scroll-snap-align: start;
     scroll-snap-stop: always;
+  }
+
+  .invite-page .chapter-story-section {
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+  }
+
+  .invite-page .chapter-story-card {
+    scroll-snap-align: center;
+    scroll-snap-stop: normal;
+    scroll-margin-block: clamp(1.75rem, 4.5svh, 2.75rem);
+  }
+
+  .invite-page .chapter-story-card:first-child {
+    scroll-margin-block-start: clamp(5rem, 11svh, 7rem);
+  }
+
+  .invite-page .chapter-story-card:nth-child(3) {
+    scroll-margin-block-start: clamp(2.5rem, 6svh, 3.75rem);
   }
 
   .inner-circle-page .inner-editorial-panel {
@@ -5103,6 +5127,11 @@ footer > * {
     scroll-snap-type: none;
   }
 
+  html.invite-editorial-scroll.chapter-story-snap-active {
+    scroll-behavior: auto;
+    scroll-snap-type: none;
+  }
+
   html.inner-circle-editorial-scroll {
     scroll-snap-type: none;
   }
@@ -5112,6 +5141,10 @@ footer > * {
   }
 
   .invite-page .editorial-panel {
+    scroll-snap-align: none;
+  }
+
+  .invite-page .chapter-story-card {
     scroll-snap-align: none;
   }
 
