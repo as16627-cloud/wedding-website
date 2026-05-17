@@ -73,17 +73,17 @@ const venueImages = [
 const chapterStoryCards = [
   {
     id: "different-beginnings",
-    src: "/images/story/story-card-different-beginnings-refined.png",
+    src: "/images/story/story-card-different-beginnings-final.png",
     alt: "Watercolor story card titled Different Beginnings, showing Kerala, Saudi Arabia, and Chennai.",
   },
   {
     id: "the-beginning",
-    src: "/images/story/story-card-the-beginning-refined.png",
+    src: "/images/story/story-card-the-beginning-final.png",
     alt: "Watercolor story card titled The Beginning, set in Geelong, Victoria.",
   },
   {
     id: "this-chapter",
-    src: "/images/story/story-card-this-chapter-refined.png",
+    src: "/images/story/story-card-this-chapter-final.png",
     alt: "Watercolor story card titled This Chapter, showing a shared life in Perth, Western Australia.",
   },
 ];
