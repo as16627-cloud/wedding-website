@@ -78,7 +78,7 @@ const chapterStoryCards = [
   },
   {
     id: "the-beginning",
-    src: "/images/story/the-beginning.png",
+    src: "/images/story/story-card-the-beginning-refined.png",
     alt: "Watercolor story card titled The Beginning, set in Geelong, Victoria.",
   },
   {
