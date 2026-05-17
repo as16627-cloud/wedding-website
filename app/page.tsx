@@ -88,6 +88,10 @@ const chapterStoryCards = [
   },
 ];
 
+const chapterStoryRevealDelays = [0, 0.12, 0.18] as const;
+const chapterStoryRevealDurations = [0.92, 1.02, 1.1] as const;
+const chapterStoryRevealOffsets = [16, 18, 20] as const;
+
 const venueAutoPlayDelay = 6800;
 const venueManualPauseDelay = 7600;
 const venueSwipeThreshold = 40;
@@ -1725,7 +1729,7 @@ export default function WeddingWebsiteStarter() {
         <div className="chapter-story-inner">
           <motion.div
             className="chapter-story-heading"
-            {...cinematicRevealMotion(0, 14, 0.96, 0.36)}
+            {...cinematicRevealMotion(0.04, 12, 1.02, 0.34)}
           >
             <h2 className="heading-primary">Celebrating This Chapter</h2>
             <p className="heading-copy">A few moments that led us here.</p>
@@ -1736,12 +1740,12 @@ export default function WeddingWebsiteStarter() {
               <motion.figure
                 key={card.id}
                 className="chapter-story-card"
-                initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: chapterStoryRevealOffsets[index] ?? 18 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, amount: 0.22 }}
+                viewport={{ once: true, amount: 0.28 }}
                 transition={{
-                  duration: shouldReduceMotion ? 0 : 0.98,
-                  delay: shouldReduceMotion ? 0 : 0.08 + index * 0.1,
+                  duration: shouldReduceMotion ? 0 : chapterStoryRevealDurations[index] ?? 1,
+                  delay: shouldReduceMotion ? 0 : chapterStoryRevealDelays[index] ?? 0,
                   ease: cinematicRevealEase,
                 }}
               >

@@ -2322,7 +2322,7 @@ footer > * {
 .chapter-story-section {
   position: relative;
   overflow: hidden;
-  padding: clamp(4.1rem, 8.8svh, 5.6rem) clamp(0.5rem, 2.2vw, 0.85rem);
+  padding: clamp(4.85rem, 9.5svh, 6.15rem) clamp(0.5rem, 2.2vw, 0.85rem) clamp(4.45rem, 8.4svh, 5.8rem);
   background:
     radial-gradient(ellipse at 50% 8%, rgba(255, 248, 244, 0.82) 0%, rgba(251, 247, 242, 0.18) 54%, transparent 76%),
     linear-gradient(180deg, #fbf7f2 0%, rgba(248, 235, 230, 0.28) 52%, #fbf7f2 100%);
@@ -2339,6 +2339,9 @@ footer > * {
   filter: blur(28px);
   opacity: 0.62;
   pointer-events: none;
+  transform: translate3d(-1.2%, 0, 0) scale(1.02);
+  animation: chapter-story-haze-drift 22s ease-in-out infinite alternate;
+  will-change: transform, opacity;
 }
 
 .chapter-story-inner {
@@ -2367,8 +2370,8 @@ footer > * {
 .chapter-story-list {
   display: grid;
   justify-items: center;
-  gap: clamp(1.7rem, 4.5svh, 2.55rem);
-  margin-top: clamp(2.35rem, 5.8svh, 3.4rem);
+  gap: 0;
+  margin-top: clamp(4.5rem, 10svh, 6rem);
 }
 
 .chapter-story-card {
@@ -2394,11 +2397,35 @@ footer > * {
   opacity: 0.58;
 }
 
+.chapter-story-card + .chapter-story-card {
+  margin-top: clamp(2.75rem, 6svh, 3.5rem);
+}
+
+.chapter-story-card:nth-child(3) {
+  margin-top: clamp(4rem, 8svh, 5.25rem);
+}
+
+.chapter-story-card:last-child {
+  margin-bottom: clamp(1rem, 3svh, 1.75rem);
+}
+
 .chapter-story-image {
   display: block;
   width: 100%;
   height: auto;
   border-radius: inherit;
+}
+
+@keyframes chapter-story-haze-drift {
+  0% {
+    opacity: 0.54;
+    transform: translate3d(-1.4%, -0.35rem, 0) scale(1.015);
+  }
+
+  100% {
+    opacity: 0.66;
+    transform: translate3d(1.1%, 0.3rem, 0) scale(1.035);
+  }
 }
 
 @keyframes invitation-scroll-cue {
@@ -4757,7 +4784,7 @@ footer > * {
   }
 
   .invite-page .chapter-story-section {
-    padding-block: var(--section-rhythm-lg);
+    padding-block: clamp(6.5rem, 8vw, 8.5rem) clamp(6.2rem, 7vw, 8rem);
     padding-inline: var(--content-shell-gutter);
   }
 
@@ -4781,8 +4808,16 @@ footer > * {
   }
 
   .chapter-story-list {
-    gap: clamp(2.6rem, 4.4vw, 4rem);
-    margin-top: clamp(3.1rem, 5vw, 4.6rem);
+    gap: 0;
+    margin-top: clamp(4.6rem, 6vw, 6rem);
+  }
+
+  .chapter-story-card + .chapter-story-card {
+    margin-top: clamp(2.9rem, 3.8vw, 3.5rem);
+  }
+
+  .chapter-story-card:nth-child(3) {
+    margin-top: clamp(4.25rem, 5.4vw, 5.25rem);
   }
 
   .chapter-story-card {
@@ -5089,7 +5124,8 @@ footer > * {
   }
 
   .hero-scroll-layer,
-  .hero-gate-art {
+  .hero-gate-art,
+  .chapter-story-section::before {
     transition: none;
     animation: none !important;
     will-change: auto;
