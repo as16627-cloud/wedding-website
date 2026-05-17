@@ -1740,7 +1740,7 @@ export default function WeddingWebsiteStarter() {
               meaningful ways.
             </p>
             <p>
-              From the very beginning, we imagined a day that felt warm, romantic, and deeply personal &mdash; a
+              From the beginning, we hoped for a day that felt warm, romantic, and deeply personal &mdash; a
               celebration where everyone could slow down, enjoy the atmosphere, and simply be present with us.
             </p>
             <p>
@@ -1748,7 +1748,7 @@ export default function WeddingWebsiteStarter() {
               shared together in one beautiful place.
             </p>
             <p>
-              Thank you for being part of something so special to us. We truly cannot wait to celebrate with you.
+              Thank you for being part of this chapter with us. We truly cannot wait to celebrate with you.
             </p>
           </motion.div>
           <motion.div

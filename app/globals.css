@@ -2424,11 +2424,11 @@ footer > * {
 }
 
 .mobile-note-body p + p {
-  margin-top: 12px;
+  margin-top: 15px;
 }
 
 .mobile-note-signature {
-  margin-top: 20px;
+  margin-top: 26px;
   color: var(--color-heading);
   font-family: var(--font-serif);
 }
@@ -3616,11 +3616,11 @@ footer > * {
   }
 
   .mobile-note-body p + p {
-    margin-top: 13px;
+    margin-top: 15px;
   }
 
   .mobile-note-signature {
-    margin-top: 16px;
+    margin-top: 22px;
   }
 
   .mobile-note-signature p:first-child {
@@ -4960,11 +4960,11 @@ footer > * {
   }
 
   .mobile-note-body p + p {
-    margin-top: 1rem;
+    margin-top: 1.18rem;
   }
 
   .mobile-note-signature {
-    margin-top: 1.75rem;
+    margin-top: 2.05rem;
   }
 
   .invite-page .chapter-story-section {
