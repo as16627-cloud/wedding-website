@@ -2093,7 +2093,7 @@ export default function WeddingWebsiteStarter() {
                 delay: shouldReduceMotion ? 0 : index * 0.11,
                 ease: cinematicRevealEase,
               }}
-              className="itinerary-item grid grid-cols-[68px_24px_1fr] gap-x-3 md:grid-cols-[130px_40px_1fr] md:gap-x-6"
+              className={`itinerary-item itinerary-item-${index} grid grid-cols-[68px_24px_1fr] gap-x-3 md:grid-cols-[130px_40px_1fr] md:gap-x-6`}
             >
               <div className="type-timeline-time pt-4 text-right">
                 {item.time}
