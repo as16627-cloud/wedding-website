@@ -2504,7 +2504,7 @@ export default function WeddingWebsiteStarter() {
         <SectionHeading
           eyebrow="Good to know"
           title="Guest FAQ"
-          subtitle="A simple place for guests to quickly find the details without messaging you both separately."
+          subtitle="A few helpful details for the day ahead."
         />
         <div className="faq-list grid gap-4">
           {faqs.map((item, index) => (
