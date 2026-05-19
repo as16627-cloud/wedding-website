@@ -75,6 +75,24 @@ type HelpingHandResponse = {
   updatedAt?: string;
 };
 
+type DressDiaryPhoto = {
+  id: string;
+  thumbnailSrc: string;
+  src: string;
+  alt: string;
+  caption: string;
+  date?: string;
+  tag?: string;
+  uploadedAt?: string | null;
+};
+
+type DressDiaryPhotosResponse = {
+  ok: boolean;
+  photos?: DressDiaryPhoto[];
+  emptyMessage?: string;
+  error?: string;
+};
+
 const lookbooks: LookbookCategory[] = [
   {
     id: "bridal-party",
@@ -159,14 +177,8 @@ const latestUpdates = [
   "Last updated: 19 May 2026",
 ];
 
-const dressDiaryPhotos: Array<{
-  id: string;
-  src: string;
-  alt: string;
-  caption: string;
-  date?: string;
-  tag?: string;
-}> = [];
+const dressDiaryEmptyMessage = "We'll add a few private dress-trial moments here once we're ready to share them with you.";
+const dressDiaryPrivacyNote = "A little privacy note: please keep dress photos and style details within our inner circle.";
 
 const keyDates = [
   {
@@ -439,6 +451,71 @@ function LatestUpdatesCard() {
 }
 
 function DressDiarySection() {
+  const [photos, setPhotos] = useState<DressDiaryPhoto[]>([]);
+  const [emptyMessage, setEmptyMessage] = useState(dressDiaryEmptyMessage);
+  const [hasLoadedPhotos, setHasLoadedPhotos] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<DressDiaryPhoto | null>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadDressDiaryPhotos() {
+      try {
+        const response = await fetch("/api/inner-circle/photos", {
+          cache: "no-store",
+          credentials: "same-origin",
+        });
+        const result = (await response.json().catch(() => null)) as DressDiaryPhotosResponse | null;
+
+        if (!response.ok || !result?.ok) {
+          throw new Error(result?.error ?? "Could not load Dress Diary.");
+        }
+
+        if (!isCancelled) {
+          setPhotos(Array.isArray(result.photos) ? result.photos : []);
+          setEmptyMessage(result.emptyMessage || dressDiaryEmptyMessage);
+        }
+      } catch (error) {
+        console.error("Inner Circle Dress Diary load failed.", error);
+
+        if (!isCancelled) {
+          setPhotos([]);
+          setEmptyMessage(dressDiaryEmptyMessage);
+        }
+      } finally {
+        if (!isCancelled) {
+          setHasLoadedPhotos(true);
+        }
+      }
+    }
+
+    void loadDressDiaryPhotos();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!selectedPhoto) {
+      return undefined;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSelectedPhoto(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedPhoto]);
+
+  const visiblePhotos = photos.filter((photo) => photo.src && photo.thumbnailSrc && photo.alt);
+
   return (
     <PrivateSection id="dress-diary" contentClassName="mx-auto max-w-6xl">
       <SectionHeading
@@ -447,39 +524,91 @@ function DressDiarySection() {
         copy="A private little place for dress-trial photos, outfit thoughts, and the details we&rsquo;re slowly pulling together. These are just for our inner circle, so please keep them within this page."
       />
 
-      {dressDiaryPhotos.length > 0 ? (
+      {visiblePhotos.length > 0 ? (
         <div className="grid gap-5 md:grid-cols-3" aria-label="Private dress diary photo gallery">
-          {dressDiaryPhotos.map((photo) => (
-            <SoftCard key={photo.id} className="overflow-hidden p-3">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.35rem] border border-[#eaded6]/70 bg-[#fbf3ef]">
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  fill
-                  sizes="(max-width: 768px) 92vw, 30vw"
-                  className="object-cover"
-                />
-              </div>
-              <div className="px-2 pb-2 pt-4 text-center">
+          {visiblePhotos.map((photo) => (
+            <SoftCard key={photo.id} className="group overflow-hidden p-3">
+              <button
+                type="button"
+                onClick={() => setSelectedPhoto(photo)}
+                className="block w-full overflow-hidden rounded-[1.35rem] border border-[#eaded6]/70 bg-[#fbf3ef] text-left shadow-[0_16px_34px_rgba(90,65,50,0.055)] transition duration-500 hover:border-[#d8c7bf] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/80"
+                aria-label={`Open ${photo.caption || photo.tag || "Dress Diary photo"}`}
+              >
+                <span className="relative block aspect-[4/5]">
+                  <img
+                    src={photo.thumbnailSrc}
+                    alt={photo.alt}
+                    loading="lazy"
+                    decoding="async"
+                    className="h-full w-full object-cover transition duration-700 group-hover:scale-[1.015]"
+                  />
+                  <span className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(255,250,247,0.04),rgba(241,220,213,0.16))]" />
+                </span>
+              </button>
+              <div className="px-3 pb-3 pt-5 text-center">
                 {photo.tag && <p className="heading-micro mb-2">{photo.tag}</p>}
-                <p className="type-card-body text-[#4f4641]">{photo.caption}</p>
+                {photo.caption && <p className="type-card-body text-[#4f4641]">{photo.caption}</p>}
+                {photo.date && <p className="type-caption mt-2 text-[#8c7a72]">{formatInnerCircleDate(photo.date)}</p>}
               </div>
             </SoftCard>
           ))}
         </div>
       ) : (
-        <SoftCard className="mx-auto max-w-2xl text-center">
-          <p className="luxe-serif-detail text-[1.28rem] text-[#3f302b]">
-            Dress-trial photos will live here once we&rsquo;re ready to share them privately.
+        <SoftCard className="mx-auto max-w-2xl overflow-hidden p-8 text-center md:p-10">
+          <div className="mx-auto mb-6 h-px w-24 bg-gradient-to-r from-transparent via-[#d8bdb6] to-transparent" />
+          <p className="heading-micro mb-4">A quiet little corner</p>
+          <p className="luxe-serif-detail mx-auto max-w-xl text-[1.28rem] leading-[1.75] text-[#3f302b]">
+            {hasLoadedPhotos ? emptyMessage : dressDiaryEmptyMessage}
           </p>
         </SoftCard>
       )}
 
       <div className="mx-auto mt-6 max-w-2xl">
         <InnerCirclePrivacyNote>
-          Please don&rsquo;t screenshot, repost, or share dress photos outside our inner circle.
+          {dressDiaryPrivacyNote}
         </InnerCirclePrivacyNote>
       </div>
+
+      {selectedPhoto && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#3f302b]/38 p-4 backdrop-blur-sm"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="dress-diary-lightbox-title"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelectedPhoto(null);
+            }
+          }}
+        >
+          <div className="relative max-h-[92vh] w-full max-w-4xl overflow-hidden rounded-[2rem] border border-[#eaded6] bg-[#fffaf7] shadow-[0_28px_80px_rgba(40,30,26,0.28)]">
+            <button
+              type="button"
+              onClick={() => setSelectedPhoto(null)}
+              className="absolute right-4 top-4 z-10 rounded-full border border-[#eaded6] bg-[#fffaf7]/90 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-[#3f302b] transition hover:border-[#d8c7bf] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/80"
+            >
+              Close
+            </button>
+            <div className="grid max-h-[92vh] overflow-y-auto p-3 md:grid-cols-[minmax(0,1fr)_18rem] md:p-4">
+              <div className="overflow-hidden rounded-[1.5rem] bg-[#fbf3ef]">
+                <img
+                  src={selectedPhoto.src}
+                  alt={selectedPhoto.alt}
+                  className="h-auto max-h-[76vh] w-full object-contain"
+                />
+              </div>
+              <div className="px-4 py-6 text-center md:flex md:flex-col md:justify-center md:px-6 md:text-left">
+                {selectedPhoto.tag && <p className="heading-micro mb-3">{selectedPhoto.tag}</p>}
+                <h3 id="dress-diary-lightbox-title" className="font-serif text-[1.75rem] leading-tight text-[#3f302b]">
+                  {selectedPhoto.caption || "Dress Diary"}
+                </h3>
+                {selectedPhoto.date && <p className="type-card-body mt-4 text-[#7d6b62]">{formatInnerCircleDate(selectedPhoto.date)}</p>}
+                <p className="type-card-body mt-6 text-[#7d6b62]">{dressDiaryPrivacyNote}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </PrivateSection>
   );
 }

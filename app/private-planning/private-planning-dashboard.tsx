@@ -43,6 +43,10 @@ import {
   PRIVATE_PLANNING_MAX_FILE_BYTES,
   privatePlanningAllowedMimeTypes,
 } from "@/lib/private-planning-file-rules";
+import {
+  type InnerCircleDressDiaryPhotoRecord,
+  normalizeInnerCircleDressDiaryPhotos,
+} from "@/lib/inner-circle-dress-diary";
 import { extractPrivatePlanningTextLocally } from "@/lib/private-planning-local-extraction-client";
 import PrivatePlanningGuestsTab from "./private-planning-guests-tab";
 
@@ -72,7 +76,7 @@ const LEGACY_PLANNING_STORAGE_KEYS = [
 ];
 
 const revealEase = [0.22, 1, 0.36, 1] as const;
-const tabs = ["Overview", "Vendors", "Calendar", "Timeline", "Runsheet", "Guests", "Files", "Notes"] as const;
+const tabs = ["Overview", "Vendors", "Calendar", "Timeline", "Runsheet", "Guests", "Files", "Inner Circle", "Notes"] as const;
 const vendorCategories = [
   "Venue",
   "Celebrant",
@@ -121,6 +125,7 @@ const runsheetGroupNames = [
 ] as const;
 const paymentFilters = ["All", "Paid", "Balance due", "Overdue", "Due in 14 days"] as const;
 const sortOptions = ["Due date", "Balance due", "Status", "Vendor name"] as const;
+const dressDiaryTagOptions = ["", "Trial one", "Fabric detail", "Loved this", "Still deciding", "A little fitting moment", "Soft neckline note", "Movement test"] as const;
 
 type Tab = (typeof tabs)[number];
 type VendorCategory = (typeof vendorCategories)[number];
@@ -215,6 +220,17 @@ type PlanningFileRecord = {
   paymentStatus: PaymentStatus;
   notes: string;
   linkedPaymentId: string;
+};
+
+type DressDiaryPhotoForm = {
+  id: string;
+  fileId: string;
+  alt: string;
+  caption: string;
+  date: string;
+  tag: string;
+  order: string;
+  visible: boolean;
 };
 
 type PlanningTask = {
@@ -363,6 +379,17 @@ const emptyTaskForm: TaskForm = {
   priority: "Medium",
   status: "To do",
   notes: "",
+};
+
+const emptyDressDiaryPhotoForm: DressDiaryPhotoForm = {
+  id: "",
+  fileId: "",
+  alt: "",
+  caption: "",
+  date: "",
+  tag: "",
+  order: "",
+  visible: true,
 };
 
 const emptyLogForm: LogForm = {
@@ -6158,6 +6185,246 @@ function FilesTab({
   );
 }
 
+function InnerCirclePlanningTab({
+  dressDiaryPhotos,
+  setDressDiaryPhotos,
+}: {
+  dressDiaryPhotos: InnerCircleDressDiaryPhotoRecord[];
+  setDressDiaryPhotos: (photos: InnerCircleDressDiaryPhotoRecord[]) => void;
+}) {
+  const [files, setFiles] = useState<PrivatePlanningFileDto[]>([]);
+  const [isLoadingFiles, setIsLoadingFiles] = useState(true);
+  const [form, setForm] = useState<DressDiaryPhotoForm>(emptyDressDiaryPhotoForm);
+  const [statusMessage, setStatusMessage] = useState("");
+  const imageFiles = files.filter((file) => file.mimeType.startsWith("image/"));
+  const fileNameById = useMemo(() => new Map(imageFiles.map((file) => [file.id, file.originalFilename])), [imageFiles]);
+  const sortedPhotos = normalizeInnerCircleDressDiaryPhotos(dressDiaryPhotos);
+
+  const loadFiles = useCallback(async () => {
+    setIsLoadingFiles(true);
+
+    try {
+      const response = await fetch("/api/private-planning/files", {
+        cache: "no-store",
+        credentials: "same-origin",
+      });
+      const result = (await response.json().catch(() => null)) as PrivatePlanningFilesResponse | null;
+
+      if (!response.ok || !result?.ok) {
+        throw new Error(result?.error ?? "Could not load private files.");
+      }
+
+      setFiles(result.files ?? []);
+    } catch (error) {
+      console.error("Inner Circle photo file load failed.", error);
+      setStatusMessage("Private image files could not be loaded.");
+    } finally {
+      setIsLoadingFiles(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    const loadTimer = window.setTimeout(() => {
+      void loadFiles();
+    }, 0);
+
+    return () => {
+      window.clearTimeout(loadTimer);
+    };
+  }, [loadFiles]);
+
+  function resetForm() {
+    setForm(emptyDressDiaryPhotoForm);
+  }
+
+  function editPhoto(photo: InnerCircleDressDiaryPhotoRecord) {
+    setForm({
+      ...photo,
+      order: String(photo.order),
+    });
+    setStatusMessage("Editing a Dress Diary moment.");
+  }
+
+  function deletePhoto(photoId: string) {
+    setDressDiaryPhotos(sortedPhotos.filter((photo) => photo.id !== photoId));
+    setStatusMessage("Dress Diary moment removed.");
+    if (form.id === photoId) {
+      resetForm();
+    }
+  }
+
+  function savePhoto(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const fileId = form.fileId.trim();
+    const alt = form.alt.trim();
+
+    if (!fileId) {
+      setStatusMessage("Choose a private image file first.");
+      return;
+    }
+
+    if (!alt) {
+      setStatusMessage("Add warm, useful alt text before sharing this photo.");
+      return;
+    }
+
+    const fallbackOrder = sortedPhotos.length + 1;
+    const nextPhoto: InnerCircleDressDiaryPhotoRecord = {
+      id: form.id || createId("dress-diary-photo"),
+      fileId,
+      alt,
+      caption: form.caption.trim(),
+      date: form.date.trim(),
+      tag: form.tag.trim(),
+      order: Number.isFinite(Number(form.order)) && form.order.trim() ? Math.trunc(Number(form.order)) : fallbackOrder,
+      visible: form.visible,
+    };
+    const nextPhotos = normalizeInnerCircleDressDiaryPhotos([
+      nextPhoto,
+      ...sortedPhotos.filter((photo) => photo.id !== nextPhoto.id),
+    ]);
+
+    setDressDiaryPhotos(nextPhotos);
+    setStatusMessage(nextPhoto.visible ? "Dress Diary moment saved for the Inner Circle." : "Dress Diary moment saved privately and hidden from guests.");
+    resetForm();
+  }
+
+  return (
+    <div className="space-y-6">
+      <PlanningCard>
+        <div className="grid gap-5 lg:grid-cols-[1fr_auto] lg:items-start">
+          <div>
+            <p className="heading-micro">Inner Circle</p>
+            <h2 className="heading-secondary heading-secondary-compact mt-2">Dress Diary</h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-[#6a5d55]">
+              A private place to curate dress-trial photos before they appear in the Inner Circle lounge. Upload images in the secure Files tab first, then choose which moments feel ready to share.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={loadFiles}
+            className="inline-flex items-center justify-center rounded-full border border-[#eaded6] bg-white/68 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#3f302b] transition hover:border-[#b98278]"
+          >
+            Refresh files
+          </button>
+        </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          <Chip tone="champagne">{sortedPhotos.length} diary moments</Chip>
+          <Chip tone="sage">{sortedPhotos.filter((photo) => photo.visible).length} visible to Inner Circle</Chip>
+          <Chip>{imageFiles.length} private image files</Chip>
+        </div>
+      </PlanningCard>
+
+      <div className="grid gap-6 xl:grid-cols-[0.95fr_1.05fr]">
+        <PlanningCard>
+          <form onSubmit={savePhoto} className="grid gap-4">
+            <div>
+              <p className="heading-micro">Private Style Notes</p>
+              <h3 className="mt-2 font-serif text-2xl text-[#3f302b]">{form.id ? "Edit a Dress Diary moment" : "Add a Dress Diary moment"}</h3>
+            </div>
+
+            <label className="grid gap-2">
+              <FieldLabel>Photo</FieldLabel>
+              <select
+                value={form.fileId}
+                onChange={(event) => setForm({ ...form, fileId: event.target.value })}
+                className="min-h-11 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-sm text-[#3f302b] outline-none transition duration-300 ease-out focus:border-[#b98278]"
+              >
+                <option value="">{isLoadingFiles ? "Loading private image files..." : "Choose a private image file"}</option>
+                {imageFiles.map((file) => (
+                  <option key={file.id} value={file.id}>
+                    {file.originalFilename}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <TextField label="Alt text" value={form.alt} placeholder="Describe the photo warmly and clearly" onChange={(alt) => setForm({ ...form, alt })} />
+            <TextField label="Caption" value={form.caption} placeholder="Trial one - loved the softness" onChange={(caption) => setForm({ ...form, caption })} />
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <SelectField label="Tag" value={form.tag} options={dressDiaryTagOptions} onChange={(tag) => setForm({ ...form, tag })} />
+              <TextField label="Date" type="date" value={form.date} onChange={(date) => setForm({ ...form, date })} />
+              <TextField label="Order" type="number" value={form.order} placeholder="1" onChange={(order) => setForm({ ...form, order })} />
+            </div>
+
+            <label className="flex items-start gap-3 rounded-2xl border border-[#eaded6] bg-white/58 p-4 text-sm leading-6 text-[#6a5d55]">
+              <input
+                type="checkbox"
+                checked={form.visible}
+                onChange={(event) => setForm({ ...form, visible: event.target.checked })}
+                className="mt-1 h-4 w-4 accent-[#b98278]"
+              />
+              <span>
+                Visible to Inner Circle guests
+                <span className="mt-1 block text-xs uppercase tracking-[0.16em] text-[#8c7a72]">Hidden moments stay saved here for planning only.</span>
+              </span>
+            </label>
+
+            <div className="flex flex-wrap gap-3">
+              <button type="submit" className="inline-flex min-h-11 items-center justify-center rounded-full bg-[var(--color-navy)] px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-cta-text)]">
+                {form.id ? "Save Moment" : "Add Moment"}
+              </button>
+              {form.id && (
+                <button type="button" onClick={resetForm} className="inline-flex min-h-11 items-center justify-center rounded-full border border-[#eaded6] bg-white/68 px-5 text-xs font-semibold uppercase tracking-[0.14em] text-[#6a5d55]">
+                  Cancel Edit
+                </button>
+              )}
+            </div>
+
+            {statusMessage && <p className="text-sm leading-7 text-[#8f6a63]" aria-live="polite">{statusMessage}</p>}
+          </form>
+        </PlanningCard>
+
+        <PlanningCard>
+          <div className="mb-5">
+            <p className="heading-micro">Guest Preview Metadata</p>
+            <h3 className="mt-2 font-serif text-2xl text-[#3f302b]">Curated moments</h3>
+            <p className="mt-3 text-sm leading-7 text-[#6a5d55]">
+              Guests only see visible moments after entering the Inner Circle passcode. File URLs remain private and are streamed through authenticated routes.
+            </p>
+          </div>
+
+          <div className="grid gap-3">
+            {sortedPhotos.length > 0 ? (
+              sortedPhotos.map((photo) => (
+                <div key={photo.id} className="rounded-2xl border border-[#eaded6]/78 bg-white/58 p-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <div className="flex flex-wrap gap-2">
+                        <Chip tone={photo.visible ? "sage" : "neutral"}>{photo.visible ? "Visible" : "Hidden"}</Chip>
+                        {photo.tag && <Chip tone="champagne">{photo.tag}</Chip>}
+                        <Chip>Order {photo.order}</Chip>
+                      </div>
+                      <p className="mt-3 font-medium text-[#3f302b]">{photo.caption || "Untitled Dress Diary moment"}</p>
+                      <p className="mt-1 text-sm leading-6 text-[#6a5d55]">{fileNameById.get(photo.fileId) ?? "Private image file"}</p>
+                      {photo.date && <p className="mt-1 text-sm leading-6 text-[#8f6a63]">{formatDate(photo.date)}</p>}
+                      <p className="mt-3 text-xs leading-6 text-[#7d6b62]">Alt: {photo.alt}</p>
+                    </div>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      <button type="button" onClick={() => editPhoto(photo)} className="rounded-full border border-[#eaded6] bg-[#fffaf7]/78 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#6a5d55]">
+                        Edit
+                      </button>
+                      <button type="button" onClick={() => deletePhoto(photo.id)} className="rounded-full border border-[#eaded6] bg-[#fffaf7]/78 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[#9b6f68]">
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <p className="text-sm leading-7 text-[#6a5d55]">
+                No Dress Diary moments yet. Upload private image files in the Files tab, then add captions and visibility here when they feel ready.
+              </p>
+            )}
+          </div>
+        </PlanningCard>
+      </div>
+    </div>
+  );
+}
+
 type PlanningExport = {
   version: 1;
   exportedAt: string;
@@ -6171,6 +6438,7 @@ type PlanningExport = {
   runsheet: Runsheet;
   quickNotes: string;
   notes: PlanningNotes;
+  innerCircleDressDiaryPhotos: InnerCircleDressDiaryPhotoRecord[];
 };
 
 type PlanningDataPayload = Omit<PlanningExport, "version" | "exportedAt">;
@@ -6197,6 +6465,7 @@ function normalizePlanningPayload(payload?: Partial<PlanningDataPayload> | null,
     runsheet: normalizeRunsheet(payload?.runsheet),
     quickNotes: typeof payload?.quickNotes === "string" ? payload.quickNotes : "",
     notes: normalizeNotes(payload?.notes, legacyDecisionNotes),
+    innerCircleDressDiaryPhotos: normalizeInnerCircleDressDiaryPhotos(payload?.innerCircleDressDiaryPhotos),
   };
 }
 
@@ -6211,6 +6480,7 @@ function buildPlanningPayload(
   runsheet: Runsheet,
   quickNotes: string,
   notes: PlanningNotes,
+  innerCircleDressDiaryPhotos: InnerCircleDressDiaryPhotoRecord[],
 ): PlanningDataPayload {
   return {
     vendors,
@@ -6223,6 +6493,7 @@ function buildPlanningPayload(
     runsheet,
     quickNotes,
     notes,
+    innerCircleDressDiaryPhotos,
   };
 }
 
@@ -6270,6 +6541,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const [quickNotes, setQuickNotes] = useState("");
   const [legacyDecisionNotes, setLegacyDecisionNotes] = useState("");
   const [storedNotes, setStoredNotes] = useState<PlanningNotes>(defaultNotes);
+  const [storedDressDiaryPhotos, setStoredDressDiaryPhotos] = useState<InnerCircleDressDiaryPhotoRecord[]>([]);
   const [isPlanningDataLoaded, setIsPlanningDataLoaded] = useState(false);
   const [planningDataStatus, setPlanningDataStatus] = useState("Loading secure planning data...");
   const vendors = useMemo(() => normalizeVendors(storedVendors), [storedVendors]);
@@ -6281,6 +6553,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const timeline = useMemo(() => normalizeTimeline(storedTimeline), [storedTimeline]);
   const runsheet = useMemo(() => normalizeRunsheet(storedRunsheet), [storedRunsheet]);
   const notes = useMemo(() => normalizeNotes(storedNotes, legacyDecisionNotes), [legacyDecisionNotes, storedNotes]);
+  const dressDiaryPhotos = useMemo(() => normalizeInnerCircleDressDiaryPhotos(storedDressDiaryPhotos), [storedDressDiaryPhotos]);
   const planningSummary = useMemo(() => getPlanningSummary(vendors, events, tasks, payments), [events, payments, tasks, vendors]);
   const setVendors = useCallback((next: Vendor[]) => setStoredVendors(normalizeVendors(next)), [setStoredVendors]);
   const setBudgetCategories = useCallback((next: BudgetCategory[]) => setStoredBudgetCategories(normalizeBudgetCategories(next, vendors)), [setStoredBudgetCategories, vendors]);
@@ -6291,6 +6564,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
   const setTimeline = useCallback((next: TimelineSection[]) => setStoredTimeline(normalizeTimeline(next)), [setStoredTimeline]);
   const setRunsheet = useCallback((next: Runsheet) => setStoredRunsheet(normalizeRunsheet(next)), [setStoredRunsheet]);
   const setNotes = useCallback((next: PlanningNotes) => setStoredNotes(normalizeNotes(next)), [setStoredNotes]);
+  const setDressDiaryPhotos = useCallback((next: InnerCircleDressDiaryPhotoRecord[]) => setStoredDressDiaryPhotos(normalizeInnerCircleDressDiaryPhotos(next)), [setStoredDressDiaryPhotos]);
   const applyPlanningPayload = useCallback((payload: PlanningDataPayload) => {
     setStoredVendors(payload.vendors);
     setStoredBudgetCategories(payload.budgetCategories);
@@ -6303,6 +6577,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
     setQuickNotes(payload.quickNotes);
     setLegacyDecisionNotes("");
     setStoredNotes(payload.notes);
+    setStoredDressDiaryPhotos(payload.innerCircleDressDiaryPhotos);
   }, []);
   const savePlanningPayload = useCallback(async (payload: PlanningDataPayload, signal?: AbortSignal) => {
     const response = await fetch(PRIVATE_PLANNING_DATA_ENDPOINT, {
@@ -6410,7 +6685,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
     }
 
     const controller = new AbortController();
-    const payload = buildPlanningPayload(vendors, budgetCategories, payments, fileRecords, events, tasks, timeline, runsheet, quickNotes, notes);
+    const payload = buildPlanningPayload(vendors, budgetCategories, payments, fileRecords, events, tasks, timeline, runsheet, quickNotes, notes, dressDiaryPhotos);
     const timeoutId = window.setTimeout(() => {
       setPlanningDataStatus("Saving securely...");
 
@@ -6433,7 +6708,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [budgetCategories, events, fileRecords, isPlanningDataLoaded, notes, payments, quickNotes, runsheet, savePlanningPayload, tasks, timeline, vendors]);
+  }, [budgetCategories, dressDiaryPhotos, events, fileRecords, isPlanningDataLoaded, notes, payments, quickNotes, runsheet, savePlanningPayload, tasks, timeline, vendors]);
 
   function exportPlanningData() {
     const confirmed = window.confirm(
@@ -6457,6 +6732,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       runsheet,
       quickNotes,
       notes,
+      innerCircleDressDiaryPhotos: dressDiaryPhotos,
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -6489,6 +6765,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       setRunsheet(normalizeRunsheet(payload.runsheet));
       setQuickNotes(typeof payload.quickNotes === "string" ? payload.quickNotes : "");
       setNotes(normalizeNotes(payload.notes));
+      setDressDiaryPhotos(normalizeInnerCircleDressDiaryPhotos(payload.innerCircleDressDiaryPhotos));
     } catch {
       window.alert("That JSON file could not be imported.");
     } finally {
@@ -6557,10 +6834,15 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
       );
     }
 
+    if (activeTab === "Inner Circle") {
+      return <InnerCirclePlanningTab dressDiaryPhotos={dressDiaryPhotos} setDressDiaryPhotos={setDressDiaryPhotos} />;
+    }
+
     return <NotesTab notes={notes} setNotes={setNotes} />;
   }, [
     activeTab,
     budgetCategories,
+    dressDiaryPhotos,
     events,
     fileRecords,
     notes,
@@ -6568,6 +6850,7 @@ function PlanningDashboardContent({ initialTab = "Overview" }: { initialTab?: Ta
     quickNotes,
     runsheet,
     setBudgetCategories,
+    setDressDiaryPhotos,
     setEvents,
     setFileRecords,
     setNotes,
