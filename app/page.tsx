@@ -870,7 +870,6 @@ export default function WeddingWebsiteStarter() {
   const [isAudioToggleVisible, setIsAudioToggleVisible] = useState(false);
   const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
   const [hasCopiedVenueAddress, setHasCopiedVenueAddress] = useState(false);
-  const [canPlayCelebrationVideo, setCanPlayCelebrationVideo] = useState(false);
   const [canPlayQuoteVideo, setCanPlayQuoteVideo] = useState(false);
 
   const fadeAmbientAudio = useCallback((targetVolume: number, pauseWhenDone = false) => {
@@ -1058,9 +1057,7 @@ export default function WeddingWebsiteStarter() {
     const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
     const mobileQuery = window.matchMedia("(max-width: 767px)");
     const updateDecorativeVideoPreference = () => {
-      const canPlayDecorativeMobileVideo = !reducedMotionQuery.matches && mobileQuery.matches;
-      setCanPlayCelebrationVideo(canPlayDecorativeMobileVideo);
-      setCanPlayQuoteVideo(canPlayDecorativeMobileVideo);
+      setCanPlayQuoteVideo(!reducedMotionQuery.matches && mobileQuery.matches);
     };
 
     updateDecorativeVideoPreference();
@@ -1814,24 +1811,6 @@ export default function WeddingWebsiteStarter() {
         id="details"
         panelStep="01 / 06"
         panelLabel="Details"
-        backgroundLayer={
-          canPlayCelebrationVideo ? (
-            <>
-              <video
-                className="celebration-video-layer pointer-events-none absolute inset-0 h-full w-full object-cover"
-                src="/videos/celebration-garden-loop-soft-loop.mp4"
-                poster="/videos/celebration-garden-poster.jpg"
-                autoPlay
-                muted
-                loop
-                playsInline
-                preload="metadata"
-                aria-hidden="true"
-              />
-              <div className="celebration-video-wash pointer-events-none absolute inset-0" aria-hidden="true" />
-            </>
-          ) : null
-        }
       >
         <div className="celebration-heading mx-auto mb-10 max-w-3xl text-center">
           <motion.p className="heading-micro mb-3" {...cinematicRevealMotion(0, 10, 0.86, 0.5)}>
@@ -1846,9 +1825,9 @@ export default function WeddingWebsiteStarter() {
             Our day has been designed to feel romantic, relaxed, and full of warmth &mdash; unfolding across Caversham House.
           </motion.p>
         </div>
-        {hasMeasuredHeroViewport && !isHeroMobile ? (
+        <div className="celebration-feature-group">
           <motion.figure
-            className="celebration-desktop-video-panel"
+            className="celebration-video-panel"
             aria-hidden="true"
             {...cinematicRevealMotion(0.36, 16, 0.96, 0.34)}
           >
@@ -1858,12 +1837,12 @@ export default function WeddingWebsiteStarter() {
                 alt=""
                 width={720}
                 height={1080}
-                sizes="(max-width: 1279px) 420px, 520px"
-                className="celebration-desktop-video-media"
+                sizes="(max-width: 767px) min(82vw, 360px), (max-width: 1023px) min(58vw, 420px), 460px"
+                className="celebration-video-media"
               />
             ) : (
               <video
-                className="celebration-desktop-video-media"
+                className="celebration-video-media"
                 src="/videos/celebration-garden-loop-soft-loop.mp4"
                 poster="/videos/celebration-garden-poster.jpg"
                 autoPlay
@@ -1874,42 +1853,42 @@ export default function WeddingWebsiteStarter() {
               />
             )}
           </motion.figure>
-        ) : null}
-        <div className="celebration-card-grid mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
-          {[
-            {
-              icon: Flower2,
-              title: "Garden Ceremony",
-              text: "Set among the greenery at Garden House.",
-            },
-            {
-              icon: Utensils,
-              title: "Dinner at Main House",
-              text: "A sit-down reception and time shared around the table.",
-            },
-            {
-              icon: Music,
-              title: "Celebration",
-              text: "Music and dancing as the evening unfolds.",
-            },
-          ].map((card, index) => (
-            <motion.div
-              key={card.title}
-              initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, amount: 0.24 }}
-              transition={{
-                duration: shouldReduceMotion ? 0 : 0.9,
-                delay: shouldReduceMotion ? 0 : 0.28 + index * 0.12,
-                ease: cinematicRevealEase,
-              }}
-              className="mobile-invite-card card-luxe card-luxe-text card-luxe-hover px-8 py-10"
-            >
-              <card.icon className="mb-7 h-6 w-6 text-[var(--color-divider)]" />
-              <h3 className="type-card-title">{card.title}</h3>
-              <p className="type-card-body mt-4">{card.text}</p>
-            </motion.div>
-          ))}
+          <div className="celebration-card-grid">
+            {[
+              {
+                icon: Flower2,
+                title: "Garden Ceremony",
+                text: "Set among the greenery at Garden House.",
+              },
+              {
+                icon: Utensils,
+                title: "Dinner at Main House",
+                text: "A sit-down reception and time shared around the table.",
+              },
+              {
+                icon: Music,
+                title: "Celebration",
+                text: "Music and dancing as the evening unfolds.",
+              },
+            ].map((card, index) => (
+              <motion.div
+                key={card.title}
+                initial={shouldReduceMotion ? false : { opacity: 0, y: 18 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.24 }}
+                transition={{
+                  duration: shouldReduceMotion ? 0 : 0.9,
+                  delay: shouldReduceMotion ? 0 : 0.28 + index * 0.12,
+                  ease: cinematicRevealEase,
+                }}
+                className="mobile-invite-card card-luxe card-luxe-text card-luxe-hover px-8 py-10"
+              >
+                <card.icon className="mb-7 h-6 w-6 text-[var(--color-divider)]" />
+                <h3 className="type-card-title">{card.title}</h3>
+                <p className="type-card-body mt-4">{card.text}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </SoftSection>
 

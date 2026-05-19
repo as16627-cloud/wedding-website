@@ -2548,16 +2548,90 @@ footer > * {
     radial-gradient(circle at 50% 16%, rgba(255, 250, 247, 0.19) 0%, rgba(252, 242, 237, 0.27) 56%, rgba(251, 247, 242, 0.43) 100%);
 }
 
-.celebration-desktop-video-panel {
-  display: none;
+.celebration-feature-group {
+  position: relative;
+  display: grid;
+  width: min(100%, 64rem);
+  margin-inline: auto;
+  gap: clamp(1.4rem, 4.8vw, 2.2rem);
+  justify-items: center;
 }
 
-.celebration-desktop-video-media {
+.celebration-feature-group::before {
+  content: "";
+  position: absolute;
+  inset: 8% -7% 6%;
+  z-index: 0;
+  border-radius: 999px;
+  background:
+    radial-gradient(ellipse at 50% 52%, rgba(232, 196, 191, 0.16), rgba(255, 248, 244, 0) 68%);
+  filter: blur(34px);
+  opacity: 0.42;
+  pointer-events: none;
+}
+
+.celebration-video-panel,
+.celebration-card-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.celebration-video-panel {
+  display: block;
+  width: min(100%, clamp(18.5rem, 78vw, 26rem));
+  aspect-ratio: 9 / 14;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(219, 198, 201, 0.13);
+  border-radius: clamp(1.32rem, 4vw, 1.72rem);
+  background:
+    linear-gradient(180deg, rgba(255, 250, 248, 0.58), rgba(248, 235, 230, 0.28)),
+    rgba(255, 248, 244, 0.32);
+  box-shadow:
+    0 24px 70px rgba(101, 75, 62, 0.022),
+    0 5px 20px rgba(203, 182, 175, 0.03),
+    inset 0 0 0 1px rgba(255, 248, 244, 0.13);
+}
+
+.celebration-video-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  background:
+    radial-gradient(ellipse at 50% 8%, rgba(255, 252, 250, 0.18), rgba(255, 248, 244, 0) 54%),
+    linear-gradient(180deg, rgba(255, 250, 248, 0.12), rgba(248, 235, 230, 0.08));
+  pointer-events: none;
+}
+
+.celebration-video-panel::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 250, 248, 0.28) 0%, rgba(248, 235, 230, 0.11) 42%, rgba(255, 248, 244, 0.24) 100%),
+    radial-gradient(ellipse at 50% 18%, rgba(255, 252, 250, 0.24), rgba(255, 248, 244, 0) 58%),
+    radial-gradient(ellipse at 50% 88%, rgba(216, 189, 182, 0.14), rgba(255, 248, 244, 0) 64%);
+  pointer-events: none;
+}
+
+.celebration-video-media {
   display: block;
   width: 100%;
   height: 100%;
   border-radius: inherit;
   object-fit: cover;
+  filter: saturate(0.86) contrast(0.92) brightness(1.05) sepia(0.04);
+}
+
+.celebration-card-grid {
+  display: grid;
+  width: min(100%, 22.5rem);
+  gap: clamp(0.8rem, 2.4vw, 1.05rem);
+  transform: none;
 }
 
 .quote-video-layer {
@@ -5380,60 +5454,18 @@ footer > * {
     max-width: 42rem;
   }
 
-  .celebration-desktop-video-panel {
-    position: relative;
-    display: block;
-    width: min(100%, clamp(420px, 34vw, 520px));
-    aspect-ratio: 9 / 14;
-    margin: 0 auto clamp(3.4rem, 4.7vw, 4.6rem);
-    overflow: hidden;
-    border: 1px solid rgba(219, 198, 201, 0.13);
-    border-radius: clamp(1.45rem, 2vw, 1.78rem);
-    background:
-      linear-gradient(180deg, rgba(255, 250, 248, 0.58), rgba(248, 235, 230, 0.28)),
-      rgba(255, 248, 244, 0.32);
-    box-shadow:
-      0 28px 82px rgba(101, 75, 62, 0.026),
-      0 6px 24px rgba(203, 182, 175, 0.035),
-      inset 0 0 0 1px rgba(255, 248, 244, 0.13);
+  .invite-page #details .celebration-feature-group {
+    width: min(100%, 46rem);
+    gap: clamp(1.8rem, 3vw, 2.4rem);
   }
 
-  .celebration-desktop-video-panel::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    border-radius: inherit;
-    background:
-      radial-gradient(ellipse at 50% 8%, rgba(255, 252, 250, 0.18), rgba(255, 248, 244, 0) 54%),
-      linear-gradient(180deg, rgba(255, 250, 248, 0.12), rgba(248, 235, 230, 0.08));
-    pointer-events: none;
-  }
-
-  .celebration-desktop-video-panel::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    border-radius: inherit;
-    background:
-      linear-gradient(180deg, rgba(255, 250, 248, 0.28) 0%, rgba(248, 235, 230, 0.11) 42%, rgba(255, 248, 244, 0.24) 100%),
-      radial-gradient(ellipse at 50% 18%, rgba(255, 252, 250, 0.24), rgba(255, 248, 244, 0) 58%),
-      radial-gradient(ellipse at 50% 88%, rgba(216, 189, 182, 0.14), rgba(255, 248, 244, 0) 64%);
-    pointer-events: none;
-  }
-
-  .celebration-desktop-video-media {
-    filter: saturate(0.86) contrast(0.92) brightness(1.05) sepia(0.04);
+  .invite-page #details .celebration-video-panel {
+    width: min(100%, 420px);
   }
 
   .invite-page #details .celebration-card-grid {
-    position: static;
-    width: min(100%, var(--content-card-group));
-    max-width: min(100%, var(--content-card-group));
-    margin-top: 0;
-    gap: clamp(1.35rem, 2vw, 2rem);
-    transform: none;
+    width: min(100%, 38rem);
+    gap: clamp(0.9rem, 1.8vw, 1.18rem);
   }
 
   .invite-page #details .mobile-invite-card {
@@ -5767,6 +5799,45 @@ footer > * {
     width: min(100%, 792px);
     max-width: 792px;
     transform: translateY(clamp(-1rem, -1vw, -0.45rem));
+  }
+
+  .invite-page #details .celebration-feature-group {
+    width: min(100%, 980px);
+    grid-template-columns: minmax(380px, 460px) minmax(320px, 1fr);
+    align-items: stretch;
+    gap: clamp(2.2rem, 3.6vw, 3.4rem);
+  }
+
+  .invite-page #details .celebration-feature-group::before {
+    inset: 3% -6% 2%;
+    filter: blur(42px);
+    opacity: 0.46;
+  }
+
+  .invite-page #details .celebration-video-panel {
+    width: 100%;
+    max-width: 460px;
+  }
+
+  .invite-page #details .celebration-card-grid {
+    align-self: stretch;
+    width: 100%;
+    grid-template-rows: repeat(3, minmax(0, 1fr));
+    gap: clamp(0.95rem, 1.3vw, 1.22rem);
+  }
+
+  .invite-page #details .celebration-feature-group .mobile-invite-card {
+    min-height: 0;
+    padding: clamp(1.45rem, 1.9vw, 1.95rem);
+  }
+
+  .invite-page #details .celebration-feature-group .mobile-invite-card svg {
+    margin-bottom: 0.95rem;
+  }
+
+  .invite-page #details .celebration-feature-group .type-card-body {
+    max-width: 25rem;
+    margin-inline: auto;
   }
 
   .invite-page .chapter-story-section {
