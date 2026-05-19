@@ -1,21 +1,20 @@
 "use client";
 
 import Image from "next/image";
-import { type FormEvent, type ReactNode, useEffect, useState, useSyncExternalStore } from "react";
+import { useRouter } from "next/navigation";
+import { type FormEvent, type ReactNode, useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 
-const INNER_CIRCLE_PASSWORD = "garden2026";
-const INNER_CIRCLE_ACCESS_KEY = "inner-circle-access";
-const INNER_CIRCLE_ACCESS_EVENT = "inner-circle-access-change";
 const WEDDING_DAY_ROLES_HELPERS_KEY = "weddingDayRolesHelpers";
 const innerRevealEase = [0.19, 1, 0.22, 1] as const;
 
 const pageAnchors = [
-  { href: "#note", label: "NOTE" },
+  { href: "#updates", label: "UPDATES" },
   { href: "#details", label: "ESSENTIALS" },
+  { href: "#dress-diary", label: "DRESS DIARY" },
+  { href: "#lookbooks", label: "LOOKBOOKS" },
   { href: "#dates", label: "DATES" },
-  { href: "#lookbooks", label: "STYLE" },
-  { href: "#roles", label: "ROLES" },
+  { href: "#roles", label: "HELP" },
   { href: "#contact", label: "CONTACT" },
 ];
 
@@ -150,7 +149,24 @@ const keyDetails = [
   { label: "Ceremony", value: "4:00 PM at Garden House" },
   { label: "Style", value: "Elegant garden romance, pastel formal" },
   { label: "Main priority", value: "Be present, enjoy the day, and bring your calm, happy energy." },
+  { label: "Privacy note", value: "This page is just for our inner circle - please don't share dress photos or private details outside this group." },
 ];
+
+const latestUpdates = [
+  "Dress Diary space added",
+  "Getting ready lookbook updated",
+  "Next date to hold: RSVP deadline",
+  "Last updated: 19 May 2026",
+];
+
+const dressDiaryPhotos: Array<{
+  id: string;
+  src: string;
+  alt: string;
+  caption: string;
+  date?: string;
+  tag?: string;
+}> = [];
 
 const keyDates = [
   {
@@ -228,8 +244,6 @@ const contactPlaceholders = [
   "Emergency / urgent - TBC",
 ];
 
-const helpingHandStorageKey = "weddingInnerCircleHelpingHand";
-
 const helpingHandOptions = [
   "Morning preparations",
   "Welcoming or directing guests",
@@ -305,45 +319,6 @@ function emptyHelpingHandResponse(): HelpingHandResponse {
   };
 }
 
-function normaliseHelpingHandResponse(value: unknown): HelpingHandResponse | null {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return null;
-  }
-
-  const maybeResponse = value as Partial<HelpingHandResponse>;
-  const name = typeof maybeResponse.name === "string" ? maybeResponse.name.trim() : "";
-  const note = typeof maybeResponse.note === "string" ? maybeResponse.note.trim() : "";
-  const submittedAt = typeof maybeResponse.submittedAt === "string" ? maybeResponse.submittedAt : "";
-  const updatedAt = typeof maybeResponse.updatedAt === "string" ? maybeResponse.updatedAt : undefined;
-  const helpWith = Array.isArray(maybeResponse.helpWith)
-    ? maybeResponse.helpWith.filter((option): option is string => typeof option === "string" && helpingHandOptions.includes(option))
-    : [];
-
-  if (!name || helpWith.length === 0 || !submittedAt) {
-    return null;
-  }
-
-  return {
-    name,
-    helpWith,
-    note,
-    submittedAt,
-    ...(updatedAt ? { updatedAt } : {}),
-  };
-}
-
-function readStoredHelpingHandResponse(): HelpingHandResponse | null {
-  if (typeof window === "undefined") {
-    return null;
-  }
-
-  try {
-    return normaliseHelpingHandResponse(JSON.parse(window.localStorage.getItem(helpingHandStorageKey) ?? "null"));
-  } catch {
-    return null;
-  }
-}
-
 function formatInnerCircleDate(date: string) {
   const normalizedDate = date.match(/^\d{4}-\d{2}-\d{2}$/) ? date : "";
 
@@ -357,28 +332,6 @@ function formatInnerCircleDate(date: string) {
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(`${normalizedDate}T00:00:00.000Z`));
-}
-
-function getInnerCircleAccessSnapshot() {
-  if (typeof window === "undefined") {
-    return false;
-  }
-
-  return sessionStorage.getItem(INNER_CIRCLE_ACCESS_KEY) === "true";
-}
-
-function subscribeToInnerCircleAccess(onStoreChange: () => void) {
-  if (typeof window === "undefined") {
-    return () => {};
-  }
-
-  window.addEventListener("storage", onStoreChange);
-  window.addEventListener(INNER_CIRCLE_ACCESS_EVENT, onStoreChange);
-
-  return () => {
-    window.removeEventListener("storage", onStoreChange);
-    window.removeEventListener(INNER_CIRCLE_ACCESS_EVENT, onStoreChange);
-  };
 }
 
 function PrivateSection({
@@ -444,6 +397,93 @@ function SoftCard({ children, className = "" }: { children: ReactNode; className
   );
 }
 
+function InnerCirclePrivacyNote({ children }: { children: ReactNode }) {
+  return (
+    <div className="rounded-[1.25rem] border border-[#eaded6]/70 bg-white/42 px-4 py-3 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.45)]">
+      <p className="type-card-body text-[#7d6b62]">{children}</p>
+    </div>
+  );
+}
+
+function LatestUpdatesCard() {
+  return (
+    <PrivateSection id="updates" className="pt-6 md:pt-8" contentClassName="mx-auto max-w-4xl">
+      <SoftCard className="p-6 md:p-8">
+        <div className="grid gap-7 md:grid-cols-[0.85fr_1.15fr] md:items-start">
+          <div>
+            <p className="heading-micro mb-3">LATEST UPDATES</p>
+            <h2 className="heading-secondary">What&rsquo;s new</h2>
+            <p className="type-card-body mt-4">
+              A few little things to check back on as the day gets closer.
+            </p>
+          </div>
+          {latestUpdates.length > 0 ? (
+            <div className="grid gap-3">
+              {latestUpdates.map((item) => (
+                <div key={item} className="rounded-2xl border border-[#eaded6]/72 bg-white/48 px-4 py-3">
+                  <p className="type-card-body text-[#4f4641]">{item}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-2xl border border-[#eaded6]/72 bg-white/48 px-4 py-4">
+              <p className="type-card-body text-[#4f4641]">
+                Nothing urgent for now &mdash; this is where we&rsquo;ll add little updates as plans are confirmed.
+              </p>
+            </div>
+          )}
+        </div>
+      </SoftCard>
+    </PrivateSection>
+  );
+}
+
+function DressDiarySection() {
+  return (
+    <PrivateSection id="dress-diary" contentClassName="mx-auto max-w-6xl">
+      <SectionHeading
+        eyebrow="PRIVATE STYLE NOTES"
+        title="Dress Diary"
+        copy="A private little place for dress-trial photos, outfit thoughts, and the details we&rsquo;re slowly pulling together. These are just for our inner circle, so please keep them within this page."
+      />
+
+      {dressDiaryPhotos.length > 0 ? (
+        <div className="grid gap-5 md:grid-cols-3" aria-label="Private dress diary photo gallery">
+          {dressDiaryPhotos.map((photo) => (
+            <SoftCard key={photo.id} className="overflow-hidden p-3">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.35rem] border border-[#eaded6]/70 bg-[#fbf3ef]">
+                <Image
+                  src={photo.src}
+                  alt={photo.alt}
+                  fill
+                  sizes="(max-width: 768px) 92vw, 30vw"
+                  className="object-cover"
+                />
+              </div>
+              <div className="px-2 pb-2 pt-4 text-center">
+                {photo.tag && <p className="heading-micro mb-2">{photo.tag}</p>}
+                <p className="type-card-body text-[#4f4641]">{photo.caption}</p>
+              </div>
+            </SoftCard>
+          ))}
+        </div>
+      ) : (
+        <SoftCard className="mx-auto max-w-2xl text-center">
+          <p className="luxe-serif-detail text-[1.28rem] text-[#3f302b]">
+            Dress-trial photos will live here once we&rsquo;re ready to share them privately.
+          </p>
+        </SoftCard>
+      )}
+
+      <div className="mx-auto mt-6 max-w-2xl">
+        <InnerCirclePrivacyNote>
+          Please don&rsquo;t screenshot, repost, or share dress photos outside our inner circle.
+        </InnerCirclePrivacyNote>
+      </div>
+    </PrivateSection>
+  );
+}
+
 function RoleHelperSignup({
   role,
   savedNames,
@@ -464,13 +504,18 @@ function RoleHelperSignup({
   onSave: (roleId: string) => void;
 }) {
   const savedHelperNames = [savedNames?.name1, savedNames?.name2].filter(Boolean).join(" & ");
-  const helperLine = savedHelperNames || "To be confirmed";
 
   return (
     <div className="mt-6 rounded-[1.15rem] border border-[#eaded6]/60 bg-white/36 p-4">
       <div className="grid gap-3">
         <p className="type-card-body break-words" aria-live="polite">
-          <span className="font-semibold text-[#8f6a63]">Helpers:</span> {helperLine}
+          {savedHelperNames ? (
+            <>
+              <span className="font-semibold text-[#8f6a63]">Helpers:</span> {savedHelperNames}
+            </>
+          ) : (
+            "May be helpful closer to the day."
+          )}
         </p>
 
         {!isEditing && (
@@ -479,7 +524,7 @@ function RoleHelperSignup({
             onClick={() => onEdit(role.id)}
             className="w-fit text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] underline decoration-[#d8bdb6] decoration-1 underline-offset-4 transition hover:text-[#6f5750] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
           >
-            {savedHelperNames ? "Edit helpers" : "Offer to help with this"}
+            {savedHelperNames ? "Edit helpers" : "Happy to help here"}
           </button>
         )}
       </div>
@@ -494,7 +539,7 @@ function RoleHelperSignup({
         >
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="grid gap-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8c7a72]" htmlFor={`${role.id}-helper-name-1`}>
-              Name 1
+              Your name
               <input
                 id={`${role.id}-helper-name-1`}
                 value={draftNames.name1}
@@ -505,7 +550,7 @@ function RoleHelperSignup({
             </label>
 
             <label className="grid gap-1.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8c7a72]" htmlFor={`${role.id}-helper-name-2`}>
-              Name 2, optional
+              Another name, optional
               <input
                 id={`${role.id}-helper-name-2`}
                 value={draftNames.name2}
@@ -526,7 +571,7 @@ function RoleHelperSignup({
             type="submit"
             className="w-fit rounded-full border border-[#d9c5bc] bg-[#fff8f4]/78 px-4 py-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] shadow-[0_10px_24px_rgba(90,65,50,0.045)] transition hover:border-[#cbb6af] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
           >
-            Save names
+            Save note
           </button>
         </form>
       )}
@@ -576,7 +621,7 @@ function UpcomingBridalPartyDatesSection() {
       <SectionHeading
         eyebrow="UPCOMING DATES"
         title="Bridal party & fashion plans"
-        copy="A few key dates for fittings, outfit plans, and bridal party moments. We&rsquo;ll keep this updated as plans are confirmed."
+        copy="A few soft notes for fittings, outfit plans, and bridal party moments. We&rsquo;ll keep this updated as plans are confirmed."
       />
 
       {!hasLoadedEvents && (
@@ -587,7 +632,7 @@ function UpcomingBridalPartyDatesSection() {
 
       {hasLoadedEvents && events.length === 0 && (
         <SoftCard className="mx-auto max-w-2xl text-center">
-          <p className="type-card-body">No bridal party or fashion dates have been added yet.</p>
+          <p className="type-card-body">Nothing to action here yet &mdash; we&rsquo;ll add fitting dates, outfit notes, and little updates once they&rsquo;re confirmed.</p>
         </SoftCard>
       )}
 
@@ -648,24 +693,18 @@ function HelpingHandSection() {
   const [savedResponse, setSavedResponse] = useState<HelpingHandResponse | null>(null);
   const [draftResponse, setDraftResponse] = useState<HelpingHandResponse>(() => emptyHelpingHandResponse());
   const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [hasLoadedResponse, setHasLoadedResponse] = useState(false);
   const [error, setError] = useState("");
   const selectedOptions = draftResponse.helpWith;
 
   useEffect(() => {
-    const loadStoredResponse = window.setTimeout(() => {
-      const storedResponse = readStoredHelpingHandResponse();
-
-      if (storedResponse) {
-        setSavedResponse(storedResponse);
-        setDraftResponse(storedResponse);
-      }
-
+    const loadResponseState = window.setTimeout(() => {
       setHasLoadedResponse(true);
     }, 0);
 
     return () => {
-      window.clearTimeout(loadStoredResponse);
+      window.clearTimeout(loadResponseState);
     };
   }, []);
 
@@ -683,7 +722,7 @@ function HelpingHandSection() {
     setError("");
   };
 
-  const handleHelpingHandSave = (event: FormEvent<HTMLFormElement>) => {
+  const handleHelpingHandSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const name = draftResponse.name.trim();
@@ -700,20 +739,38 @@ function HelpingHandSection() {
       return;
     }
 
-    const now = new Date().toISOString();
-    const nextResponse: HelpingHandResponse = {
-      name,
-      helpWith,
-      note,
-      submittedAt: savedResponse?.submittedAt || now,
-      ...(savedResponse ? { updatedAt: now } : {}),
-    };
+    setIsSubmitting(true);
 
-    window.localStorage.setItem(helpingHandStorageKey, JSON.stringify(nextResponse));
-    setSavedResponse(nextResponse);
-    setDraftResponse(nextResponse);
-    setIsEditing(false);
-    setError("");
+    try {
+      const response = await fetch("/api/inner-circle/help", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-inner-circle-csrf": "1",
+        },
+        cache: "no-store",
+        credentials: "same-origin",
+        body: JSON.stringify({ name, helpWith, note, website: "" }),
+      });
+      const result = (await response.json().catch(() => null)) as {
+        response?: HelpingHandResponse;
+        error?: string;
+      } | null;
+
+      if (!response.ok || !result?.response) {
+        setError(result?.error ?? "Something didn't save. Please try again, or just message us if that's easier.");
+        return;
+      }
+
+      setSavedResponse(result.response);
+      setDraftResponse(result.response);
+      setIsEditing(false);
+      setError("");
+    } catch {
+      setError("Something didn't save. Please try again, or just message us if that's easier.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const showForm = !savedResponse || isEditing;
@@ -725,9 +782,8 @@ function HelpingHandSection() {
         <h2 className="heading-primary">Little details, beautifully held</h2>
         <div className="heading-copy mx-auto mt-4 grid max-w-[660px] gap-4">
           <p>
-            There may be a few small moments in the lead-up or on the day where an extra pair of hands would mean the world. If you&rsquo;re happy for us to gently call on you, leave your name below and choose the things you&rsquo;d be comfortable helping with.
+            Only pop your name down if something genuinely feels easy. No pressure at all &mdash; this just helps us know who&rsquo;s comfortable being asked.
           </p>
-          <p>No pressure at all &mdash; this simply helps us know who&rsquo;s happy to be asked.</p>
         </div>
       </div>
 
@@ -736,7 +792,7 @@ function HelpingHandSection() {
           <div className="grid gap-5">
             <div className="rounded-[1.2rem] border border-[#eaded6]/70 bg-white/42 p-4" aria-live="polite">
               <p className="type-card-body break-words text-[#3f302b]">
-                Thank you &mdash; we&rsquo;ll only reach out if we need a little extra help.
+                Thank you &mdash; that means so much. We&rsquo;ll only reach out if it feels genuinely helpful.
               </p>
               <p className="type-card-body mt-3 break-words text-[#6f615c]">
                 <span className="font-semibold text-[#8f6a63]">Name:</span> {savedResponse.name}
@@ -759,7 +815,7 @@ function HelpingHandSection() {
               }}
               className="w-fit text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] underline decoration-[#d8bdb6] decoration-1 underline-offset-4 transition hover:text-[#6f5750] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
             >
-              Edit response
+              Update response
             </button>
           </div>
         )}
@@ -828,9 +884,10 @@ function HelpingHandSection() {
 
             <button
               type="submit"
-              className="w-fit rounded-full border border-[#d9c5bc] bg-[#fff8f4]/78 px-5 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] shadow-[0_10px_24px_rgba(90,65,50,0.045)] transition hover:border-[#cbb6af] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
+              disabled={isSubmitting}
+              className="w-fit rounded-full border border-[#d9c5bc] bg-[#fff8f4]/78 px-5 py-2.5 text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[#8f6a63] shadow-[0_10px_24px_rgba(90,65,50,0.045)] transition hover:border-[#cbb6af] hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              I&rsquo;m happy to help
+              {isSubmitting ? "Saving..." : "I&rsquo;m happy to help"}
             </button>
           </form>
         )}
@@ -921,7 +978,7 @@ function LookbookMoodboard() {
         <SectionHeading
           eyebrow="STYLE NOTES"
           title="Lookbooks"
-          copy="A little visual guide for the people standing closest to us. These are here to help everyone understand the overall mood, colours, and level of formality — not to make anyone feel boxed in."
+          copy="These are soft references, not strict rules &mdash; they&rsquo;re here to help everyone understand the mood, colours, and level of formality."
         />
 
         <div className="inner-lookbook-tabs mx-auto mb-8 flex max-w-4xl flex-wrap justify-center gap-2 rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/78 p-2 shadow-[0_12px_34px_rgba(90,65,50,0.045)]">
@@ -1127,6 +1184,7 @@ function LookbookMoodboard() {
 }
 
 function InnerCircleContent() {
+  const router = useRouter();
   const shouldReduceMotion = useReducedMotion();
   const [roleHelpers, setRoleHelpers] = useState<RoleHelperMap>({});
   const [roleHelperDrafts, setRoleHelperDrafts] = useState<RoleHelperMap>(() => createRoleHelperDrafts());
@@ -1138,6 +1196,15 @@ function InnerCircleContent() {
     animate: { opacity: 1, y: 0 },
     transition: { duration: shouldReduceMotion ? 0 : 0.92, delay: shouldReduceMotion ? 0 : delay, ease: innerRevealEase },
   });
+
+  const handleLogout = async () => {
+    await fetch("/api/inner-circle/logout", {
+      method: "POST",
+      credentials: "same-origin",
+      cache: "no-store",
+    }).catch(() => null);
+    router.refresh();
+  };
 
   useEffect(() => {
     document.documentElement.classList.add("inner-circle-editorial-scroll");
@@ -1197,7 +1264,7 @@ function InnerCircleContent() {
     if (!nextNames.name1 && !nextNames.name2) {
       setRoleHelperErrors((currentErrors) => ({
         ...currentErrors,
-        [roleId]: "Add at least one helper name.",
+        [roleId]: "Add your name if this feels easy for you.",
       }));
       return;
     }
@@ -1240,13 +1307,16 @@ function InnerCircleContent() {
             Inner Circle
           </motion.h1>
           <motion.p className="luxe-serif-detail mx-auto mt-8 max-w-2xl text-[1.35rem] md:text-[1.65rem]" {...heroReveal(0.28, 14)}>
-            A little space for the people helping us bring the day to life.
+            A little private space for the people closest to us.
           </motion.p>
           <motion.p className="heading-copy mx-auto mt-6 max-w-2xl" {...heroReveal(0.4, 12)}>
-            This page is here to keep everyone gently in the loop as we get closer to the wedding. We&rsquo;ll use it for key dates, wedding-week reminders, style notes, and anything our favourite people need to know.
+            This page is here to keep everything gentle, easy, and in one place &mdash; dates, style notes, dress-trial moments, wedding-week reminders, and the little details our favourite people may need along the way.
+          </motion.p>
+          <motion.p className="type-card-body mx-auto mt-5 max-w-xl text-[#8c7a72]" {...heroReveal(0.48, 10)}>
+            Nothing here is meant to feel like homework. It is just a calm place to check back whenever you need.
           </motion.p>
         </div>
-        <motion.nav aria-label="Inner Circle sections" className="mx-auto mt-8 flex max-w-[23rem] flex-wrap justify-center gap-2 sm:mt-10 sm:max-w-4xl" {...heroReveal(0.54, 10)}>
+        <motion.nav aria-label="Inner Circle sections" className="mx-auto mt-8 flex max-w-[23rem] flex-wrap justify-center gap-2 sm:mt-10 sm:max-w-4xl" {...heroReveal(0.58, 10)}>
           {pageAnchors.map((anchor) => (
             <a
               key={anchor.href}
@@ -1257,17 +1327,30 @@ function InnerCircleContent() {
             </a>
           ))}
         </motion.nav>
+        <motion.button
+          type="button"
+          onClick={handleLogout}
+          className="mt-5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#9a8780] underline decoration-[#d8bdb6]/70 decoration-1 underline-offset-4 transition hover:text-[#8f6a63] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#cbb6af]/70"
+          {...heroReveal(0.66, 8)}
+        >
+          Leave private page
+        </motion.button>
       </section>
+
+      <LatestUpdatesCard />
 
       <PrivateSection id="note" className="pt-10 md:pt-14" contentClassName="mx-auto max-w-[780px] text-center">
         <p className="heading-micro mb-4">A NOTE FROM US</p>
         <h2 className="heading-primary">A note from us</h2>
         <div className="luxe-serif-detail mt-7 space-y-5 text-[1.2rem] md:text-[1.45rem]">
           <p>
-            We are so grateful to have you beside us for this season. Whether you&rsquo;re standing with us, helping behind the scenes, travelling to be there, calming nerves, holding flowers, fixing outfits, making us laugh, or simply showing up with love &mdash; it means more than we can say.
+            We&rsquo;re so grateful to have you beside us in this season. This little space is for the people closest to us &mdash; the ones who have made the lead-up feel lighter, warmer, and more full of love.
           </p>
           <p>
-            We want the wedding day to feel beautiful, calm, and full of joy. This page will help keep the important details in one place so no one has to dig through group chats.
+            We want the wedding day to feel beautiful, calm, and full of joy. Everything here is simply meant to keep the details easy to find, so you can feel prepared without having to dig through messages.
+          </p>
+          <p>
+            Thank you for being in our inner circle. It means more than we can say.
           </p>
         </div>
       </PrivateSection>
@@ -1276,13 +1359,17 @@ function InnerCircleContent() {
         <SectionHeading eyebrow="KEY DETAILS" title="The essentials" copy="The simple anchor points everyone can keep in mind." />
         <div className="grid gap-4 md:grid-cols-2">
           {keyDetails.map((detail) => (
-            <SoftCard key={detail.label} className={detail.label === "Main priority" ? "md:col-span-2" : ""}>
+            <SoftCard key={detail.label} className={detail.label === "Main priority" || detail.label === "Privacy note" ? "md:col-span-2" : ""}>
               <p className="heading-micro mb-3">{detail.label}</p>
               <p className="luxe-serif-detail text-[1.35rem] leading-snug text-[#3f302b]">{detail.value}</p>
             </SoftCard>
           ))}
         </div>
       </PrivateSection>
+
+      <DressDiarySection />
+
+      <LookbookMoodboard />
 
       <PrivateSection id="dates" contentClassName="mx-auto grid max-w-5xl items-start gap-6 md:grid-cols-[0.9fr_1.1fr]">
         <div>
@@ -1306,8 +1393,6 @@ function InnerCircleContent() {
 
       <UpcomingBridalPartyDatesSection />
 
-      <LookbookMoodboard />
-
       <PrivateSection id="week">
         <SectionHeading title="A calm week before" copy="A few gentle reminders so the week feels easy, calm, and unhurried." />
         <SoftCard>
@@ -1324,9 +1409,9 @@ function InnerCircleContent() {
 
       <PrivateSection id="roles">
         <SectionHeading
-          eyebrow="WEDDING DAY ROLES"
-          title="Little jobs, gently held"
-          copy="We&rsquo;ll confirm names closer to the day, but these are the kinds of roles we may ask for help with."
+          eyebrow="WEDDING DAY SUPPORT"
+          title="Little ways to help"
+          copy="These are not assignments &mdash; just a few small moments where we may ask for a hand closer to the day. If something feels easy for you, you&rsquo;re welcome to let us know. No pressure at all."
         />
         <div className="grid gap-5 md:grid-cols-2">
           {dayRoles.map((role) => (
@@ -1394,66 +1479,4 @@ function InnerCircleContent() {
   );
 }
 
-export default function InnerCircleGate() {
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const unlocked = useSyncExternalStore(
-    subscribeToInnerCircleAccess,
-    getInnerCircleAccessSnapshot,
-    () => false,
-  );
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (password.trim() === INNER_CIRCLE_PASSWORD) {
-      sessionStorage.setItem(INNER_CIRCLE_ACCESS_KEY, "true");
-      window.dispatchEvent(new Event(INNER_CIRCLE_ACCESS_EVENT));
-      setError("");
-      return;
-    }
-
-    setError("That password does not look quite right. Please try again.");
-  }
-
-  if (unlocked) {
-    return <InnerCircleContent />;
-  }
-
-  return (
-    <main className="min-h-screen bg-[#fbf7f2] px-6 py-16 text-[#4f4641]">
-      <section className="mx-auto flex min-h-[calc(100svh-8rem)] max-w-xl flex-col items-center justify-center text-center">
-        <p className="heading-micro mb-5">Sumaya & Aditya</p>
-        <h1 className="heading-primary">Inner Circle</h1>
-        <p className="heading-copy mx-auto mt-6 max-w-lg">
-          A private page for the bridal party and closest family. Please enter the passcode to continue.
-        </p>
-
-        <form
-          onSubmit={handleSubmit}
-          className="mt-9 w-full rounded-[2rem] border border-[#eaded6] bg-[#fffaf7]/82 p-6 shadow-[0_18px_45px_rgba(90,65,50,0.07)] md:p-8"
-        >
-          <label className="grid gap-3 text-left">
-            <span className="type-section-eyebrow">Passcode</span>
-            <input
-              type="password"
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-              className="min-h-12 rounded-2xl border border-[#eaded6] bg-white/80 px-4 text-[#3f302b] outline-none transition duration-300 ease-out placeholder:text-[#a99790] focus:border-[#b98278]"
-              placeholder="Enter passcode"
-            />
-          </label>
-
-          {error && <p className="type-card-body mt-4 text-left text-[#9b6f68]">{error}</p>}
-
-          <button
-            type="submit"
-            className="primary-cta type-button mt-6 w-full"
-          >
-            Enter
-          </button>
-        </form>
-      </section>
-    </main>
-  );
-}
+export default InnerCircleContent;

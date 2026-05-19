@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { readPrivatePlanningDataPayload } from "@/lib/private-planning-data";
+import { verifyInnerCircleApiRequest } from "@/lib/inner-circle-route";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -153,7 +154,13 @@ function normalizePublicEvent(value: unknown): PublicInnerCircleDate | null {
   return publicEvent;
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const access = verifyInnerCircleApiRequest(request);
+
+  if (!access.ok) {
+    return access.response;
+  }
+
   try {
     const { payload } = await readPrivatePlanningDataPayload();
     const planningPayload = payload as Record<string, unknown>;

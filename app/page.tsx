@@ -1881,7 +1881,7 @@ export default function WeddingWebsiteStarter() {
                   delay: shouldReduceMotion ? 0 : 0.28 + index * 0.12,
                   ease: cinematicRevealEase,
                 }}
-                className="mobile-invite-card card-luxe card-luxe-text card-luxe-hover px-8 py-10"
+                className="mobile-invite-card card-luxe card-luxe-text card-luxe-hover celebration-feature-card px-8 py-10"
               >
                 <card.icon className="mb-7 h-6 w-6 text-[var(--color-divider)]" />
                 <h3 className="type-card-title">{card.title}</h3>
