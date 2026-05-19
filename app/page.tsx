@@ -1833,7 +1833,7 @@ export default function WeddingWebsiteStarter() {
           ) : null
         }
       >
-        <div className="mx-auto mb-10 max-w-3xl text-center">
+        <div className="celebration-heading mx-auto mb-10 max-w-3xl text-center">
           <motion.p className="heading-micro mb-3" {...cinematicRevealMotion(0, 10, 0.86, 0.5)}>
             The celebration
           </motion.p>
@@ -1846,6 +1846,35 @@ export default function WeddingWebsiteStarter() {
             Our day has been designed to feel romantic, relaxed, and full of warmth &mdash; unfolding across Caversham House.
           </motion.p>
         </div>
+        {hasMeasuredHeroViewport && !isHeroMobile ? (
+          <motion.figure
+            className="celebration-desktop-video-panel"
+            aria-hidden="true"
+            {...cinematicRevealMotion(0.36, 16, 0.96, 0.34)}
+          >
+            {shouldReduceMotion ? (
+              <Image
+                src="/videos/celebration-garden-poster.jpg"
+                alt=""
+                width={720}
+                height={1080}
+                sizes="(max-width: 1279px) 420px, 520px"
+                className="celebration-desktop-video-media"
+              />
+            ) : (
+              <video
+                className="celebration-desktop-video-media"
+                src="/videos/celebration-garden-loop-soft-loop.mp4"
+                poster="/videos/celebration-garden-poster.jpg"
+                autoPlay
+                muted
+                loop
+                playsInline
+                preload="metadata"
+              />
+            )}
+          </motion.figure>
+        ) : null}
         <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
           {[
             {
