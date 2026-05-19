@@ -1875,7 +1875,7 @@ export default function WeddingWebsiteStarter() {
             )}
           </motion.figure>
         ) : null}
-        <div className="mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
+        <div className="celebration-card-grid mx-auto grid max-w-6xl gap-6 md:grid-cols-3">
           {[
             {
               icon: Flower2,
