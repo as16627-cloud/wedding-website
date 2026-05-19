@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   hasInnerCircleCsrfHeader,
+  getInnerCircleMissingConfigMessage,
   innerCircleNoStoreHeaders,
   isInnerCircleAuthConfigured,
   readInnerCircleSessionToken,
@@ -24,7 +25,7 @@ export function verifyInnerCircleApiRequest(request: NextRequest) {
   }
 
   if (!isInnerCircleAuthConfigured()) {
-    return { ok: false as const, response: innerCircleJson({ ok: false, error: "Inner Circle access is not configured." }, { status: 500 }) };
+    return { ok: false as const, response: innerCircleJson({ ok: false, error: getInnerCircleMissingConfigMessage() }, { status: 500 }) };
   }
 
   return { ok: true as const };

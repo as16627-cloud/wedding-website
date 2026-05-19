@@ -3,6 +3,7 @@ import {
   createInnerCircleSessionToken,
   getInnerCircleCookieName,
   getInnerCircleCookieOptions,
+  getInnerCircleMissingConfigMessage,
   INNER_CIRCLE_LEGACY_COOKIE_NAMES,
   innerCircleNoStoreHeaders,
   isInnerCircleAuthConfigured,
@@ -39,7 +40,7 @@ function wait(delayMs: number) {
 
 export async function POST(request: Request) {
   if (!isInnerCircleAuthConfigured()) {
-    return innerCircleLoginJson({ ok: false, error: "Inner Circle access is not configured." }, { status: 500 });
+    return innerCircleLoginJson({ ok: false, error: getInnerCircleMissingConfigMessage() }, { status: 500 });
   }
 
   if (!isSameOriginRequest(request)) {
@@ -104,7 +105,7 @@ export async function POST(request: Request) {
   const token = createInnerCircleSessionToken();
 
   if (!token) {
-    return innerCircleLoginJson({ ok: false, error: "Inner Circle access is not configured." }, { status: 500 });
+    return innerCircleLoginJson({ ok: false, error: getInnerCircleMissingConfigMessage() }, { status: 500 });
   }
 
   await recordPrivatePlanningLoginSuccess(identity, { target: rateLimitTarget }).catch((error) => {
